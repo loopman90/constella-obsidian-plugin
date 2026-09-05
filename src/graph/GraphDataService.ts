@@ -122,8 +122,7 @@ export class GraphDataService {
     const tags = new Set<string>();
     cache?.tags?.forEach((tag) => tags.add(tag.tag.replace(/^#/, "").toLowerCase()));
 
-    const frontmatter = cache?.frontmatter as Record<string, unknown> | undefined;
-    const frontmatterTags = frontmatter?.tags;
+    const frontmatterTags = cache?.frontmatter?.tags;
     if (typeof frontmatterTags === "string") {
       this.filterTokens(frontmatterTags).forEach((tag) => tags.add(tag.replace(/^#/, "")));
     } else if (Array.isArray(frontmatterTags)) {

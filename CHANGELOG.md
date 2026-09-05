@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.4
+
+- Removed an unnecessary frontmatter type assertion in graph tag filtering for cleaner review output.
+
 ## 0.3.3
 
 - Added an `Include Floating Notes` graph option, enabled by default.
