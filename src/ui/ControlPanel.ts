@@ -144,6 +144,7 @@ export class ControlPanel {
     search.appendChild(this.textControl("Find Note", "", (value) => this.controller.focusNodeByQuery(value), "Type to focus a note"));
     const current = this.controller.currentNode;
     search.createDiv({ cls: "constella-help-text", text: current ? `Focused: ${current.title}` : "No note focused" });
+    search.appendChild(this.actionButton("Show All Notes", () => this.controller.showAllNotes()));
 
     const setup = this.section(parent, "Quick Setup", "The most-used controls in one place.");
     setup.appendChild(this.select("Graph", config.graph.scope, this.graphScopeOptions(), (value) => this.controller.updateGraphScope(value)));
@@ -241,6 +242,7 @@ export class ControlPanel {
       cls: "constella-help-text",
       text: `${config.interaction.pinnedNodeIds.length} pinned, ${config.interaction.hiddenNodeIds.length} hidden, ${config.interaction.hiddenClusterIds.length} hidden clusters`
     });
+    interaction.appendChild(this.actionButton("Show All Notes", () => this.controller.showAllNotes()));
     section.appendChild(this.actionButton("Reset Graph", () => this.controller.resetSection("graph")));
   }
 

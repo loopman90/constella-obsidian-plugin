@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1
+
+- Added a `Show All Notes` action that resets graph scope, graph filters, and temporary hide/expand state.
+- Fixed older saved templates/settings that did not include new graph filter fields so they cannot accidentally hide all notes.
+- Made folder/tag/date/minimum-link filters safer when imported settings are incomplete.
+
 ## 0.2.0
 
 - Added note search/focus from the Constella control panel.

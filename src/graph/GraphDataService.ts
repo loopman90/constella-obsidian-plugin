@@ -1,4 +1,5 @@
 import type { App, TFile } from "obsidian";
+import { cloneConfiguration, DEFAULT_CONFIGURATION } from "../core/ActiveConfiguration";
 import type { ActiveConfiguration, GraphData, GraphEdge, GraphNode } from "../core/types";
 import { ClusterEngine } from "../discovery/ClusterEngine";
 
@@ -49,9 +50,10 @@ export class GraphDataService {
       }
     }
 
+    const minimumConnections = config.graph.minimumConnections ?? 0;
     const nodes = files
       .map((file, index) => this.createNode(file, index, files.length, connectionCounts.get(file.path) ?? 0))
-      .filter((node) => node.connectionCount >= config.graph.minimumConnections);
+      .filter((node) => node.connectionCount >= minimumConnections);
     const nodeIds = new Set(nodes.map((node) => node.id));
     return {
       nodes,
@@ -100,7 +102,7 @@ export class GraphDataService {
     return true;
   }
 
-  private matchesFolderFilter(file: TFile, filter: string): boolean {
+  private matchesFolderFilter(file: TFile, filter: string | undefined): boolean {
     const tokens = this.filterTokens(filter);
     if (tokens.length === 0) {
       return true;
@@ -109,7 +111,7 @@ export class GraphDataService {
     return tokens.some((token) => path.includes(token));
   }
 
-  private matchesTagFilter(file: TFile, filter: string): boolean {
+  private matchesTagFilter(file: TFile, filter: string | undefined): boolean {
     const tokens = this.filterTokens(filter).map((token) => token.replace(/^#/, ""));
     if (tokens.length === 0) {
       return true;
@@ -134,18 +136,19 @@ export class GraphDataService {
   }
 
   private matchesDateFilter(file: TFile, config: ActiveConfiguration): boolean {
-    if (config.graph.dateFilter === "all") {
+    const dateFilter = config.graph.dateFilter ?? "all";
+    if (dateFilter === "all") {
       return true;
     }
     const ageMs = Date.now() - file.stat.mtime;
-    if (config.graph.dateFilter === "recent") {
+    if (dateFilter === "recent") {
       return ageMs <= config.discovery.recentDays * 86400000;
     }
     return ageMs >= config.discovery.forgottenDays * 86400000;
   }
 
-  private filterTokens(value: string): string[] {
-    return value
+  private filterTokens(value: string | undefined): string[] {
+    return (value ?? "")
       .split(/[,;\n]/)
       .map((item) => item.trim().toLowerCase())
       .filter(Boolean);
@@ -192,18 +195,19 @@ export class GraphDataService {
 
   private applyInteractionFilters(graph: GraphData, config: ActiveConfiguration): GraphData {
     let included = new Set(graph.nodes.map((node) => node.id));
-    config.interaction.hiddenNodeIds.forEach((id) => included.delete(id));
+    const interaction = config.interaction ?? cloneConfiguration(DEFAULT_CONFIGURATION).interaction;
+    interaction.hiddenNodeIds.forEach((id) => included.delete(id));
     graph.nodes
-      .filter((node) => config.interaction.hiddenClusterIds.includes(node.clusterId))
+      .filter((node) => interaction.hiddenClusterIds.includes(node.clusterId))
       .forEach((node) => included.delete(node.id));
 
-    if (config.interaction.expandFromNodeId && included.has(config.interaction.expandFromNodeId)) {
-      const expanded = new Set<string>([config.interaction.expandFromNodeId]);
+    if (interaction.expandFromNodeId && included.has(interaction.expandFromNodeId)) {
+      const expanded = new Set<string>([interaction.expandFromNodeId]);
       graph.edges.forEach((edge) => {
-        if (edge.source === config.interaction.expandFromNodeId && included.has(edge.target)) {
+        if (edge.source === interaction.expandFromNodeId && included.has(edge.target)) {
           expanded.add(edge.target);
         }
-        if (edge.target === config.interaction.expandFromNodeId && included.has(edge.source)) {
+        if (edge.target === interaction.expandFromNodeId && included.has(edge.source)) {
           expanded.add(edge.source);
         }
       });

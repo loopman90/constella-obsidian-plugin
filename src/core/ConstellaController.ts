@@ -409,6 +409,35 @@ export class ConstellaController {
     await this.persist();
   }
 
+  async showAllNotes(): Promise<void> {
+    this.selectNode(null);
+    this.updateConfiguration({
+      ...cloneConfiguration(this.configuration),
+      graph: {
+        ...this.configuration.graph,
+        scope: "global",
+        folderFilter: "",
+        tagFilter: "",
+        dateFilter: "all",
+        minimumConnections: 0
+      },
+      discovery: {
+        ...this.configuration.discovery,
+        includeOrphans: true,
+        excludeTemplates: false,
+        excludeDailyNotes: false,
+        excludeAttachments: true
+      },
+      interaction: cloneConfiguration(DEFAULT_CONFIGURATION).interaction,
+      template: {
+        ...this.configuration.template,
+        modified: true
+      }
+    });
+    this.refreshGraph();
+    await this.persist();
+  }
+
   async resetSection(section: "graph" | "motion" | "background" | "display" | "journey" | "discovery" | "interaction"): Promise<void> {
     const defaults = cloneConfiguration(DEFAULT_CONFIGURATION);
     this.updateConfiguration({

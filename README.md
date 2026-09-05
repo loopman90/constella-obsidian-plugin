@@ -96,6 +96,7 @@ Constella keeps these systems separate:
 ## Highlights
 
 - Search and focus notes directly from the Constella control panel.
+- Reset the graph to all Markdown notes with `Show All Notes`.
 - Filter the graph by folder, tag, recent notes, forgotten notes, and minimum link count.
 - Hover a node to highlight its direct neighbors.
 - Pin nodes, temporarily hide nodes or clusters, expand from a selected note, and preview a path between two notes.
