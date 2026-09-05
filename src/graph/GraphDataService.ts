@@ -121,19 +121,29 @@ export class GraphDataService {
     const cache = this.app.metadataCache.getFileCache(file);
     const tags = new Set<string>();
     cache?.tags?.forEach((tag) => tags.add(tag.tag.replace(/^#/, "").toLowerCase()));
+    this.addFrontmatterTags(tags, cache?.frontmatter);
 
-    const frontmatterTags = cache?.frontmatter?.tags;
+    return tokens.some((token) => tags.has(token) || Array.from(tags).some((tag) => tag.startsWith(`${token}/`)));
+  }
+
+  private addFrontmatterTags(tags: Set<string>, frontmatter: unknown): void {
+    if (!frontmatter || typeof frontmatter !== "object" || !("tags" in frontmatter)) {
+      return;
+    }
+
+    const frontmatterTags = (frontmatter as { tags?: unknown }).tags;
     if (typeof frontmatterTags === "string") {
       this.filterTokens(frontmatterTags).forEach((tag) => tags.add(tag.replace(/^#/, "")));
-    } else if (Array.isArray(frontmatterTags)) {
+      return;
+    }
+
+    if (Array.isArray(frontmatterTags)) {
       frontmatterTags.forEach((tag) => {
         if (typeof tag === "string") {
           tags.add(tag.replace(/^#/, "").toLowerCase());
         }
       });
     }
-
-    return tokens.some((token) => tags.has(token) || Array.from(tags).some((tag) => tag.startsWith(`${token}/`)));
   }
 
   private matchesDateFilter(file: TFile, config: ActiveConfiguration): boolean {

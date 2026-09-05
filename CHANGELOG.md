@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.6
+
+- Removed an unsafe frontmatter tag assignment warning in graph filtering.
+
 ## 0.3.5
 
 - Improved the Quick Bar second-screen button by using Obsidian's pop-out leaf workflow first.
