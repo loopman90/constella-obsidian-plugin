@@ -44,6 +44,38 @@ export class TemplateManager {
       }, true),
       this.template("builtin-neon", "Neon", now, base, { mode: "random-discovery", visual: "neon", colors: "rainbow-flow", camera: "dynamic" }, true),
       this.template("builtin-discovery", "Discovery", now, base, { mode: "forgotten-knowledge", visual: "soft-glow", colors: "forest", camera: "floating" }, true),
+      this.template("builtin-dark-mode", "Dark Mode", now, base, {
+        mode: "wander",
+        visual: "clean",
+        colors: "dark-mode",
+        camera: "calm",
+        background: { style: "dark-mode" },
+        motion: {
+          ...base.motion,
+          animationSpeed: 0.22,
+          cameraSpeed: 0.16,
+          visualIntensity: 0.42,
+          colorSpeed: 0.18,
+          colorIntensity: 0.52,
+          particlesEnabled: false,
+          nodeMovementEnabled: true,
+          connectionPulsesEnabled: true,
+          glowEnabled: true,
+          backgroundEffectsEnabled: false,
+          particleAmount: 0,
+          pulseAmount: 6,
+          drawingLinesEnabled: false,
+          nodeMovementStyle: "gentle-float",
+          nodeMovementStrength: 0.18,
+          nodeMovementSpeed: 0.2,
+          pathAnimation: "single-pulse",
+          pulseStyle: "hollow-dot"
+        },
+        display: {
+          ...base.display,
+          showNodeInfoOverlay: false
+        }
+      }, true),
       this.template("builtin-minimal-dark", "Minimal Dark", now, base, {
         mode: "wander",
         visual: "minimal",

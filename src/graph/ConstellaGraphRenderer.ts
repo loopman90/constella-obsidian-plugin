@@ -290,6 +290,8 @@ export class ConstellaGraphRenderer {
         return { a: "#020a06", b: "#03140c", gradient: true, animated: false, stars: false, nebula: false, matrix: true, starMap: false, transparent: false };
       case "star-map":
         return { a: "#020617", mid: "#081426", b: "#10233f", gradient: true, animated: true, stars: true, nebula: false, matrix: false, starMap: true, transparent: false };
+      case "dark-mode":
+        return { a: "#050507", mid: "#0b0d12", b: "#111827", gradient: true, animated: false, stars: false, nebula: false, matrix: false, starMap: false, transparent: false };
       default:
         return { a: paletteA, b: paletteB, gradient: true, animated: false, stars: true, nebula: true, matrix: false, starMap: false, transparent: false };
     }
@@ -1158,6 +1160,18 @@ export class ConstellaGraphRenderer {
           edge: "#60a5fa",
           edgeActive: "#fbbf24",
           label: "#e0f2fe"
+        };
+      case "dark-mode":
+        return {
+          backgroundA: "#050507",
+          backgroundB: "#111827",
+          node: "#cbd5e1",
+          nodeRecent: "#7dd3fc",
+          nodeActive: "#ffffff",
+          nodeVisited: "#94a3b8",
+          edge: "#475569",
+          edgeActive: "#38bdf8",
+          label: "#e5e7eb"
         };
       case "aurora":
       default:
