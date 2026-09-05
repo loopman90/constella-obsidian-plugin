@@ -206,6 +206,7 @@ export interface ActiveConfiguration {
     tagFilter: string;
     dateFilter: "all" | "recent" | "forgotten";
     minimumConnections: number;
+    includeFloatingNotes: boolean;
   };
   motion: {
     animationSpeed: number;

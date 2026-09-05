@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.3
+
+- Added an `Include Floating Notes` graph option, enabled by default.
+- Local and Current Note scopes can now keep orphan/floating Markdown notes visible even when they are not connected to the active note.
+- Floating notes are positioned on an outer ring so they are easier to notice.
+- `Show All Notes` now also restores floating-note visibility.
+
 ## 0.3.2
 
 - Scoped Constella keyboard shortcuts to the active Constella view.

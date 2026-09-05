@@ -98,6 +98,7 @@ Constella keeps these systems separate:
 - Search and focus notes directly from the Constella control panel.
 - Reset the graph to all Markdown notes with `Show All Notes`.
 - Filter the graph by folder, tag, recent notes, forgotten notes, and minimum link count.
+- Keep floating/orphan notes visible in local graph views.
 - Hover a node to highlight its direct neighbors.
 - Pin nodes, temporarily hide nodes or clusters, expand from a selected note, and preview a path between two notes.
 - Tune background intensity, label size, node size, edge thickness, particles, pulses, drawing lines, visual styles, and reduce-motion mode.
@@ -168,6 +169,8 @@ Constella supports:
 - `Global`: the full vault graph.
 - `Local`: the graph around the current note, with configurable depth up to 50 link steps.
 - `Current Note`: a focused graph for the active note.
+
+Floating notes are Markdown notes without resolved links. The `Include Floating Notes` option keeps them visible in local graph scopes and places them on an outer ring for easier scanning.
 
 ## Journey Modes
 

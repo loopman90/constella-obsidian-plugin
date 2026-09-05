@@ -12,7 +12,8 @@ export const DEFAULT_CONFIGURATION: ActiveConfiguration = {
     folderFilter: "",
     tagFilter: "",
     dateFilter: "all",
-    minimumConnections: 0
+    minimumConnections: 0,
+    includeFloatingNotes: true
   },
   motion: {
     animationSpeed: 0.55,

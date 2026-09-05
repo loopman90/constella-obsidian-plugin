@@ -22,7 +22,7 @@ export class GraphDataService {
     }
 
     const depth = scope === "current" ? 0 : Math.max(1, Math.min(50, Math.round(localDepth ?? 4)));
-    graph = this.clusterEngine.assignClusters(this.filterAroundFile(global, activeFile, depth));
+    graph = this.clusterEngine.assignClusters(this.filterAroundFile(global, activeFile, depth, config.graph.includeFloatingNotes ?? true));
     return this.applyInteractionFilters(graph, config);
   }
 
@@ -64,7 +64,8 @@ export class GraphDataService {
   private createNode(file: TFile, index: number, total: number, connectionCount: number): GraphNode {
     const ring = Math.max(80, Math.sqrt(total) * 38);
     const angle = (index / Math.max(1, total)) * Math.PI * 2;
-    const radius = ring * (0.45 + (index % 7) * 0.075);
+    const floatingOffset = connectionCount === 0 ? 0.55 + (index % 5) * 0.05 : 0;
+    const radius = ring * (0.45 + (index % 7) * 0.075 + floatingOffset);
 
     return {
       id: file.path,
@@ -155,7 +156,7 @@ export class GraphDataService {
       .filter(Boolean);
   }
 
-  private filterAroundFile(graph: GraphData, file: TFile, depth: number): GraphData {
+  private filterAroundFile(graph: GraphData, file: TFile, depth: number, includeFloatingNotes: boolean): GraphData {
     const adjacency = new Map<string, Set<string>>();
 
     for (const edge of graph.edges) {
@@ -180,6 +181,12 @@ export class GraphDataService {
       if (frontier.size === 0) {
         break;
       }
+    }
+
+    if (includeFloatingNotes) {
+      graph.nodes
+        .filter((node) => node.connectionCount === 0)
+        .forEach((node) => included.add(node.id));
     }
 
     return {

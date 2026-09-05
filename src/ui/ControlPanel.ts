@@ -220,6 +220,9 @@ export class ControlPanel {
     section.appendChild(this.toggleControl("Use Current Note When Available", config.graph.useCurrentGraphWhenAvailable, (value) =>
       this.controller.updateGraphOption("useCurrentGraphWhenAvailable", value)
     ));
+    section.appendChild(this.toggleControl("Include Floating Notes", config.graph.includeFloatingNotes ?? true, (value) =>
+      this.controller.updateGraphOption("includeFloatingNotes", value)
+    ));
     section.appendChild(this.textControl("Folder Filter", config.graph.folderFilter, (value) => this.controller.updateGraphOption("folderFilter", value), "Projects, Areas"));
     section.appendChild(this.textControl("Tag Filter", config.graph.tagFilter, (value) => this.controller.updateGraphOption("tagFilter", value), "idea, project"));
     section.appendChild(this.select("Date Filter", config.graph.dateFilter, [
