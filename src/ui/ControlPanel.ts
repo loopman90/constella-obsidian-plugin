@@ -140,6 +140,11 @@ export class ControlPanel {
       { label: "Stop", onClick: () => this.controller.stop() }
     ]));
 
+    const search = this.section(parent, "Search", "Focus a note node by title or path.");
+    search.appendChild(this.textControl("Find Note", "", (value) => this.controller.focusNodeByQuery(value), "Type to focus a note"));
+    const current = this.controller.currentNode;
+    search.createDiv({ cls: "constella-help-text", text: current ? `Focused: ${current.title}` : "No note focused" });
+
     const setup = this.section(parent, "Quick Setup", "The most-used controls in one place.");
     setup.appendChild(this.select("Graph", config.graph.scope, this.graphScopeOptions(), (value) => this.controller.updateGraphScope(value)));
     setup.appendChild(this.select("Mode", config.mode, MODES, (value) => this.controller.updateMode(value)));
@@ -170,15 +175,27 @@ export class ControlPanel {
     templates.appendChild(this.actionButton("Import JSON", () => {
       new JsonTransferModal(this.controller.app, "import", "Import Constella", "", (json) => this.controller.importJson(json)).open();
     }));
+    const grouped = new Map<string, typeof this.controller.templates>();
     this.controller.templates.forEach((template) => {
-      templates.appendChild(this.templateRow(template.name, template.builtIn, template.favorite, () => this.controller.loadTemplate(template.id), () =>
-        this.controller.toggleTemplateFavorite(template.id), () =>
-        this.controller.duplicateTemplate(template.id), () => {
-          new TemplateEditorModal(this.controller.app, template, (name, configValue) =>
-            this.controller.upsertTemplate(template, name, configValue)
-          ).open();
-        }, () => this.controller.deleteTemplate(template.id)
-      ));
+      const category = this.templateCategory(template.name);
+      grouped.set(category, [...(grouped.get(category) ?? []), template]);
+    });
+    ["Minimal", "Cinematic", "Data", "Calm", "Intense", "Utility"].forEach((category) => {
+      const items = grouped.get(category);
+      if (!items?.length) {
+        return;
+      }
+      templates.createDiv({ cls: "constella-mini-list-title", text: `${category} Presets` });
+      items.forEach((template) => {
+        templates.appendChild(this.templateRow(template.name, template.builtIn, template.favorite, () => this.controller.loadTemplate(template.id), () =>
+          this.controller.toggleTemplateFavorite(template.id), () =>
+          this.controller.duplicateTemplate(template.id), () => {
+            new TemplateEditorModal(this.controller.app, template, (name, configValue) =>
+              this.controller.upsertTemplate(template, name, configValue)
+            ).open();
+          }, () => this.controller.deleteTemplate(template.id)
+        ));
+      });
     });
 
     const playlists = this.section(parent, "Playlists", "Run several looks in sequence for display mode.");
@@ -198,6 +215,33 @@ export class ControlPanel {
     section.appendChild(this.toggleControl("Use Current Note When Available", config.graph.useCurrentGraphWhenAvailable, (value) =>
       this.controller.updateGraphOption("useCurrentGraphWhenAvailable", value)
     ));
+    section.appendChild(this.textControl("Folder Filter", config.graph.folderFilter, (value) => this.controller.updateGraphOption("folderFilter", value), "Projects, Areas"));
+    section.appendChild(this.textControl("Tag Filter", config.graph.tagFilter, (value) => this.controller.updateGraphOption("tagFilter", value), "idea, project"));
+    section.appendChild(this.select("Date Filter", config.graph.dateFilter, [
+      { id: "all", label: "All Notes" },
+      { id: "recent", label: "Recent" },
+      { id: "forgotten", label: "Forgotten" }
+    ], (value) => this.controller.updateGraphOption("dateFilter", value)));
+    section.appendChild(this.numberControl("Minimum Links", config.graph.minimumConnections, 0, 100, (value) =>
+      this.controller.updateGraphOption("minimumConnections", value)
+    ));
+
+    const interaction = this.section(parent, "Interaction", "Pin, hide, expand, and preview paths from the focused node.");
+    interaction.appendChild(this.buttonGroup([
+      { label: "Pin Focused Node", onClick: () => this.controller.togglePinnedSelected() },
+      { label: "Hide Node", onClick: () => this.controller.hideSelectedNode() },
+      { label: "Hide Cluster", onClick: () => this.controller.hideSelectedCluster() }
+    ]));
+    interaction.appendChild(this.buttonGroup([
+      { label: "Expand From Node", onClick: () => this.controller.expandFromSelected() },
+      { label: "Set Path Start", onClick: () => this.controller.markPathPreviewPoint() },
+      { label: "Clear View State", onClick: () => this.controller.clearInteractionState() }
+    ]));
+    interaction.createDiv({
+      cls: "constella-help-text",
+      text: `${config.interaction.pinnedNodeIds.length} pinned, ${config.interaction.hiddenNodeIds.length} hidden, ${config.interaction.hiddenClusterIds.length} hidden clusters`
+    });
+    section.appendChild(this.actionButton("Reset Graph", () => this.controller.resetSection("graph")));
   }
 
   private renderVisual(parent: HTMLElement): void {
@@ -208,15 +252,19 @@ export class ControlPanel {
     section.appendChild(this.slider("Color Intensity", config.motion.colorIntensity, (value) => this.controller.updateMotion("colorIntensity", value)));
     section.appendChild(this.slider("Color Speed", config.motion.colorSpeed, (value) => this.controller.updateMotion("colorSpeed", value)));
     section.appendChild(this.toggleControl("Glow", config.motion.glowEnabled, (value) => this.controller.updateMotion("glowEnabled", value)));
+    section.appendChild(this.slider("Node Size", config.display.nodeSize, (value) => this.controller.updateDisplay("nodeSize", value)));
+    section.appendChild(this.slider("Edge Thickness", config.display.edgeThickness, (value) => this.controller.updateDisplay("edgeThickness", value)));
     section.appendChild(this.actionButton("Save Visual Preset", () => {
       new TextPromptModal(this.controller.app, "Save Visual Preset", "Visual Experiment", (name) => this.controller.saveTemplateAs(name)).open();
     }));
+    section.appendChild(this.actionButton("Reset Visual", () => this.controller.resetSection("display")));
   }
 
   private renderBackground(parent: HTMLElement): void {
     const config = this.controller.configuration;
     const section = this.section(parent, "Background", "Change the canvas backdrop and ambient effects.");
     section.appendChild(this.select("Background Style", config.background.style, BACKGROUNDS, (value) => this.controller.updateBackground(value)));
+    section.appendChild(this.slider("Background Intensity", config.background.intensity, (value) => this.controller.updateBackgroundOption("intensity", value)));
     section.appendChild(this.toggleControl("Background Effects", config.motion.backgroundEffectsEnabled, (value) =>
       this.controller.updateMotion("backgroundEffectsEnabled", value)
     ));
@@ -231,6 +279,7 @@ export class ControlPanel {
     section.appendChild(this.slider("Drawing Line Speed", config.motion.drawingLineSpeed, (value) =>
       this.controller.updateMotion("drawingLineSpeed", value)
     ));
+    section.appendChild(this.actionButton("Reset Background", () => this.controller.resetSection("background")));
   }
 
   private renderMotion(parent: HTMLElement): void {
@@ -255,7 +304,9 @@ export class ControlPanel {
       this.controller.updateMotion("animationSpeed", value)
     ));
     section.appendChild(this.slider("Camera Speed", config.motion.cameraSpeed, (value) => this.controller.updateMotion("cameraSpeed", value)));
+    section.appendChild(this.toggleControl("Reduce Motion", config.motion.reduceMotion, (value) => this.controller.updateMotion("reduceMotion", value)));
     section.appendChild(this.actionButton("Randomize Motion", () => this.controller.randomizeSafe()));
+    section.appendChild(this.actionButton("Reset Motion", () => this.controller.resetSection("motion")));
   }
 
   private renderPaths(parent: HTMLElement): void {
@@ -277,6 +328,7 @@ export class ControlPanel {
     section.appendChild(this.slider("Drawing Line Speed", config.motion.drawingLineSpeed, (value) =>
       this.controller.updateMotion("drawingLineSpeed", value)
     ));
+    section.appendChild(this.actionButton("Reset Paths", () => this.controller.resetSection("motion")));
   }
 
   private renderJourney(parent: HTMLElement): void {
@@ -303,6 +355,7 @@ export class ControlPanel {
     ));
     section.appendChild(this.actionButton("Start Journey Here", () => this.controller.startJourneyFromSelected()));
     section.appendChild(this.actionButton("Suggest Node", () => this.controller.focusSuggestedNode()));
+    section.appendChild(this.actionButton("Reset Journey", () => this.controller.resetSection("journey")));
   }
 
   private renderDiscovery(parent: HTMLElement): void {
@@ -329,6 +382,7 @@ export class ControlPanel {
     section.appendChild(this.discoveryList("Recent", summary.recent.map((node) => node.title)));
     section.appendChild(this.discoveryList("Forgotten", summary.forgotten.map((node) => node.title)));
     section.appendChild(this.discoveryList("Hubs", summary.hubs.map((node) => node.title)));
+    section.appendChild(this.actionButton("Reset Discovery", () => this.controller.resetSection("discovery")));
   }
 
   private renderDisplay(parent: HTMLElement): void {
@@ -339,6 +393,11 @@ export class ControlPanel {
       this.controller.updateDisplay("showNodeInfoOverlay", value)
     ));
     section.appendChild(this.toggleControl("Labels", config.display.showLabels, (value) => this.controller.updateDisplay("showLabels", value)));
+    section.appendChild(this.slider("Label Size", config.display.labelSize, (value) => this.controller.updateDisplay("labelSize", value)));
+    section.appendChild(this.slider("Edge Thickness", config.display.edgeThickness, (value) => this.controller.updateDisplay("edgeThickness", value)));
+    section.appendChild(this.slider("Node Size", config.display.nodeSize, (value) => this.controller.updateDisplay("nodeSize", value)));
+    section.appendChild(this.toggleControl("Legend", config.display.showLegend, (value) => this.controller.updateDisplay("showLegend", value)));
+    section.appendChild(this.toggleControl("FPS Indicator", config.display.showFps, (value) => this.controller.updateDisplay("showFps", value)));
     section.appendChild(this.toggleControl("Fullscreen Intent", config.display.fullscreen, (value) => this.controller.updateDisplay("fullscreen", value)));
     section.appendChild(this.numberControl("Hide Cursor After", config.display.autoHideCursorSeconds, 0, 60, (value) =>
       this.controller.updateDisplay("autoHideCursorSeconds", value)
@@ -347,6 +406,7 @@ export class ControlPanel {
       cls: "constella-help-text",
       text: "Use Open Display Window from the command palette to launch Constella in an Obsidian pop-out window for another screen."
     });
+    section.appendChild(this.actionButton("Reset Display", () => this.controller.resetSection("display")));
   }
 
   private renderAdvanced(parent: HTMLElement): void {
@@ -374,7 +434,7 @@ export class ControlPanel {
     ];
   }
 
-  private select<T extends ModeId | VisualId | ColorsId | CameraId | GraphScope | PathAnimationId | PulseStyleId | BackgroundId | NodeMovementStyleId | ClickAnimationId | ActiveConfiguration["journey"]["deadEndBehavior"] | ActiveConfiguration["journey"]["afterJourney"]>(
+  private select<T extends ModeId | VisualId | ColorsId | CameraId | GraphScope | PathAnimationId | PulseStyleId | BackgroundId | NodeMovementStyleId | ClickAnimationId | ActiveConfiguration["graph"]["dateFilter"] | ActiveConfiguration["journey"]["deadEndBehavior"] | ActiveConfiguration["journey"]["afterJourney"]>(
     label: string,
     value: T,
     options: BuiltInOption<T>[],
@@ -386,6 +446,20 @@ export class ControlPanel {
     options.forEach((option) => select.createEl("option", { text: option.label, value: option.id }));
     select.value = value;
     select.addEventListener("change", () => void onChange(select.value as T));
+    return row;
+  }
+
+  private textControl(label: string, value: string, onChange: (value: string) => void | Promise<void>, placeholder?: string): HTMLElement {
+    const row = createDiv({ cls: "constella-panel-control" });
+    row.createSpan({ text: label });
+    const input = row.createEl("input", {
+      type: "text",
+      attr: {
+        placeholder: placeholder ?? ""
+      }
+    });
+    input.value = value;
+    input.addEventListener("input", () => void onChange(input.value));
     return row;
   }
 
@@ -478,6 +552,26 @@ export class ControlPanel {
     del.disabled = builtIn;
     del.addEventListener("click", () => void onDelete());
     return row;
+  }
+
+  private templateCategory(name: string): "Minimal" | "Cinematic" | "Data" | "Calm" | "Intense" | "Utility" {
+    const value = name.toLowerCase();
+    if (/minimal|paper|clean|ink|pearl/.test(value)) {
+      return "Minimal";
+    }
+    if (/matrix|terminal|heatmap|signal|data|blueprint|night vision|prism|infrared/.test(value)) {
+      return "Data";
+    }
+    if (/zen|garden|library|ocean|forest|meadow|calm|soft/.test(value)) {
+      return "Calm";
+    }
+    if (/red|alert|cyber|lava|chaos|storm|galaxy/.test(value)) {
+      return "Intense";
+    }
+    if (/default|starter|utility|graphite|high contrast|dark mode/.test(value)) {
+      return "Utility";
+    }
+    return "Cinematic";
   }
 
   private playlistRow(

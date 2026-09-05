@@ -149,6 +149,10 @@ export interface ActiveConfiguration {
     scope: GraphScope;
     localDepth: number;
     useCurrentGraphWhenAvailable: boolean;
+    folderFilter: string;
+    tagFilter: string;
+    dateFilter: "all" | "recent" | "forgotten";
+    minimumConnections: number;
   };
   motion: {
     animationSpeed: number;
@@ -172,9 +176,11 @@ export interface ActiveConfiguration {
     nodeMovementStrength: number;
     nodeMovementSpeed: number;
     clickAnimation: ClickAnimationId;
+    reduceMotion: boolean;
   };
   background: {
     style: BackgroundId;
+    intensity: number;
   };
   journey: {
     minNodes: number;
@@ -199,6 +205,18 @@ export interface ActiveConfiguration {
     autoHideCursorSeconds: number;
     showNodeInfoOverlay: boolean;
     showLabels: boolean;
+    showLegend: boolean;
+    showFps: boolean;
+    labelSize: number;
+    edgeThickness: number;
+    nodeSize: number;
+  };
+  interaction: {
+    pinnedNodeIds: string[];
+    hiddenNodeIds: string[];
+    hiddenClusterIds: number[];
+    expandFromNodeId: string | null;
+    pathPreviewStartId: string | null;
   };
   template: {
     activeTemplateId: string;

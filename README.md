@@ -6,6 +6,8 @@ Explore your vault as an interactive, local-first knowledge graph. Turn notes in
 
 Constella is read-only and local. It reads vault metadata to render the graph, but it does not modify notes and does not send data anywhere.
 
+![Constella preview](docs/media/constella-preview.svg)
+
 ## Installation
 
 ### Manual Installation
@@ -91,6 +93,16 @@ Constella keeps these systems separate:
 - **Template** is a saved combination of Mode, Visual, Colors, Camera, and other settings.
 - **Playlist** is a sequence of steps that can switch modes, visuals, colors, and camera profiles over time.
 
+## Highlights
+
+- Search and focus notes directly from the Constella control panel.
+- Filter the graph by folder, tag, recent notes, forgotten notes, and minimum link count.
+- Hover a node to highlight its direct neighbors.
+- Pin nodes, temporarily hide nodes or clusters, expand from a selected note, and preview a path between two notes.
+- Tune background intensity, label size, node size, edge thickness, particles, pulses, drawing lines, and reduce-motion mode.
+- Show an optional legend for color modes such as Heatmap, Age Gradient, Cluster Neon, Focus Fade, and Signal Strength.
+- Show an optional FPS indicator for performance checks.
+
 Templates are never overwritten automatically. If you change settings after loading a template, the current setup becomes `Modified` until you explicitly choose Save or Save As.
 
 ## Controls
@@ -114,17 +126,18 @@ The Quick Bar can also be collapsed into a compact icon.
 The Control Panel includes sections for:
 
 - Quick
-- Visuals
+- Templates
+- Graph
+- Visual
+- Background
 - Motion
+- Paths
 - Journey
 - Discovery
-- Templates
-- Playlists
-- Screensaver
 - Display
 - Advanced
 
-Most visual settings are applied live, including colors, intensity, camera behavior, node movement, glow, particles, and connection pulses.
+Most visual settings are applied live, including colors, intensity, camera behavior, node movement, glow, particles, connection pulses, drawing lines, labels, and background style.
 
 ### Keyboard Controls
 
@@ -139,7 +152,12 @@ Inside the Constella view:
 ### Node Interaction
 
 - Click a node to select it.
+- Hover a node to highlight its immediate neighbors.
 - Double-click a node to open the note.
+- Use `Pin Focused Node` to keep a selected node still while the graph moves.
+- Use `Hide Node` or `Hide Cluster` for temporary decluttering.
+- Use `Expand From Node` to show only the focused note and its direct neighbors.
+- Use `Set Path Start`, then select another node to preview a route between them.
 - Right-click a Markdown file in Obsidian and choose `Start Constella Journey from this note`.
 
 ## Graph Scopes
@@ -187,6 +205,26 @@ Constella includes built-in templates such as:
 - Signal Chaos
 - Breathing Graph
 - City Lights
+- Zen Garden
+- Blueprint
+- Solar System
+- Library Night
+- Crystal
+- Terminal Amber
+- Red Alert
+- Ocean Depths
+- Paper Minimal
+- Galaxy Core
+- Heatmap
+- Age Gradient
+- Cluster Neon
+- Focus Fade
+- Signal Strength
+- Night Vision
+- Archive Dust
+- Prism Flow
+- Constellation White
+- Infrared
 
 Templates can be:
 
@@ -293,6 +331,22 @@ npm run typecheck
 
 The build creates `main.js`, which Obsidian loads together with `manifest.json` and `styles.css`.
 
+## Releasing
+
+Constella versions should be bumped in `manifest.json`, `package.json`, `package-lock.json`, and `versions.json`.
+
+Obsidian expects the GitHub release tag to match the manifest version exactly, without a leading `v`. For example, release tag `0.2.0` matches manifest version `0.2.0`.
+
+The GitHub Actions workflow builds the plugin and uploads these release assets for version tags:
+
+```text
+main.js
+manifest.json
+styles.css
+```
+
+See [CHANGELOG.md](CHANGELOG.md) for release notes.
+
 ## Privacy
 
 Constella:
@@ -320,4 +374,4 @@ The plugin builds successfully with:
 npm run build
 ```
 
-The current implementation includes the graph view, journeys, templates, playlists, discovery, clustering, visual effects, import/export, screensaver/display commands, and read-only vault behavior.
+The current implementation includes the graph view, search, filters, hover highlighting, pin/hide/expand/path-preview interactions, journeys, templates, playlists, discovery, clustering, visual effects, import/export, screensaver/display commands, and read-only vault behavior.

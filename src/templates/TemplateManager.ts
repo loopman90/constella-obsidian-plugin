@@ -1,6 +1,16 @@
 import { cloneConfiguration } from "../core/ActiveConfiguration";
 import type { ActiveConfiguration, StoredTemplate } from "../core/types";
 
+type ConfigurationPatch = Partial<Omit<ActiveConfiguration, "graph" | "motion" | "background" | "journey" | "discovery" | "display" | "interaction" | "template">> & {
+  graph?: Partial<ActiveConfiguration["graph"]>;
+  motion?: Partial<ActiveConfiguration["motion"]>;
+  background?: Partial<ActiveConfiguration["background"]>;
+  journey?: Partial<ActiveConfiguration["journey"]>;
+  discovery?: Partial<ActiveConfiguration["discovery"]>;
+  display?: Partial<ActiveConfiguration["display"]>;
+  interaction?: Partial<ActiveConfiguration["interaction"]>;
+};
+
 export class TemplateManager {
   createBuiltIns(base: ActiveConfiguration): StoredTemplate[] {
     const now = Date.now();
@@ -565,7 +575,7 @@ export class TemplateManager {
     name: string,
     now: number,
     base: ActiveConfiguration,
-    patch: Partial<ActiveConfiguration>,
+    patch: ConfigurationPatch,
     builtIn: boolean
   ): StoredTemplate {
     const baseConfig = cloneConfiguration(base);
@@ -604,6 +614,13 @@ export class TemplateManager {
         display: {
           ...baseConfig.display,
           ...(patch.display ?? {})
+        },
+        interaction: {
+          ...baseConfig.interaction,
+          ...(patch.interaction ?? {}),
+          pinnedNodeIds: patch.interaction?.pinnedNodeIds ?? baseConfig.interaction.pinnedNodeIds,
+          hiddenNodeIds: patch.interaction?.hiddenNodeIds ?? baseConfig.interaction.hiddenNodeIds,
+          hiddenClusterIds: patch.interaction?.hiddenClusterIds ?? baseConfig.interaction.hiddenClusterIds
         },
         template: {
           activeTemplateId: id,

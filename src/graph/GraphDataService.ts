@@ -8,19 +8,21 @@ export class GraphDataService {
   constructor(private readonly app: App) {}
 
   getGraph(config: ActiveConfiguration): GraphData {
-    const global = this.getGlobalGraph(config);
+    const global = this.clusterEngine.assignClusters(this.getGlobalGraph(config));
     const { scope, localDepth } = config.graph;
+    let graph = global;
     if (scope === "global") {
-      return this.clusterEngine.assignClusters(global);
+      return this.applyInteractionFilters(graph, config);
     }
 
     const activeFile = this.app.workspace.getActiveFile();
     if (!activeFile) {
-      return global;
+      return this.applyInteractionFilters(graph, config);
     }
 
     const depth = scope === "current" ? 0 : localDepth;
-    return this.clusterEngine.assignClusters(this.filterAroundFile(global, activeFile, depth));
+    graph = this.clusterEngine.assignClusters(this.filterAroundFile(global, activeFile, depth));
+    return this.applyInteractionFilters(graph, config);
   }
 
   getGlobalGraph(config: ActiveConfiguration): GraphData {
@@ -47,10 +49,13 @@ export class GraphDataService {
       }
     }
 
-    const nodes = files.map((file, index) => this.createNode(file, index, files.length, connectionCounts.get(file.path) ?? 0));
+    const nodes = files
+      .map((file, index) => this.createNode(file, index, files.length, connectionCounts.get(file.path) ?? 0))
+      .filter((node) => node.connectionCount >= config.graph.minimumConnections);
+    const nodeIds = new Set(nodes.map((node) => node.id));
     return {
       nodes,
-      edges: Array.from(edgeMap.values())
+      edges: Array.from(edgeMap.values()).filter((edge) => nodeIds.has(edge.source) && nodeIds.has(edge.target))
     };
   }
 
@@ -83,7 +88,67 @@ export class GraphDataService {
     if (config.discovery.excludeDailyNotes && /(^|\/)(daily|journal|log)s?\//i.test(file.path)) {
       return false;
     }
+    if (!this.matchesFolderFilter(file, config.graph.folderFilter)) {
+      return false;
+    }
+    if (!this.matchesTagFilter(file, config.graph.tagFilter)) {
+      return false;
+    }
+    if (!this.matchesDateFilter(file, config)) {
+      return false;
+    }
     return true;
+  }
+
+  private matchesFolderFilter(file: TFile, filter: string): boolean {
+    const tokens = this.filterTokens(filter);
+    if (tokens.length === 0) {
+      return true;
+    }
+    const path = file.path.toLowerCase();
+    return tokens.some((token) => path.includes(token));
+  }
+
+  private matchesTagFilter(file: TFile, filter: string): boolean {
+    const tokens = this.filterTokens(filter).map((token) => token.replace(/^#/, ""));
+    if (tokens.length === 0) {
+      return true;
+    }
+
+    const cache = this.app.metadataCache.getFileCache(file);
+    const tags = new Set<string>();
+    cache?.tags?.forEach((tag) => tags.add(tag.tag.replace(/^#/, "").toLowerCase()));
+
+    const frontmatterTags = cache?.frontmatter?.tags;
+    if (typeof frontmatterTags === "string") {
+      this.filterTokens(frontmatterTags).forEach((tag) => tags.add(tag.replace(/^#/, "")));
+    } else if (Array.isArray(frontmatterTags)) {
+      frontmatterTags.forEach((tag) => {
+        if (typeof tag === "string") {
+          tags.add(tag.replace(/^#/, "").toLowerCase());
+        }
+      });
+    }
+
+    return tokens.some((token) => tags.has(token) || Array.from(tags).some((tag) => tag.startsWith(`${token}/`)));
+  }
+
+  private matchesDateFilter(file: TFile, config: ActiveConfiguration): boolean {
+    if (config.graph.dateFilter === "all") {
+      return true;
+    }
+    const ageMs = Date.now() - file.stat.mtime;
+    if (config.graph.dateFilter === "recent") {
+      return ageMs <= config.discovery.recentDays * 86400000;
+    }
+    return ageMs >= config.discovery.forgottenDays * 86400000;
+  }
+
+  private filterTokens(value: string): string[] {
+    return value
+      .split(/[,;\n]/)
+      .map((item) => item.trim().toLowerCase())
+      .filter(Boolean);
   }
 
   private filterAroundFile(graph: GraphData, file: TFile, depth: number): GraphData {
@@ -123,5 +188,31 @@ export class GraphDataService {
     const neighbors = adjacency.get(source) ?? new Set<string>();
     neighbors.add(target);
     adjacency.set(source, neighbors);
+  }
+
+  private applyInteractionFilters(graph: GraphData, config: ActiveConfiguration): GraphData {
+    let included = new Set(graph.nodes.map((node) => node.id));
+    config.interaction.hiddenNodeIds.forEach((id) => included.delete(id));
+    graph.nodes
+      .filter((node) => config.interaction.hiddenClusterIds.includes(node.clusterId))
+      .forEach((node) => included.delete(node.id));
+
+    if (config.interaction.expandFromNodeId && included.has(config.interaction.expandFromNodeId)) {
+      const expanded = new Set<string>([config.interaction.expandFromNodeId]);
+      graph.edges.forEach((edge) => {
+        if (edge.source === config.interaction.expandFromNodeId && included.has(edge.target)) {
+          expanded.add(edge.target);
+        }
+        if (edge.target === config.interaction.expandFromNodeId && included.has(edge.source)) {
+          expanded.add(edge.source);
+        }
+      });
+      included = expanded;
+    }
+
+    return {
+      nodes: graph.nodes.filter((node) => included.has(node.id)),
+      edges: graph.edges.filter((edge) => included.has(edge.source) && included.has(edge.target))
+    };
   }
 }

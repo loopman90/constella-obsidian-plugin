@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-label="Constella preview graph">
+  <rect width="1280" height="720" fill="#050816"/>
+  <radialGradient id="g1" cx="35%" cy="35%" r="60%">
+    <stop offset="0" stop-color="#2563eb" stop-opacity=".45"/>
+    <stop offset="1" stop-color="#050816" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="g2" cx="72%" cy="62%" r="55%">
+    <stop offset="0" stop-color="#a855f7" stop-opacity=".34"/>
+    <stop offset="1" stop-color="#050816" stop-opacity="0"/>
+  </radialGradient>
+  <rect width="1280" height="720" fill="url(#g1)"/>
+  <rect width="1280" height="720" fill="url(#g2)"/>
+  <g stroke="#67e8f9" stroke-width="2" stroke-linecap="round" opacity=".42">
+    <path d="M264 358 418 264 587 330 734 219 913 281 1031 400"/>
+    <path d="M418 264 493 479 734 219"/>
+    <path d="M587 330 624 536 822 456 1031 400"/>
+    <path d="M493 479 624 536 822 456"/>
+    <path d="M264 358 493 479"/>
+  </g>
+  <g fill="#dbeafe">
+    <circle cx="264" cy="358" r="11"/>
+    <circle cx="418" cy="264" r="17"/>
+    <circle cx="587" cy="330" r="13"/>
+    <circle cx="734" cy="219" r="20"/>
+    <circle cx="913" cy="281" r="12"/>
+    <circle cx="1031" cy="400" r="15"/>
+    <circle cx="493" cy="479" r="14"/>
+    <circle cx="624" cy="536" r="10"/>
+    <circle cx="822" cy="456" r="18"/>
+  </g>
+  <g fill="#f8fafc" font-family="Inter, system-ui, sans-serif" text-anchor="middle">
+    <text x="640" y="82" font-size="48" font-weight="700">Constella</text>
+    <text x="640" y="124" font-size="20" opacity=".76">Interactive local-first knowledge graph for Obsidian</text>
+  </g>
+</svg>

@@ -8,7 +8,11 @@ export const DEFAULT_CONFIGURATION: ActiveConfiguration = {
   graph: {
     scope: "global",
     localDepth: 2,
-    useCurrentGraphWhenAvailable: true
+    useCurrentGraphWhenAvailable: true,
+    folderFilter: "",
+    tagFilter: "",
+    dateFilter: "all",
+    minimumConnections: 0
   },
   motion: {
     animationSpeed: 0.55,
@@ -31,10 +35,12 @@ export const DEFAULT_CONFIGURATION: ActiveConfiguration = {
     nodeMovementStyle: "gentle-float",
     nodeMovementStrength: 0.35,
     nodeMovementSpeed: 0.45,
-    clickAnimation: "ripple"
+    clickAnimation: "ripple",
+    reduceMotion: false
   },
   background: {
-    style: "deep-space"
+    style: "deep-space",
+    intensity: 0.75
   },
   journey: {
     minNodes: 5,
@@ -58,7 +64,19 @@ export const DEFAULT_CONFIGURATION: ActiveConfiguration = {
     fullscreen: false,
     autoHideCursorSeconds: 5,
     showNodeInfoOverlay: true,
-    showLabels: true
+    showLabels: true,
+    showLegend: true,
+    showFps: false,
+    labelSize: 0.48,
+    edgeThickness: 0.32,
+    nodeSize: 0.45
+  },
+  interaction: {
+    pinnedNodeIds: [],
+    hiddenNodeIds: [],
+    hiddenClusterIds: [],
+    expandFromNodeId: null,
+    pathPreviewStartId: null
   },
   template: {
     activeTemplateId: "builtin-constellation",
@@ -75,7 +93,14 @@ export function cloneConfiguration(config: ActiveConfiguration): ActiveConfigura
     template: { ...config.template },
     journey: { ...config.journey },
     discovery: { ...config.discovery },
-    display: { ...config.display }
+    display: { ...config.display },
+    interaction: {
+      pinnedNodeIds: [...config.interaction.pinnedNodeIds],
+      hiddenNodeIds: [...config.interaction.hiddenNodeIds],
+      hiddenClusterIds: [...config.interaction.hiddenClusterIds],
+      expandFromNodeId: config.interaction.expandFromNodeId,
+      pathPreviewStartId: config.interaction.pathPreviewStartId
+    }
   };
 }
 

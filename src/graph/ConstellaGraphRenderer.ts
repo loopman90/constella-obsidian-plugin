@@ -34,6 +34,8 @@ export class ConstellaGraphRenderer {
   private config: ActiveConfiguration;
   private viewport: Viewport = { x: 0, y: 0, scale: 1 };
   private selectedNode: GraphNode | null = null;
+  private hoverNode: GraphNode | null = null;
+  private hoverNeighborIds = new Set<string>();
   private journeyPath: string[] = [];
   private journeyIndex = 0;
   private pointer: PointerState = { dragging: false, lastX: 0, lastY: 0, moved: false };
@@ -41,6 +43,9 @@ export class ConstellaGraphRenderer {
   private nextClickEffectId = 1;
   private lastFrame = performance.now();
   private time = 0;
+  private fps = 0;
+  private fpsFrameCount = 0;
+  private fpsStartedAt = performance.now();
 
   constructor(
     private readonly app: App,
@@ -63,6 +68,8 @@ export class ConstellaGraphRenderer {
   setGraph(graph: GraphData): void {
     this.graph = graph;
     this.nodeById = new Map(graph.nodes.map((node) => [node.id, node]));
+    this.hoverNode = null;
+    this.hoverNeighborIds = new Set();
     this.selectedNode = null;
     this.options.onNodeSelected(null);
     this.centerGraph();
@@ -120,9 +127,13 @@ export class ConstellaGraphRenderer {
   private readonly render = (now: number): void => {
     const dt = Math.min(0.05, (now - this.lastFrame) / 1000);
     this.lastFrame = now;
-    this.time += dt * this.config.motion.animationSpeed;
-    this.step(dt);
-    this.followCamera(dt);
+    this.updateFps(now);
+    const motionScale = this.config.motion.reduceMotion ? 0.16 : 1;
+    this.time += dt * this.config.motion.animationSpeed * motionScale;
+    if (!this.config.motion.reduceMotion) {
+      this.step(dt);
+    }
+    this.followCamera(dt * motionScale);
     this.draw();
     this.animationFrame = window.requestAnimationFrame(this.render);
   };
@@ -134,7 +145,13 @@ export class ConstellaGraphRenderer {
 
     const strength = (4 + this.config.motion.nodeMovementStrength * 42) * this.config.motion.visualIntensity;
     const speed = 0.25 + this.config.motion.nodeMovementSpeed * 3.5 + this.config.motion.animationSpeed;
+    const pinned = new Set(this.config.interaction.pinnedNodeIds);
     this.graph.nodes.forEach((node, index) => {
+      if (pinned.has(node.id)) {
+        node.vx = 0;
+        node.vy = 0;
+        return;
+      }
       const seedA = index * 1.91;
       const seedB = index * 2.37;
       switch (this.config.motion.nodeMovementStyle) {
@@ -215,6 +232,7 @@ export class ConstellaGraphRenderer {
     this.ctx.translate(width / 2 + this.viewport.x, height / 2 + this.viewport.y);
     this.ctx.scale(this.viewport.scale, this.viewport.scale);
     this.drawEdges();
+    this.drawPathPreview();
     this.drawNodes();
     this.drawClickEffects();
     this.ctx.restore();
@@ -222,11 +240,13 @@ export class ConstellaGraphRenderer {
     if (this.graph.nodes.length === 0) {
       this.drawEmptyState(width, height);
     }
+    this.drawHud(width, height);
   }
 
   private drawBackground(width: number, height: number): void {
     const colors = this.getPalette();
     const background = this.getBackground(colors.backgroundA, colors.backgroundB);
+    const intensity = this.config.background.intensity;
 
     if (background.transparent) {
       this.ctx.clearRect(0, 0, width, height);
@@ -243,7 +263,9 @@ export class ConstellaGraphRenderer {
       this.ctx.fillRect(0, 0, width, height);
     }
 
-    if (this.config.motion.backgroundEffectsEnabled && this.config.visual !== "minimal") {
+    if (this.config.motion.backgroundEffectsEnabled && this.config.visual !== "minimal" && intensity > 0.02) {
+      this.ctx.save();
+      this.ctx.globalAlpha = intensity;
       if (background.nebula) {
         this.drawNebula(width, height, colors.edgeActive);
       }
@@ -256,6 +278,8 @@ export class ConstellaGraphRenderer {
       if (background.starMap) {
         this.drawStarMapOverlay(width, height, colors.edgeActive);
       }
+      this.ctx.restore();
+      this.ctx.globalAlpha = 1;
     }
   }
 
@@ -341,13 +365,15 @@ export class ConstellaGraphRenderer {
       }
 
       const selected = this.selectedNode?.id === source.id || this.selectedNode?.id === target.id;
+      const hovered = this.hoverNode?.id === source.id || this.hoverNode?.id === target.id;
       const activeJourneyEdge = this.isJourneyEdge(source.id, target.id);
       const lineProgress = this.getLineDrawProgress(edge.id, activeJourneyEdge);
       const drawTarget = this.pointOnEdge(source, target, lineProgress);
-      const edgeColor = this.edgeColor(edge, selected, activeJourneyEdge, colors.edge, colors.edgeActive);
+      const edgeColor = this.edgeColor(edge, selected || hovered, activeJourneyEdge, colors.edge, colors.edgeActive);
       this.ctx.strokeStyle = edgeColor;
-      this.ctx.globalAlpha = this.edgeAlpha(edge, selected, activeJourneyEdge) * Math.max(0.24, lineProgress);
-      this.ctx.lineWidth = activeJourneyEdge ? 2.4 / this.viewport.scale : selected ? 1.8 / this.viewport.scale : this.edgeWidth(edge) / this.viewport.scale;
+      this.ctx.globalAlpha = this.edgeAlpha(edge, selected || hovered, activeJourneyEdge) * Math.max(0.24, lineProgress);
+      const thickness = 0.7 + this.config.display.edgeThickness * 1.8;
+      this.ctx.lineWidth = (activeJourneyEdge ? 2.4 : selected || hovered ? 1.8 : this.edgeWidth(edge)) * thickness / this.viewport.scale;
       this.ctx.beginPath();
       this.ctx.moveTo(source.x, source.y);
       this.ctx.lineTo(drawTarget.x, drawTarget.y);
@@ -371,6 +397,8 @@ export class ConstellaGraphRenderer {
 
     this.graph.nodes.forEach((node, index) => {
       const selected = this.selectedNode?.id === node.id;
+      const hovered = this.hoverNode?.id === node.id;
+      const neighbor = this.hoverNeighborIds.has(node.id);
       const currentJourney = this.journeyPath[this.journeyIndex] === node.id;
       const visitedJourney = this.journeyPath.includes(node.id);
       const recent = node.lastModified > recentCutoff;
@@ -379,27 +407,29 @@ export class ConstellaGraphRenderer {
       const dynamicColor = this.dynamicNodeColor(node, index, recent);
       const fill = clusterColor ?? (hueShift === null ? (recent ? colors.nodeRecent : colors.node) : `hsl(${hueShift}, 86%, 64%)`);
       const nodeFill = dynamicColor ?? fill;
-      const glowRadius = node.radius * (currentJourney ? 5.8 : selected ? 4.4 : 2.4) * this.config.motion.visualIntensity;
+      const radius = this.nodeRadius(node);
+      const dimmedByHover = this.hoverNode && !hovered && !neighbor && !selected;
+      const glowRadius = radius * (currentJourney ? 5.8 : selected || hovered ? 4.4 : 2.4) * this.config.motion.visualIntensity;
 
-      if (this.config.motion.glowEnabled && this.config.visual !== "minimal" && glowRadius > 0) {
-        const glow = this.ctx.createRadialGradient(node.x, node.y, node.radius, node.x, node.y, glowRadius);
+      if (this.config.motion.glowEnabled && this.config.visual !== "minimal" && glowRadius > 0 && !dimmedByHover) {
+        const glow = this.ctx.createRadialGradient(node.x, node.y, radius, node.x, node.y, glowRadius);
         glow.addColorStop(0, currentJourney || selected ? colors.nodeActive : nodeFill);
         glow.addColorStop(1, "transparent");
         this.ctx.fillStyle = glow;
-        this.ctx.globalAlpha = selected ? 0.58 : 0.28;
+        this.ctx.globalAlpha = selected || hovered ? 0.58 : 0.28;
         this.ctx.beginPath();
         this.ctx.arc(node.x, node.y, glowRadius, 0, Math.PI * 2);
         this.ctx.fill();
       }
 
-      this.ctx.globalAlpha = 1;
+      this.ctx.globalAlpha = dimmedByHover ? 0.22 : 1;
       this.ctx.fillStyle = currentJourney || selected ? colors.nodeActive : visitedJourney ? colors.nodeVisited : nodeFill;
       this.ctx.beginPath();
-      this.ctx.arc(node.x, node.y, currentJourney ? node.radius + 3 : selected ? node.radius + 2 : node.radius, 0, Math.PI * 2);
+      this.ctx.arc(node.x, node.y, currentJourney ? radius + 3 : selected || hovered ? radius + 2 : radius, 0, Math.PI * 2);
       this.ctx.fill();
 
       if (this.config.display.showLabels && (selected || this.viewport.scale > 0.88)) {
-        this.drawLabel(node, colors.label, selected);
+        this.drawLabel(node, colors.label, selected || hovered);
       }
     });
   }
@@ -535,12 +565,13 @@ export class ConstellaGraphRenderer {
   }
 
   private drawLabel(node: GraphNode, color: string, selected: boolean): void {
-    this.ctx.font = `${selected ? 13 : 11}px var(--font-interface), sans-serif`;
+    const size = 9 + this.config.display.labelSize * 8 + (selected ? 2 : 0);
+    this.ctx.font = `${size}px var(--font-interface), sans-serif`;
     this.ctx.textAlign = "center";
     this.ctx.textBaseline = "top";
     this.ctx.fillStyle = color;
     this.ctx.globalAlpha = selected ? 1 : 0.72;
-    this.ctx.fillText(node.title, node.x, node.y + node.radius + 5, 160);
+    this.ctx.fillText(node.title, node.x, node.y + this.nodeRadius(node) + 5, 180);
     this.ctx.globalAlpha = 1;
   }
 
@@ -1504,6 +1535,190 @@ export class ConstellaGraphRenderer {
     return getComputedStyle(document.body).getPropertyValue(variableName).trim() || fallback;
   }
 
+  private nodeRadius(node: GraphNode): number {
+    return node.radius * (0.65 + this.config.display.nodeSize * 1.2);
+  }
+
+  private updateHover(node: GraphNode | null): void {
+    if (this.hoverNode?.id === node?.id) {
+      return;
+    }
+    this.hoverNode = node;
+    this.hoverNeighborIds = new Set();
+    if (!node) {
+      return;
+    }
+    this.graph.edges.forEach((edge) => {
+      if (edge.source === node.id) {
+        this.hoverNeighborIds.add(edge.target);
+      }
+      if (edge.target === node.id) {
+        this.hoverNeighborIds.add(edge.source);
+      }
+    });
+  }
+
+  private updateFps(now: number): void {
+    this.fpsFrameCount += 1;
+    if (now - this.fpsStartedAt < 500) {
+      return;
+    }
+    this.fps = Math.round((this.fpsFrameCount * 1000) / (now - this.fpsStartedAt));
+    this.fpsFrameCount = 0;
+    this.fpsStartedAt = now;
+  }
+
+  private drawHud(width: number, height: number): void {
+    const colors = this.getPalette();
+    if (this.config.display.showLegend) {
+      this.drawLegend(width, height, colors);
+    }
+    if (this.config.display.showFps) {
+      this.ctx.save();
+      this.ctx.font = "11px var(--font-interface), sans-serif";
+      this.ctx.textAlign = "right";
+      this.ctx.textBaseline = "top";
+      this.ctx.fillStyle = colors.label;
+      this.ctx.globalAlpha = 0.72;
+      this.ctx.fillText(`${this.fps || 0} FPS`, width - 16, 14);
+      this.ctx.restore();
+    }
+  }
+
+  private drawLegend(width: number, height: number, colors: ReturnType<ConstellaGraphRenderer["getPalette"]>): void {
+    const entries = this.legendEntries(colors);
+    if (entries.length === 0) {
+      return;
+    }
+
+    const boxWidth = 178;
+    const x = 14;
+    const y = Math.max(14, height - 20 - entries.length * 18);
+    this.ctx.save();
+    this.ctx.fillStyle = this.withAlpha(colors.backgroundA, 0.72);
+    this.ctx.strokeStyle = this.withAlpha(colors.edge, 0.22);
+    this.ctx.lineWidth = 1;
+    this.ctx.beginPath();
+    this.ctx.roundRect(x, y, boxWidth, 10 + entries.length * 18, 8);
+    this.ctx.fill();
+    this.ctx.stroke();
+    this.ctx.font = "11px var(--font-interface), sans-serif";
+    this.ctx.textAlign = "left";
+    this.ctx.textBaseline = "middle";
+    entries.forEach((entry, index) => {
+      const rowY = y + 13 + index * 18;
+      this.ctx.fillStyle = entry.color;
+      this.ctx.globalAlpha = 0.95;
+      this.ctx.beginPath();
+      this.ctx.arc(x + 13, rowY, 4, 0, Math.PI * 2);
+      this.ctx.fill();
+      this.ctx.fillStyle = colors.label;
+      this.ctx.globalAlpha = 0.78;
+      this.ctx.fillText(entry.label, x + 24, rowY, boxWidth - 34);
+    });
+    this.ctx.restore();
+  }
+
+  private legendEntries(colors: ReturnType<ConstellaGraphRenderer["getPalette"]>): Array<{ label: string; color: string }> {
+    switch (this.config.colors) {
+      case "heatmap":
+        return [
+          { label: "Cool: fewer links", color: "#38bdf8" },
+          { label: "Warm: many links", color: "#ef4444" }
+        ];
+      case "age-gradient":
+        return [
+          { label: "Bright: recent notes", color: "#ffffff" },
+          { label: "Muted: older notes", color: "#64748b" }
+        ];
+      case "cluster-neon":
+      case "cluster-based":
+        return [
+          { label: "Color: cluster group", color: colors.node },
+          { label: "Bright: selected path", color: colors.edgeActive }
+        ];
+      case "signal-strength":
+        return [
+          { label: "Thin: weak link", color: colors.edge },
+          { label: "Bright: strong link", color: colors.edgeActive }
+        ];
+      case "focus-fade":
+        return [
+          { label: "Bright: focus area", color: colors.nodeActive },
+          { label: "Dim: outside focus", color: "#475569" }
+        ];
+      default:
+        return [
+          { label: "Current note", color: colors.nodeActive },
+          { label: "Recent note", color: colors.nodeRecent },
+          { label: "Connection", color: colors.edge }
+        ];
+    }
+  }
+
+  private drawPathPreview(): void {
+    const startId = this.config.interaction.pathPreviewStartId;
+    const endId = this.selectedNode?.id;
+    if (!startId || !endId || startId === endId) {
+      return;
+    }
+    const path = this.findPath(startId, endId);
+    if (path.length < 2) {
+      return;
+    }
+
+    const colors = this.getPalette();
+    this.ctx.save();
+    this.ctx.strokeStyle = colors.edgeActive;
+    this.ctx.lineCap = "round";
+    this.ctx.lineWidth = (3.2 + this.config.display.edgeThickness * 2.4) / this.viewport.scale;
+    this.ctx.globalAlpha = 0.88;
+    for (let index = 0; index < path.length - 1; index += 1) {
+      const source = this.nodeById.get(path[index]);
+      const target = this.nodeById.get(path[index + 1]);
+      if (!source || !target) {
+        continue;
+      }
+      this.ctx.beginPath();
+      this.ctx.moveTo(source.x, source.y);
+      this.ctx.lineTo(target.x, target.y);
+      this.ctx.stroke();
+      this.drawPulse(source, target, colors.edgeActive, index / path.length);
+    }
+    this.ctx.restore();
+  }
+
+  private findPath(startId: string, endId: string): string[] {
+    const queue = [startId];
+    const previous = new Map<string, string | null>([[startId, null]]);
+    while (queue.length > 0) {
+      const current = queue.shift();
+      if (!current) {
+        break;
+      }
+      if (current === endId) {
+        break;
+      }
+      for (const edge of this.graph.edges) {
+        const next = edge.source === current ? edge.target : edge.target === current ? edge.source : null;
+        if (next && !previous.has(next)) {
+          previous.set(next, current);
+          queue.push(next);
+        }
+      }
+    }
+    if (!previous.has(endId)) {
+      return [];
+    }
+    const path: string[] = [];
+    let cursor: string | null = endId;
+    while (cursor) {
+      path.unshift(cursor);
+      cursor = previous.get(cursor) ?? null;
+    }
+    return path;
+  }
+
   private centerGraph(): void {
     if (this.graph.nodes.length === 0) {
       this.viewport = { x: 0, y: 0, scale: 1 };
@@ -1549,6 +1764,7 @@ export class ConstellaGraphRenderer {
 
   private readonly onPointerMove = (event: PointerEvent): void => {
     if (!this.pointer.dragging) {
+      this.updateHover(this.nodeAt(event.clientX, event.clientY));
       return;
     }
 
@@ -1559,6 +1775,7 @@ export class ConstellaGraphRenderer {
     this.pointer.moved = this.pointer.moved || Math.abs(dx) + Math.abs(dy) > 3;
     this.viewport.x += dx;
     this.viewport.y += dy;
+    this.updateHover(null);
   };
 
   private readonly onPointerUp = (event: PointerEvent): void => {
@@ -1573,6 +1790,7 @@ export class ConstellaGraphRenderer {
       const node = this.nodeAt(event.clientX, event.clientY);
       this.selectedNode = node;
       this.options.onNodeSelected(node);
+      this.updateHover(node);
       if (node) {
         this.addClickEffect(node);
       }
@@ -1619,7 +1837,7 @@ export class ConstellaGraphRenderer {
 
     for (let index = this.graph.nodes.length - 1; index >= 0; index -= 1) {
       const node = this.graph.nodes[index];
-      const radius = Math.max(node.radius + 5, 10 / this.viewport.scale);
+      const radius = Math.max(this.nodeRadius(node) + 5, 10 / this.viewport.scale);
       if (Math.hypot(node.x - x, node.y - y) <= radius) {
         return node;
       }

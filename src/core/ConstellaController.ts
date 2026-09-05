@@ -2,6 +2,7 @@ import type { App, Plugin } from "obsidian";
 import { EventBus } from "./EventBus";
 import {
   cloneConfiguration,
+  DEFAULT_CONFIGURATION,
   withCamera,
   withColors,
   withGraphScope,
@@ -218,6 +219,24 @@ export class ConstellaController {
     await this.persist();
   }
 
+  async updateBackgroundOption<TKey extends keyof ActiveConfiguration["background"]>(
+    key: TKey,
+    value: ActiveConfiguration["background"][TKey]
+  ): Promise<void> {
+    this.updateConfiguration({
+      ...cloneConfiguration(this.configuration),
+      background: {
+        ...this.configuration.background,
+        [key]: value
+      },
+      template: {
+        ...this.configuration.template,
+        modified: true
+      }
+    });
+    await this.persist();
+  }
+
   async updateJourney<TKey extends keyof ActiveConfiguration["journey"]>(
     key: TKey,
     value: ActiveConfiguration["journey"][TKey]
@@ -273,6 +292,25 @@ export class ConstellaController {
     await this.persist();
   }
 
+  async updateInteraction<TKey extends keyof ActiveConfiguration["interaction"]>(
+    key: TKey,
+    value: ActiveConfiguration["interaction"][TKey]
+  ): Promise<void> {
+    this.updateConfiguration({
+      ...cloneConfiguration(this.configuration),
+      interaction: {
+        ...this.configuration.interaction,
+        [key]: value
+      },
+      template: {
+        ...this.configuration.template,
+        modified: true
+      }
+    });
+    this.refreshGraph();
+    await this.persist();
+  }
+
   play(): void {
     this.playback = "playing";
     this.journey = this.pathEngine.createJourney(this.graph, this.configuration, this.selectedNode);
@@ -298,6 +336,93 @@ export class ConstellaController {
   selectNode(node: GraphNode | null): void {
     this.selectedNode = node;
     this.events.emit("selectedNode", node);
+  }
+
+  focusNodeByQuery(query: string): void {
+    const needle = query.trim().toLowerCase();
+    if (!needle) {
+      this.selectNode(null);
+      return;
+    }
+    const node = this.graph.nodes.find((item) =>
+      item.title.toLowerCase().includes(needle) || item.path.toLowerCase().includes(needle)
+    ) ?? null;
+    this.selectNode(node);
+  }
+
+  async togglePinnedSelected(): Promise<void> {
+    if (!this.selectedNode) {
+      return;
+    }
+    const pinned = new Set(this.configuration.interaction.pinnedNodeIds);
+    if (pinned.has(this.selectedNode.id)) {
+      pinned.delete(this.selectedNode.id);
+    } else {
+      pinned.add(this.selectedNode.id);
+    }
+    await this.updateInteraction("pinnedNodeIds", Array.from(pinned));
+  }
+
+  async hideSelectedNode(): Promise<void> {
+    if (!this.selectedNode) {
+      return;
+    }
+    await this.updateInteraction("hiddenNodeIds", Array.from(new Set([
+      ...this.configuration.interaction.hiddenNodeIds,
+      this.selectedNode.id
+    ])));
+  }
+
+  async hideSelectedCluster(): Promise<void> {
+    if (!this.selectedNode) {
+      return;
+    }
+    await this.updateInteraction("hiddenClusterIds", Array.from(new Set([
+      ...this.configuration.interaction.hiddenClusterIds,
+      this.selectedNode.clusterId
+    ])));
+  }
+
+  async expandFromSelected(): Promise<void> {
+    await this.updateInteraction("expandFromNodeId", this.selectedNode?.id ?? null);
+  }
+
+  async markPathPreviewPoint(): Promise<void> {
+    if (!this.selectedNode) {
+      return;
+    }
+    const startId = this.configuration.interaction.pathPreviewStartId;
+    await this.updateInteraction("pathPreviewStartId", startId && startId !== this.selectedNode.id ? null : this.selectedNode.id);
+  }
+
+  async clearInteractionState(): Promise<void> {
+    this.selectNode(null);
+    this.updateConfiguration({
+      ...cloneConfiguration(this.configuration),
+      interaction: cloneConfiguration(DEFAULT_CONFIGURATION).interaction,
+      template: {
+        ...this.configuration.template,
+        modified: true
+      }
+    });
+    this.refreshGraph();
+    await this.persist();
+  }
+
+  async resetSection(section: "graph" | "motion" | "background" | "display" | "journey" | "discovery" | "interaction"): Promise<void> {
+    const defaults = cloneConfiguration(DEFAULT_CONFIGURATION);
+    this.updateConfiguration({
+      ...cloneConfiguration(this.configuration),
+      [section]: defaults[section],
+      template: {
+        ...this.configuration.template,
+        modified: true
+      }
+    });
+    if (section === "graph" || section === "discovery" || section === "interaction") {
+      this.refreshGraph();
+    }
+    await this.persist();
   }
 
   async openNode(node: GraphNode): Promise<void> {

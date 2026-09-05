@@ -66,6 +66,13 @@ export function normalizeSettings(data: unknown): ConstellaSettings {
         ...DEFAULT_SETTINGS.configuration.display,
         ...(maybe.configuration?.display ?? {})
       },
+      interaction: {
+        ...DEFAULT_SETTINGS.configuration.interaction,
+        ...(maybe.configuration?.interaction ?? {}),
+        pinnedNodeIds: maybe.configuration?.interaction?.pinnedNodeIds ?? DEFAULT_SETTINGS.configuration.interaction.pinnedNodeIds,
+        hiddenNodeIds: maybe.configuration?.interaction?.hiddenNodeIds ?? DEFAULT_SETTINGS.configuration.interaction.hiddenNodeIds,
+        hiddenClusterIds: maybe.configuration?.interaction?.hiddenClusterIds ?? DEFAULT_SETTINGS.configuration.interaction.hiddenClusterIds
+      },
       template: {
         ...DEFAULT_SETTINGS.configuration.template,
         ...(maybe.configuration?.template ?? {})
