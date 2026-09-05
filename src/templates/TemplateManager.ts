@@ -45,6 +45,100 @@ export class TemplateManager {
       }, true),
       this.template("builtin-neon", "Neon", now, base, { mode: "random-discovery", visual: "neon", colors: "rainbow-flow", camera: "dynamic" }, true),
       this.template("builtin-discovery", "Discovery", now, base, { mode: "forgotten-knowledge", visual: "soft-glow", colors: "forest", camera: "floating" }, true),
+      this.template("builtin-zen-garden", "Zen Garden", now, base, {
+        mode: "wander",
+        visual: "clean",
+        colors: "zen-garden",
+        camera: "calm",
+        background: { style: "zen-garden" },
+        motion: { ...base.motion, animationSpeed: 0.16, cameraSpeed: 0.12, visualIntensity: 0.38, colorSpeed: 0.12, particlesEnabled: false, nodeMovementEnabled: true, connectionPulsesEnabled: false, glowEnabled: true, backgroundEffectsEnabled: false, nodeMovementStyle: "gentle-float", nodeMovementStrength: 0.12, nodeMovementSpeed: 0.14, clickAnimation: "halo" },
+        display: { ...base.display, showNodeInfoOverlay: false }
+      }, true),
+      this.template("builtin-blueprint", "Blueprint", now, base, {
+        mode: "hub-explorer",
+        visual: "clean",
+        colors: "blueprint",
+        camera: "static",
+        background: { style: "blueprint" },
+        motion: { ...base.motion, animationSpeed: 0.2, cameraSpeed: 0.1, visualIntensity: 0.48, colorSpeed: 0.16, particlesEnabled: false, nodeMovementEnabled: false, connectionPulsesEnabled: true, glowEnabled: false, backgroundEffectsEnabled: true, pulseAmount: 6, pathAnimation: "wave", pulseStyle: "hollow-dot", clickAnimation: "scanner" }
+      }, true),
+      this.template("builtin-solar-system", "Solar System", now, base, {
+        mode: "cluster-journey",
+        visual: "constellation",
+        colors: "solar-system",
+        camera: "floating",
+        background: { style: "solar-system" },
+        motion: { ...base.motion, animationSpeed: 0.36, cameraSpeed: 0.24, visualIntensity: 0.72, colorSpeed: 0.28, particlesEnabled: true, nodeMovementEnabled: true, connectionPulsesEnabled: true, glowEnabled: true, backgroundEffectsEnabled: true, particleAmount: 95, particleSpeed: 0.18, pulseAmount: 10, nodeMovementStyle: "orbit", nodeMovementStrength: 0.46, nodeMovementSpeed: 0.34, pathAnimation: "comet", pulseStyle: "glow-bloom", clickAnimation: "orbit-dots" }
+      }, true),
+      this.template("builtin-library-night", "Library Night", now, base, {
+        mode: "forgotten-knowledge",
+        visual: "clean",
+        colors: "library-night",
+        camera: "calm",
+        background: { style: "library-night" },
+        motion: { ...base.motion, animationSpeed: 0.18, cameraSpeed: 0.14, visualIntensity: 0.34, colorSpeed: 0.1, particlesEnabled: false, nodeMovementEnabled: true, connectionPulsesEnabled: false, glowEnabled: false, backgroundEffectsEnabled: false, nodeMovementStyle: "drift", nodeMovementStrength: 0.1, nodeMovementSpeed: 0.12, clickAnimation: "pulse-ring" }
+      }, true),
+      this.template("builtin-crystal", "Crystal", now, base, {
+        mode: "random-discovery",
+        visual: "soft-glow",
+        colors: "crystal",
+        camera: "floating",
+        background: { style: "crystal" },
+        motion: { ...base.motion, animationSpeed: 0.44, cameraSpeed: 0.28, visualIntensity: 0.78, colorSpeed: 0.42, particlesEnabled: true, nodeMovementEnabled: true, connectionPulsesEnabled: true, glowEnabled: true, backgroundEffectsEnabled: true, particleAmount: 120, particleSpeed: 0.26, pulseAmount: 14, nodeMovementStyle: "breathing", nodeMovementStrength: 0.38, nodeMovementSpeed: 0.3, pathAnimation: "sparkle-train", pulseStyle: "diamond", clickAnimation: "diamond-pop" }
+      }, true),
+      this.template("builtin-terminal-amber", "Terminal Amber", now, base, {
+        mode: "path-journey",
+        visual: "neon",
+        colors: "terminal-amber",
+        camera: "cinematic",
+        background: { style: "terminal-amber" },
+        motion: { ...base.motion, animationSpeed: 0.56, cameraSpeed: 0.32, visualIntensity: 0.7, colorSpeed: 0.5, particlesEnabled: true, nodeMovementEnabled: true, connectionPulsesEnabled: true, glowEnabled: true, backgroundEffectsEnabled: true, particleAmount: 100, particleSpeed: 0.44, pulseAmount: 18, nodeMovementStyle: "jitter", nodeMovementStrength: 0.32, nodeMovementSpeed: 0.48, pathAnimation: "data-rain", pulseStyle: "scanner", clickAnimation: "scanner" }
+      }, true),
+      this.template("builtin-red-alert", "Red Alert", now, base, {
+        mode: "random-discovery",
+        visual: "neon",
+        colors: "red-alert",
+        camera: "dynamic",
+        background: { style: "red-alert" },
+        motion: { ...base.motion, animationSpeed: 0.82, cameraSpeed: 0.58, visualIntensity: 0.86, colorSpeed: 0.68, particlesEnabled: true, nodeMovementEnabled: true, connectionPulsesEnabled: true, glowEnabled: true, backgroundEffectsEnabled: true, particleAmount: 150, particleSpeed: 0.72, pulseAmount: 30, nodeMovementStyle: "chaos", nodeMovementStrength: 0.72, nodeMovementSpeed: 0.88, pathAnimation: "signal-burst", pulseStyle: "scanner", clickAnimation: "shockwave" },
+        display: { ...base.display, showNodeInfoOverlay: false }
+      }, true),
+      this.template("builtin-ocean-depths", "Ocean Depths", now, base, {
+        mode: "wander",
+        visual: "deep-space",
+        colors: "ocean-depths",
+        camera: "floating",
+        background: { style: "ocean-depths" },
+        motion: { ...base.motion, animationSpeed: 0.24, cameraSpeed: 0.18, visualIntensity: 0.66, colorSpeed: 0.18, particlesEnabled: true, nodeMovementEnabled: true, connectionPulsesEnabled: true, glowEnabled: true, backgroundEffectsEnabled: true, particleAmount: 180, particleSpeed: 0.12, pulseAmount: 8, nodeMovementStyle: "gentle-float", nodeMovementStrength: 0.22, nodeMovementSpeed: 0.18, pathAnimation: "wave", pulseStyle: "glow-bloom", clickAnimation: "halo" }
+      }, true),
+      this.template("builtin-paper-minimal", "Paper Minimal", now, base, {
+        mode: "recent-activity",
+        visual: "minimal",
+        colors: "paper-minimal",
+        camera: "static",
+        background: { style: "paper-minimal" },
+        motion: { ...base.motion, animationSpeed: 0.06, cameraSpeed: 0.04, visualIntensity: 0.16, colorSpeed: 0.04, particlesEnabled: false, nodeMovementEnabled: false, connectionPulsesEnabled: false, glowEnabled: false, backgroundEffectsEnabled: false, drawingLinesEnabled: false, clickAnimation: "none" },
+        display: { ...base.display, showLabels: true, showNodeInfoOverlay: false }
+      }, true),
+      this.template("builtin-galaxy-core", "Galaxy Core", now, base, {
+        mode: "path-journey",
+        visual: "deep-space",
+        colors: "galaxy-core",
+        camera: "cinematic",
+        background: { style: "galaxy-core" },
+        motion: { ...base.motion, animationSpeed: 0.58, cameraSpeed: 0.42, visualIntensity: 0.9, colorSpeed: 0.62, particlesEnabled: true, nodeMovementEnabled: true, connectionPulsesEnabled: true, glowEnabled: true, backgroundEffectsEnabled: true, particleAmount: 230, particleSpeed: 0.36, pulseAmount: 18, nodeMovementStyle: "spiral", nodeMovementStrength: 0.72, nodeMovementSpeed: 0.54, pathAnimation: "comet", pulseStyle: "glow-bloom", clickAnimation: "starburst" },
+        display: { ...base.display, showNodeInfoOverlay: false }
+      }, true),
+      this.template("builtin-heatmap", "Heatmap", now, base, { mode: "hub-explorer", visual: "clean", colors: "heatmap", camera: "calm", motion: { ...base.motion, connectionPulsesEnabled: true, pulseAmount: 10, pathAnimation: "single-pulse", clickAnimation: "pulse-ring" } }, true),
+      this.template("builtin-age-gradient", "Age Gradient", now, base, { mode: "recent-activity", visual: "soft-glow", colors: "age-gradient", camera: "calm", motion: { ...base.motion, connectionPulsesEnabled: true, pulseAmount: 8, pathAnimation: "wave", clickAnimation: "halo" } }, true),
+      this.template("builtin-cluster-neon", "Cluster Neon", now, base, { mode: "cluster-journey", visual: "neon", colors: "cluster-neon", camera: "dynamic", background: { style: "nebula" }, motion: { ...base.motion, colorSpeed: 0.56, particlesEnabled: true, connectionPulsesEnabled: true, pulseAmount: 20, pathAnimation: "sparkle-train", pulseStyle: "star-spark", clickAnimation: "spark" } }, true),
+      this.template("builtin-focus-fade", "Focus Fade", now, base, { mode: "hub-explorer", visual: "clean", colors: "focus-fade", camera: "calm", motion: { ...base.motion, connectionPulsesEnabled: false, clickAnimation: "halo" } }, true),
+      this.template("builtin-signal-strength", "Signal Strength", now, base, { mode: "hub-explorer", visual: "neon", colors: "signal-strength", camera: "floating", motion: { ...base.motion, connectionPulsesEnabled: true, pulseAmount: 18, pathAnimation: "signal-burst", pulseStyle: "scanner", clickAnimation: "shockwave" } }, true),
+      this.template("builtin-night-vision", "Night Vision", now, base, { mode: "forgotten-knowledge", visual: "neon", colors: "night-vision", camera: "calm", background: { style: "matrix" }, motion: { ...base.motion, colorSpeed: 0.22, particlesEnabled: true, particleAmount: 50, connectionPulsesEnabled: true, pulseAmount: 9, pathAnimation: "data-rain", pulseStyle: "hollow-dot", clickAnimation: "scanner" } }, true),
+      this.template("builtin-archive-dust", "Archive Dust", now, base, { mode: "forgotten-knowledge", visual: "soft-glow", colors: "archive-dust", camera: "floating", background: { style: "library-night" }, motion: { ...base.motion, particlesEnabled: true, particleAmount: 130, particleSpeed: 0.1, connectionPulsesEnabled: false, nodeMovementStyle: "drift", nodeMovementStrength: 0.16, nodeMovementSpeed: 0.12, clickAnimation: "comet-bloom" } }, true),
+      this.template("builtin-prism-flow", "Prism Flow", now, base, { mode: "random-discovery", visual: "neon", colors: "prism-flow", camera: "dynamic", background: { style: "animated-gradient" }, motion: { ...base.motion, colorSpeed: 0.9, particlesEnabled: true, particleAmount: 160, connectionPulsesEnabled: true, pulseAmount: 22, pathAnimation: "sparkle-train", pulseStyle: "ripple", clickAnimation: "double-ripple" } }, true),
+      this.template("builtin-constellation-white", "Constellation White", now, base, { mode: "path-journey", visual: "constellation", colors: "constellation-white", camera: "floating", background: { style: "star-map" }, motion: { ...base.motion, particlesEnabled: true, particleAmount: 115, connectionPulsesEnabled: true, pulseAmount: 8, pathAnimation: "comet", pulseStyle: "star-spark", clickAnimation: "starburst" } }, true),
+      this.template("builtin-infrared", "Infrared", now, base, { mode: "random-discovery", visual: "soft-glow", colors: "infrared", camera: "dynamic", background: { style: "red-alert" }, motion: { ...base.motion, colorSpeed: 0.5, particlesEnabled: true, particleAmount: 100, connectionPulsesEnabled: true, pulseAmount: 16, pathAnimation: "wave", pulseStyle: "glow-bloom", clickAnimation: "shockwave" } }, true),
       this.template("builtin-dark-mode", "Dark Mode", now, base, {
         mode: "wander",
         visual: "clean",

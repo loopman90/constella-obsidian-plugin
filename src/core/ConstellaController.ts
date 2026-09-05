@@ -360,7 +360,27 @@ export class ConstellaController {
       "violet-storm",
       "ocean-sunset",
       "star-map",
-      "dark-mode"
+      "dark-mode",
+      "zen-garden",
+      "blueprint",
+      "solar-system",
+      "library-night",
+      "crystal",
+      "terminal-amber",
+      "red-alert",
+      "ocean-depths",
+      "paper-minimal",
+      "galaxy-core",
+      "heatmap",
+      "age-gradient",
+      "cluster-neon",
+      "focus-fade",
+      "signal-strength",
+      "night-vision",
+      "archive-dust",
+      "prism-flow",
+      "constellation-white",
+      "infrared"
     ];
     const cameras: CameraId[] = ["static", "calm", "floating", "cinematic"];
     const movements: NodeMovementStyleId[] = ["gentle-float", "drift", "orbit", "breathing", "scatter", "swarm", "jitter", "spiral", "chaos"];

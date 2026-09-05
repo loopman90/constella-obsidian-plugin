@@ -304,6 +304,26 @@ export class ConstellaGraphRenderer {
         return { a: "#020617", mid: "#081426", b: "#10233f", gradient: true, animated: true, stars: true, nebula: false, matrix: false, starMap: true, transparent: false };
       case "dark-mode":
         return { a: "#050507", mid: "#0b0d12", b: "#111827", gradient: true, animated: false, stars: false, nebula: false, matrix: false, starMap: false, transparent: false };
+      case "zen-garden":
+        return { a: "#07140d", mid: "#102216", b: "#1b2b1c", gradient: true, animated: false, stars: false, nebula: false, matrix: false, starMap: false, transparent: false };
+      case "blueprint":
+        return { a: "#061529", mid: "#082f49", b: "#0c4a6e", gradient: true, animated: false, stars: false, nebula: false, matrix: false, starMap: true, transparent: false };
+      case "solar-system":
+        return { a: "#030712", mid: "#1f1708", b: "#0f172a", gradient: true, animated: true, stars: true, nebula: false, matrix: false, starMap: false, transparent: false };
+      case "library-night":
+        return { a: "#140f0a", mid: "#1f1a10", b: "#172016", gradient: true, animated: false, stars: false, nebula: false, matrix: false, starMap: false, transparent: false };
+      case "crystal":
+        return { a: "#071827", mid: "#26315f", b: "#4c1d95", gradient: true, animated: true, stars: true, nebula: true, matrix: false, starMap: false, transparent: false };
+      case "terminal-amber":
+        return { a: "#090602", mid: "#1a1003", b: "#2a1702", gradient: true, animated: false, stars: false, nebula: false, matrix: true, starMap: false, transparent: false };
+      case "red-alert":
+        return { a: "#080202", mid: "#210606", b: "#450a0a", gradient: true, animated: true, stars: false, nebula: true, matrix: false, starMap: false, transparent: false };
+      case "ocean-depths":
+        return { a: "#020617", mid: "#06233a", b: "#042f2e", gradient: true, animated: true, stars: true, nebula: true, matrix: false, starMap: false, transparent: false };
+      case "paper-minimal":
+        return { a: "#fbf7ed", mid: "#f1ead8", b: "#e7dcc4", gradient: true, animated: false, stars: false, nebula: false, matrix: false, starMap: false, transparent: false };
+      case "galaxy-core":
+        return { a: "#070018", mid: "#3b0764", b: "#1e1b4b", gradient: true, animated: true, stars: true, nebula: true, matrix: false, starMap: false, transparent: false };
       default:
         return { a: paletteA, b: paletteB, gradient: true, animated: false, stars: true, nebula: true, matrix: false, starMap: false, transparent: false };
     }
@@ -324,20 +344,21 @@ export class ConstellaGraphRenderer {
       const activeJourneyEdge = this.isJourneyEdge(source.id, target.id);
       const lineProgress = this.getLineDrawProgress(edge.id, activeJourneyEdge);
       const drawTarget = this.pointOnEdge(source, target, lineProgress);
-      this.ctx.strokeStyle = selected ? colors.edgeActive : colors.edge;
-      this.ctx.globalAlpha = (activeJourneyEdge ? 0.92 : selected ? 0.78 : 0.22 + this.config.motion.visualIntensity * 0.16) * Math.max(0.24, lineProgress);
-      this.ctx.lineWidth = activeJourneyEdge ? 2.4 / this.viewport.scale : selected ? 1.8 / this.viewport.scale : 0.9 / this.viewport.scale;
+      const edgeColor = this.edgeColor(edge, selected, activeJourneyEdge, colors.edge, colors.edgeActive);
+      this.ctx.strokeStyle = edgeColor;
+      this.ctx.globalAlpha = this.edgeAlpha(edge, selected, activeJourneyEdge) * Math.max(0.24, lineProgress);
+      this.ctx.lineWidth = activeJourneyEdge ? 2.4 / this.viewport.scale : selected ? 1.8 / this.viewport.scale : this.edgeWidth(edge) / this.viewport.scale;
       this.ctx.beginPath();
       this.ctx.moveTo(source.x, source.y);
       this.ctx.lineTo(drawTarget.x, drawTarget.y);
       this.ctx.stroke();
 
       if (this.config.motion.drawingLinesEnabled && lineProgress < 0.98) {
-        this.drawPulseShape(drawTarget.x, drawTarget.y, selected || activeJourneyEdge ? colors.edgeActive : colors.edge, 0.65, Math.max(1.7, 3 / this.viewport.scale), source, target);
+        this.drawPulseShape(drawTarget.x, drawTarget.y, edgeColor, 0.65, Math.max(1.7, 3 / this.viewport.scale), source, target);
       }
 
       if (this.config.motion.connectionPulsesEnabled && lineProgress > 0.35 && (activeJourneyEdge || Math.random() < 0.002 * this.config.motion.pulseAmount)) {
-        this.drawPathAnimation(source, target, colors.edgeActive, activeJourneyEdge);
+        this.drawPathAnimation(source, target, edgeColor, activeJourneyEdge);
       }
     }
 
@@ -353,14 +374,16 @@ export class ConstellaGraphRenderer {
       const currentJourney = this.journeyPath[this.journeyIndex] === node.id;
       const visitedJourney = this.journeyPath.includes(node.id);
       const recent = node.lastModified > recentCutoff;
-      const hueShift = this.config.colors === "rainbow-flow" ? (this.time * 90 + index * 19) % 360 : null;
-      const clusterColor = this.config.colors === "cluster-based" ? this.clusterColor(node.clusterId) : null;
+      const hueShift = this.config.colors === "rainbow-flow" || this.config.colors === "prism-flow" ? (this.time * 90 + index * 19) % 360 : null;
+      const clusterColor = this.config.colors === "cluster-based" || this.config.colors === "cluster-neon" ? this.clusterColor(node.clusterId) : null;
+      const dynamicColor = this.dynamicNodeColor(node, index, recent);
       const fill = clusterColor ?? (hueShift === null ? (recent ? colors.nodeRecent : colors.node) : `hsl(${hueShift}, 86%, 64%)`);
+      const nodeFill = dynamicColor ?? fill;
       const glowRadius = node.radius * (currentJourney ? 5.8 : selected ? 4.4 : 2.4) * this.config.motion.visualIntensity;
 
       if (this.config.motion.glowEnabled && this.config.visual !== "minimal" && glowRadius > 0) {
         const glow = this.ctx.createRadialGradient(node.x, node.y, node.radius, node.x, node.y, glowRadius);
-        glow.addColorStop(0, currentJourney || selected ? colors.nodeActive : fill);
+        glow.addColorStop(0, currentJourney || selected ? colors.nodeActive : nodeFill);
         glow.addColorStop(1, "transparent");
         this.ctx.fillStyle = glow;
         this.ctx.globalAlpha = selected ? 0.58 : 0.28;
@@ -370,7 +393,7 @@ export class ConstellaGraphRenderer {
       }
 
       this.ctx.globalAlpha = 1;
-      this.ctx.fillStyle = currentJourney || selected ? colors.nodeActive : visitedJourney ? colors.nodeVisited : fill;
+      this.ctx.fillStyle = currentJourney || selected ? colors.nodeActive : visitedJourney ? colors.nodeVisited : nodeFill;
       this.ctx.beginPath();
       this.ctx.arc(node.x, node.y, currentJourney ? node.radius + 3 : selected ? node.radius + 2 : node.radius, 0, Math.PI * 2);
       this.ctx.fill();
@@ -965,6 +988,99 @@ export class ConstellaGraphRenderer {
     this.ctx.fillText("No notes match this graph scope.", width / 2, height / 2);
   }
 
+  private dynamicNodeColor(node: GraphNode, index: number, recent: boolean): string | null {
+    switch (this.config.colors) {
+      case "heatmap": {
+        const heat = Math.min(1, node.connectionCount / 12);
+        return `hsl(${205 - heat * 185}, 88%, ${58 + heat * 10}%)`;
+      }
+      case "age-gradient": {
+        const ageDays = Math.max(0, (Date.now() - node.lastModified) / 86400000);
+        const freshness = Math.max(0, 1 - ageDays / 365);
+        return `hsl(${210 + freshness * 55}, ${42 + freshness * 40}%, ${36 + freshness * 34}%)`;
+      }
+      case "focus-fade":
+        if (!this.selectedNode || this.selectedNode.id === node.id) {
+          return recent ? "#ffffff" : "#bfdbfe";
+        }
+        return "#475569";
+      case "signal-strength": {
+        const strength = Math.min(1, node.connectionCount / 16);
+        return `hsl(${190 - strength * 80}, 92%, ${42 + strength * 32}%)`;
+      }
+      case "night-vision":
+        return recent ? "#dcfce7" : "#86efac";
+      case "archive-dust": {
+        const ageDays = Math.max(0, (Date.now() - node.lastModified) / 86400000);
+        return ageDays > 180 ? "#fbbf24" : "#a8a29e";
+      }
+      case "constellation-white":
+        return recent ? "#ffffff" : "#dbeafe";
+      case "infrared": {
+        const heat = Math.min(1, node.connectionCount / 14);
+        return `hsl(${330 + heat * 60}, 88%, ${48 + heat * 18}%)`;
+      }
+      case "prism-flow":
+        return `hsl(${(this.time * 80 + index * 31) % 360}, 86%, 64%)`;
+      default:
+        return null;
+    }
+  }
+
+  private edgeColor(edge: { id: string; weight: number }, selected: boolean, activeJourneyEdge: boolean, base: string, active: string): string {
+    if (selected || activeJourneyEdge) {
+      return active;
+    }
+    switch (this.config.colors) {
+      case "heatmap": {
+        const heat = Math.min(1, edge.weight / 4);
+        return `hsl(${205 - heat * 185}, 82%, ${48 + heat * 22}%)`;
+      }
+      case "signal-strength": {
+        const strength = Math.min(1, edge.weight / 5);
+        return `hsl(${190 - strength * 70}, 90%, ${38 + strength * 26}%)`;
+      }
+      case "prism-flow": {
+        const phase = this.edgePhase(edge.id);
+        return `hsl(${(this.time * 90 + phase * 360) % 360}, 86%, 62%)`;
+      }
+      case "cluster-neon": {
+        const phase = this.edgePhase(edge.id);
+        return `hsl(${(phase * 360 + this.time * 20) % 360}, 90%, 64%)`;
+      }
+      case "focus-fade":
+        return this.selectedNode ? "#334155" : base;
+      case "night-vision":
+        return "#22c55e";
+      case "archive-dust":
+        return "#a16207";
+      case "constellation-white":
+        return "#bfdbfe";
+      case "infrared":
+        return "#f97316";
+      default:
+        return base;
+    }
+  }
+
+  private edgeAlpha(edge: { weight: number }, selected: boolean, activeJourneyEdge: boolean): number {
+    const base = activeJourneyEdge ? 0.92 : selected ? 0.78 : 0.22 + this.config.motion.visualIntensity * 0.16;
+    if (this.config.colors === "focus-fade" && this.selectedNode && !selected && !activeJourneyEdge) {
+      return 0.08;
+    }
+    if (this.config.colors === "signal-strength") {
+      return Math.min(0.82, base + edge.weight * 0.08);
+    }
+    return base;
+  }
+
+  private edgeWidth(edge: { weight: number }): number {
+    if (this.config.colors === "signal-strength") {
+      return 0.75 + Math.min(1.4, edge.weight * 0.22);
+    }
+    return 0.9;
+  }
+
   private getPalette() {
     switch (this.config.colors) {
       case "deep-ocean":
@@ -1315,6 +1431,46 @@ export class ConstellaGraphRenderer {
           edgeActive: "#38bdf8",
           label: "#e5e7eb"
         };
+      case "zen-garden":
+        return { backgroundA: "#07140d", backgroundB: "#1b2b1c", node: "#d9f99d", nodeRecent: "#fef3c7", nodeActive: "#fff7ed", nodeVisited: "#86efac", edge: "#4d7c0f", edgeActive: "#fef3c7", label: "#f7fee7" };
+      case "blueprint":
+        return { backgroundA: "#061529", backgroundB: "#0c4a6e", node: "#67e8f9", nodeRecent: "#e0f2fe", nodeActive: "#ffffff", nodeVisited: "#38bdf8", edge: "#0284c7", edgeActive: "#22d3ee", label: "#dff9ff" };
+      case "solar-system":
+        return { backgroundA: "#030712", backgroundB: "#1f1708", node: "#fbbf24", nodeRecent: "#fb923c", nodeActive: "#fff7ed", nodeVisited: "#60a5fa", edge: "#92400e", edgeActive: "#fde68a", label: "#fef3c7" };
+      case "library-night":
+        return { backgroundA: "#140f0a", backgroundB: "#172016", node: "#d6d3d1", nodeRecent: "#bef264", nodeActive: "#fafaf9", nodeVisited: "#a8a29e", edge: "#57534e", edgeActive: "#a3e635", label: "#f5f5f4" };
+      case "crystal":
+        return { backgroundA: "#071827", backgroundB: "#4c1d95", node: "#bae6fd", nodeRecent: "#ddd6fe", nodeActive: "#ffffff", nodeVisited: "#c4b5fd", edge: "#67e8f9", edgeActive: "#e9d5ff", label: "#f0f9ff" };
+      case "terminal-amber":
+        return { backgroundA: "#090602", backgroundB: "#2a1702", node: "#fbbf24", nodeRecent: "#fde68a", nodeActive: "#fff7ed", nodeVisited: "#d97706", edge: "#92400e", edgeActive: "#f59e0b", label: "#fed7aa" };
+      case "red-alert":
+        return { backgroundA: "#080202", backgroundB: "#450a0a", node: "#f87171", nodeRecent: "#fef2f2", nodeActive: "#ffffff", nodeVisited: "#dc2626", edge: "#7f1d1d", edgeActive: "#ef4444", label: "#fee2e2" };
+      case "ocean-depths":
+        return { backgroundA: "#020617", backgroundB: "#042f2e", node: "#5eead4", nodeRecent: "#7dd3fc", nodeActive: "#ecfeff", nodeVisited: "#0ea5e9", edge: "#0f766e", edgeActive: "#67e8f9", label: "#ccfbf1" };
+      case "paper-minimal":
+        return { backgroundA: "#fbf7ed", backgroundB: "#e7dcc4", node: "#1f2937", nodeRecent: "#7c2d12", nodeActive: "#000000", nodeVisited: "#57534e", edge: "#a8a29e", edgeActive: "#292524", label: "#1c1917" };
+      case "galaxy-core":
+        return { backgroundA: "#070018", backgroundB: "#3b0764", node: "#c4b5fd", nodeRecent: "#fde68a", nodeActive: "#ffffff", nodeVisited: "#60a5fa", edge: "#7c3aed", edgeActive: "#facc15", label: "#f5f3ff" };
+      case "heatmap":
+        return { backgroundA: "#07111f", backgroundB: "#1b1020", node: "#38bdf8", nodeRecent: "#facc15", nodeActive: "#ffffff", nodeVisited: "#fb923c", edge: "#2563eb", edgeActive: "#ef4444", label: "#f8fafc" };
+      case "age-gradient":
+        return { backgroundA: "#09111f", backgroundB: "#172554", node: "#64748b", nodeRecent: "#ffffff", nodeActive: "#f8fafc", nodeVisited: "#93c5fd", edge: "#475569", edgeActive: "#bfdbfe", label: "#dbeafe" };
+      case "cluster-neon":
+        return { backgroundA: "#050014", backgroundB: "#111827", node: "#22d3ee", nodeRecent: "#f0abfc", nodeActive: "#ffffff", nodeVisited: "#a78bfa", edge: "#8b5cf6", edgeActive: "#67e8f9", label: "#faf5ff" };
+      case "focus-fade":
+        return { backgroundA: "#050816", backgroundB: "#111827", node: "#64748b", nodeRecent: "#dbeafe", nodeActive: "#ffffff", nodeVisited: "#475569", edge: "#334155", edgeActive: "#f8fafc", label: "#f8fafc" };
+      case "signal-strength":
+        return { backgroundA: "#03111c", backgroundB: "#111827", node: "#38bdf8", nodeRecent: "#facc15", nodeActive: "#ffffff", nodeVisited: "#0ea5e9", edge: "#0369a1", edgeActive: "#fde68a", label: "#e0f2fe" };
+      case "night-vision":
+        return { backgroundA: "#020a06", backgroundB: "#06170e", node: "#86efac", nodeRecent: "#dcfce7", nodeActive: "#ffffff", nodeVisited: "#22c55e", edge: "#15803d", edgeActive: "#bbf7d0", label: "#dcfce7" };
+      case "archive-dust":
+        return { backgroundA: "#18120a", backgroundB: "#292016", node: "#a8a29e", nodeRecent: "#fef3c7", nodeActive: "#fff7ed", nodeVisited: "#fbbf24", edge: "#78716c", edgeActive: "#f59e0b", label: "#fafaf9" };
+      case "prism-flow":
+        return { backgroundA: "#080b18", backgroundB: "#24113f", node: "#22d3ee", nodeRecent: "#f0abfc", nodeActive: "#ffffff", nodeVisited: "#fde68a", edge: "#a78bfa", edgeActive: "#67e8f9", label: "#f8fafc" };
+      case "constellation-white":
+        return { backgroundA: "#020617", backgroundB: "#0f172a", node: "#dbeafe", nodeRecent: "#ffffff", nodeActive: "#ffffff", nodeVisited: "#93c5fd", edge: "#64748b", edgeActive: "#bfdbfe", label: "#eff6ff" };
+      case "infrared":
+        return { backgroundA: "#120312", backgroundB: "#2a0c20", node: "#f97316", nodeRecent: "#f43f5e", nodeActive: "#fff7ed", nodeVisited: "#c026d3", edge: "#be123c", edgeActive: "#fb923c", label: "#ffe4e6" };
       case "aurora":
       default:
         return {

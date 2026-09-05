@@ -44,7 +44,27 @@ export type ColorsId =
   | "pearl"
   | "city-nights"
   | "star-map"
-  | "dark-mode";
+  | "dark-mode"
+  | "zen-garden"
+  | "blueprint"
+  | "solar-system"
+  | "library-night"
+  | "crystal"
+  | "terminal-amber"
+  | "red-alert"
+  | "ocean-depths"
+  | "paper-minimal"
+  | "galaxy-core"
+  | "heatmap"
+  | "age-gradient"
+  | "cluster-neon"
+  | "focus-fade"
+  | "signal-strength"
+  | "night-vision"
+  | "archive-dust"
+  | "prism-flow"
+  | "constellation-white"
+  | "infrared";
 export type CameraId = "static" | "calm" | "floating" | "cinematic" | "dynamic" | "fast" | "custom";
 export type TransitionId = "instant" | "crossfade" | "color-morph" | "smooth-camera" | "fade-to-black";
 export type TemplateComponentType = "full" | "mode" | "visual" | "colors" | "camera" | "playlist";
@@ -85,7 +105,17 @@ export type BackgroundId =
   | "dawn"
   | "matrix"
   | "star-map"
-  | "dark-mode";
+  | "dark-mode"
+  | "zen-garden"
+  | "blueprint"
+  | "solar-system"
+  | "library-night"
+  | "crystal"
+  | "terminal-amber"
+  | "red-alert"
+  | "ocean-depths"
+  | "paper-minimal"
+  | "galaxy-core";
 export type NodeMovementStyleId =
   | "gentle-float"
   | "drift"
@@ -309,7 +339,27 @@ export const COLORS: BuiltInOption<ColorsId>[] = [
   { id: "pearl", label: "Pearl" },
   { id: "city-nights", label: "City Nights" },
   { id: "star-map", label: "Star Map" },
-  { id: "dark-mode", label: "Dark Mode" }
+  { id: "dark-mode", label: "Dark Mode" },
+  { id: "zen-garden", label: "Zen Garden" },
+  { id: "blueprint", label: "Blueprint" },
+  { id: "solar-system", label: "Solar System" },
+  { id: "library-night", label: "Library Night" },
+  { id: "crystal", label: "Crystal" },
+  { id: "terminal-amber", label: "Terminal Amber" },
+  { id: "red-alert", label: "Red Alert" },
+  { id: "ocean-depths", label: "Ocean Depths" },
+  { id: "paper-minimal", label: "Paper Minimal" },
+  { id: "galaxy-core", label: "Galaxy Core" },
+  { id: "heatmap", label: "Heatmap" },
+  { id: "age-gradient", label: "Age Gradient" },
+  { id: "cluster-neon", label: "Cluster Neon" },
+  { id: "focus-fade", label: "Focus Fade" },
+  { id: "signal-strength", label: "Signal Strength" },
+  { id: "night-vision", label: "Night Vision" },
+  { id: "archive-dust", label: "Archive Dust" },
+  { id: "prism-flow", label: "Prism Flow" },
+  { id: "constellation-white", label: "Constellation White" },
+  { id: "infrared", label: "Infrared" }
 ];
 
 export const CAMERAS: BuiltInOption<CameraId>[] = [
@@ -370,7 +420,17 @@ export const BACKGROUNDS: BuiltInOption<BackgroundId>[] = [
   { id: "dawn", label: "Dawn" },
   { id: "matrix", label: "Matrix" },
   { id: "star-map", label: "Star Map" },
-  { id: "dark-mode", label: "Dark Mode" }
+  { id: "dark-mode", label: "Dark Mode" },
+  { id: "zen-garden", label: "Zen Garden" },
+  { id: "blueprint", label: "Blueprint" },
+  { id: "solar-system", label: "Solar System" },
+  { id: "library-night", label: "Library Night" },
+  { id: "crystal", label: "Crystal" },
+  { id: "terminal-amber", label: "Terminal Amber" },
+  { id: "red-alert", label: "Red Alert" },
+  { id: "ocean-depths", label: "Ocean Depths" },
+  { id: "paper-minimal", label: "Paper Minimal" },
+  { id: "galaxy-core", label: "Galaxy Core" }
 ];
 
 export const NODE_MOVEMENT_STYLES: BuiltInOption<NodeMovementStyleId>[] = [
