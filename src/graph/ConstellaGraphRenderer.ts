@@ -241,6 +241,9 @@ export class ConstellaGraphRenderer {
       if (background.matrix) {
         this.drawMatrixRain(width, height, colors.edgeActive);
       }
+      if (background.starMap) {
+        this.drawStarMapOverlay(width, height, colors.edgeActive);
+      }
     }
   }
 
@@ -253,39 +256,42 @@ export class ConstellaGraphRenderer {
     stars: boolean;
     nebula: boolean;
     matrix: boolean;
+    starMap: boolean;
     transparent: boolean;
   } {
     switch (this.config.background.style) {
       case "theme":
-        return { a: this.cssColor("--background-primary", "#111113"), b: this.cssColor("--background-primary", "#111113"), gradient: false, animated: false, stars: false, nebula: false, matrix: false, transparent: false };
+        return { a: this.cssColor("--background-primary", "#111113"), b: this.cssColor("--background-primary", "#111113"), gradient: false, animated: false, stars: false, nebula: false, matrix: false, starMap: false, transparent: false };
       case "solid-dark":
-        return { a: "#080b12", b: "#080b12", gradient: false, animated: false, stars: false, nebula: false, matrix: false, transparent: false };
+        return { a: "#080b12", b: "#080b12", gradient: false, animated: false, stars: false, nebula: false, matrix: false, starMap: false, transparent: false };
       case "solid-light":
-        return { a: "#f8fafc", b: "#f8fafc", gradient: false, animated: false, stars: false, nebula: false, matrix: false, transparent: false };
+        return { a: "#f8fafc", b: "#f8fafc", gradient: false, animated: false, stars: false, nebula: false, matrix: false, starMap: false, transparent: false };
       case "gradient":
-        return { a: paletteA, b: paletteB, gradient: true, animated: false, stars: false, nebula: false, matrix: false, transparent: false };
+        return { a: paletteA, b: paletteB, gradient: true, animated: false, stars: false, nebula: false, matrix: false, starMap: false, transparent: false };
       case "animated-gradient":
-        return { a: paletteA, mid: "#1e1b4b", b: paletteB, gradient: true, animated: true, stars: false, nebula: true, matrix: false, transparent: false };
+        return { a: paletteA, mid: "#1e1b4b", b: paletteB, gradient: true, animated: true, stars: false, nebula: true, matrix: false, starMap: false, transparent: false };
       case "stars":
-        return { a: "#050816", b: "#111827", gradient: true, animated: false, stars: true, nebula: false, matrix: false, transparent: false };
+        return { a: "#050816", b: "#111827", gradient: true, animated: false, stars: true, nebula: false, matrix: false, starMap: false, transparent: false };
       case "deep-space":
-        return { a: "#030712", mid: "#10172a", b: "#1e1b4b", gradient: true, animated: false, stars: true, nebula: true, matrix: false, transparent: false };
+        return { a: "#030712", mid: "#10172a", b: "#1e1b4b", gradient: true, animated: false, stars: true, nebula: true, matrix: false, starMap: false, transparent: false };
       case "transparent":
-        return { a: "transparent", b: "transparent", gradient: false, animated: false, stars: false, nebula: false, matrix: false, transparent: true };
+        return { a: "transparent", b: "transparent", gradient: false, animated: false, stars: false, nebula: false, matrix: false, starMap: false, transparent: true };
       case "aurora":
-        return { a: "#06111f", mid: "#12342d", b: "#2e1065", gradient: true, animated: true, stars: true, nebula: true, matrix: false, transparent: false };
+        return { a: "#06111f", mid: "#12342d", b: "#2e1065", gradient: true, animated: true, stars: true, nebula: true, matrix: false, starMap: false, transparent: false };
       case "nebula":
-        return { a: "#12091f", mid: "#172554", b: "#3b0764", gradient: true, animated: true, stars: true, nebula: true, matrix: false, transparent: false };
+        return { a: "#12091f", mid: "#172554", b: "#3b0764", gradient: true, animated: true, stars: true, nebula: true, matrix: false, starMap: false, transparent: false };
       case "paper":
-        return { a: "#faf7ef", b: "#ece7da", gradient: true, animated: false, stars: false, nebula: false, matrix: false, transparent: false };
+        return { a: "#faf7ef", b: "#ece7da", gradient: true, animated: false, stars: false, nebula: false, matrix: false, starMap: false, transparent: false };
       case "midnight":
-        return { a: "#020617", mid: "#111827", b: "#0f172a", gradient: true, animated: false, stars: true, nebula: false, matrix: false, transparent: false };
+        return { a: "#020617", mid: "#111827", b: "#0f172a", gradient: true, animated: false, stars: true, nebula: false, matrix: false, starMap: false, transparent: false };
       case "dawn":
-        return { a: "#fff7ed", mid: "#fde68a", b: "#bfdbfe", gradient: true, animated: false, stars: false, nebula: false, matrix: false, transparent: false };
+        return { a: "#fff7ed", mid: "#fde68a", b: "#bfdbfe", gradient: true, animated: false, stars: false, nebula: false, matrix: false, starMap: false, transparent: false };
       case "matrix":
-        return { a: "#020a06", b: "#03140c", gradient: true, animated: false, stars: false, nebula: false, matrix: true, transparent: false };
+        return { a: "#020a06", b: "#03140c", gradient: true, animated: false, stars: false, nebula: false, matrix: true, starMap: false, transparent: false };
+      case "star-map":
+        return { a: "#020617", mid: "#081426", b: "#10233f", gradient: true, animated: true, stars: true, nebula: false, matrix: false, starMap: true, transparent: false };
       default:
-        return { a: paletteA, b: paletteB, gradient: true, animated: false, stars: true, nebula: true, matrix: false, transparent: false };
+        return { a: paletteA, b: paletteB, gradient: true, animated: false, stars: true, nebula: true, matrix: false, starMap: false, transparent: false };
     }
   }
 
@@ -703,6 +709,55 @@ export class ConstellaGraphRenderer {
     this.ctx.globalAlpha = 1;
   }
 
+  private drawStarMapOverlay(width: number, height: number, color: string): void {
+    const drift = (this.time * (0.12 + this.config.motion.particleSpeed * 0.28)) % 64;
+    this.ctx.save();
+    this.ctx.lineWidth = 1;
+
+    for (let x = -64 + drift; x < width + 64; x += 64) {
+      this.ctx.globalAlpha = 0.035;
+      this.ctx.strokeStyle = color;
+      this.ctx.beginPath();
+      this.ctx.moveTo(x, 0);
+      this.ctx.lineTo(x + Math.sin(this.time * 0.08 + x * 0.01) * 18, height);
+      this.ctx.stroke();
+    }
+
+    for (let y = -64 + drift * 0.6; y < height + 64; y += 64) {
+      this.ctx.globalAlpha = 0.03;
+      this.ctx.strokeStyle = color;
+      this.ctx.beginPath();
+      this.ctx.moveTo(0, y);
+      this.ctx.lineTo(width, y + Math.cos(this.time * 0.06 + y * 0.01) * 14);
+      this.ctx.stroke();
+    }
+
+    const points = 9;
+    this.ctx.strokeStyle = color;
+    this.ctx.fillStyle = color;
+    for (let index = 0; index < points; index += 1) {
+      const x = (Math.sin(index * 2.31) * 0.5 + 0.5) * width;
+      const y = (Math.cos(index * 1.77) * 0.5 + 0.5) * height;
+      const nextX = (Math.sin((index + 1) * 2.31) * 0.5 + 0.5) * width;
+      const nextY = (Math.cos((index + 1) * 1.77) * 0.5 + 0.5) * height;
+      const twinkle = 0.35 + Math.sin(this.time * 1.7 + index) * 0.25;
+
+      this.ctx.globalAlpha = 0.06;
+      this.ctx.beginPath();
+      this.ctx.moveTo(x, y);
+      this.ctx.lineTo(nextX, nextY);
+      this.ctx.stroke();
+
+      this.ctx.globalAlpha = 0.16 + twinkle * 0.12;
+      this.ctx.beginPath();
+      this.ctx.arc(x, y, 1.1 + twinkle, 0, Math.PI * 2);
+      this.ctx.fill();
+    }
+
+    this.ctx.restore();
+    this.ctx.globalAlpha = 1;
+  }
+
   private getLineDrawProgress(edgeId: string, activeJourneyEdge: boolean): number {
     if (!this.config.motion.drawingLinesEnabled) {
       return 1;
@@ -1091,6 +1146,18 @@ export class ConstellaGraphRenderer {
           edge: "#334155",
           edgeActive: "#facc15",
           label: "#e5e7eb"
+        };
+      case "star-map":
+        return {
+          backgroundA: "#020617",
+          backgroundB: "#10233f",
+          node: "#dbeafe",
+          nodeRecent: "#fde68a",
+          nodeActive: "#ffffff",
+          nodeVisited: "#93c5fd",
+          edge: "#60a5fa",
+          edgeActive: "#fbbf24",
+          label: "#e0f2fe"
         };
       case "aurora":
       default:

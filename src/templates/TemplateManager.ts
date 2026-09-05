@@ -8,6 +8,40 @@ export class TemplateManager {
       this.template("builtin-calm", "Calm", now, base, { mode: "wander", visual: "minimal", colors: "deep-ocean", camera: "calm" }, true),
       this.template("builtin-cinematic", "Cinematic", now, base, { mode: "path-journey", visual: "deep-space", colors: "aurora", camera: "cinematic" }, true),
       this.template("builtin-constellation", "Constellation", now, base, { mode: "wander", visual: "constellation", colors: "aurora", camera: "floating" }, true),
+      this.template("builtin-star-map", "Star Map", now, base, {
+        mode: "path-journey",
+        visual: "constellation",
+        colors: "star-map",
+        camera: "floating",
+        background: { style: "star-map" },
+        motion: {
+          ...base.motion,
+          animationSpeed: 0.38,
+          cameraSpeed: 0.24,
+          visualIntensity: 0.7,
+          colorSpeed: 0.32,
+          colorIntensity: 0.78,
+          particlesEnabled: true,
+          nodeMovementEnabled: true,
+          connectionPulsesEnabled: true,
+          glowEnabled: true,
+          backgroundEffectsEnabled: true,
+          particleAmount: 150,
+          particleSpeed: 0.24,
+          pulseAmount: 12,
+          drawingLinesEnabled: true,
+          drawingLineSpeed: 0.34,
+          nodeMovementStyle: "orbit",
+          nodeMovementStrength: 0.32,
+          nodeMovementSpeed: 0.28,
+          pathAnimation: "comet",
+          pulseStyle: "star-spark"
+        },
+        display: {
+          ...base.display,
+          showNodeInfoOverlay: false
+        }
+      }, true),
       this.template("builtin-neon", "Neon", now, base, { mode: "random-discovery", visual: "neon", colors: "rainbow-flow", camera: "dynamic" }, true),
       this.template("builtin-discovery", "Discovery", now, base, { mode: "forgotten-knowledge", visual: "soft-glow", colors: "forest", camera: "floating" }, true),
       this.template("builtin-minimal-dark", "Minimal Dark", now, base, {

@@ -42,7 +42,8 @@ export type ColorsId =
   | "ocean-sunset"
   | "ink"
   | "pearl"
-  | "city-nights";
+  | "city-nights"
+  | "star-map";
 export type CameraId = "static" | "calm" | "floating" | "cinematic" | "dynamic" | "fast" | "custom";
 export type TransitionId = "instant" | "crossfade" | "color-morph" | "smooth-camera" | "fade-to-black";
 export type TemplateComponentType = "full" | "mode" | "visual" | "colors" | "camera" | "playlist";
@@ -81,7 +82,8 @@ export type BackgroundId =
   | "paper"
   | "midnight"
   | "dawn"
-  | "matrix";
+  | "matrix"
+  | "star-map";
 export type NodeMovementStyleId =
   | "gentle-float"
   | "drift"
@@ -287,9 +289,9 @@ export const COLORS: BuiltInOption<ColorsId>[] = [
   { id: "meadow", label: "Meadow" },
   { id: "ocean-sunset", label: "Ocean Sunset" },
   { id: "ink", label: "Ink" },
-  { id: "pearl", label: "Pearl" }
-  ,
-  { id: "city-nights", label: "City Nights" }
+  { id: "pearl", label: "Pearl" },
+  { id: "city-nights", label: "City Nights" },
+  { id: "star-map", label: "Star Map" }
 ];
 
 export const CAMERAS: BuiltInOption<CameraId>[] = [
@@ -348,7 +350,8 @@ export const BACKGROUNDS: BuiltInOption<BackgroundId>[] = [
   { id: "paper", label: "Paper" },
   { id: "midnight", label: "Midnight" },
   { id: "dawn", label: "Dawn" },
-  { id: "matrix", label: "Matrix" }
+  { id: "matrix", label: "Matrix" },
+  { id: "star-map", label: "Star Map" }
 ];
 
 export const NODE_MOVEMENT_STYLES: BuiltInOption<NodeMovementStyleId>[] = [

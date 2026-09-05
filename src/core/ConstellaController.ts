@@ -357,7 +357,8 @@ export class ConstellaController {
       "nord",
       "midnight-gold",
       "violet-storm",
-      "ocean-sunset"
+      "ocean-sunset",
+      "star-map"
     ];
     const cameras: CameraId[] = ["static", "calm", "floating", "cinematic"];
     const movements: NodeMovementStyleId[] = ["gentle-float", "drift", "orbit", "breathing", "scatter", "swarm", "jitter", "spiral", "chaos"];
