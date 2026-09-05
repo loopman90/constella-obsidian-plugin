@@ -53,16 +53,37 @@ export class PathEngine {
 
     switch (mode) {
       case "recent-activity":
+      case "newest-first":
+      case "timeline-run":
         return [...candidates].sort((a, b) => b.lastModified - a.lastModified)[0];
       case "forgotten-knowledge":
+      case "oldest-first":
+      case "memory-lane":
         return [...candidates].sort((a, b) => a.lastModified - b.lastModified)[0];
       case "hub-explorer":
+      case "dense-route":
+      case "bridge-finder":
+      case "project-map":
         return [...candidates].sort((a, b) => b.connectionCount - a.connectionCount)[0];
       case "hidden-gems":
+      case "sparse-route":
+      case "orphan-hunt":
         return [...candidates].sort((a, b) => this.hiddenGemScore(b) - this.hiddenGemScore(a))[0];
+      case "quick-scan":
+      case "review-loop":
+        return candidates[Math.floor(Math.random() * Math.min(candidates.length, Math.max(1, Math.ceil(candidates.length * 0.35))))];
       case "random-discovery":
       case "cluster-journey":
       case "path-journey":
+      case "deep-dive":
+      case "idea-hop":
+      case "cluster-sweep":
+      case "balanced-tour":
+      case "serendipity":
+      case "research-trail":
+      case "writing-map":
+      case "tag-surf":
+      case "folder-walk":
       case "wander":
       default:
         return candidates[Math.floor(Math.random() * candidates.length)];
@@ -119,8 +140,17 @@ export class PathEngine {
       if (config.mode === "recent-activity") {
         return node.lastModified >= now - config.discovery.recentDays * 24 * 60 * 60 * 1000;
       }
+      if (config.mode === "newest-first" || config.mode === "timeline-run" || config.mode === "quick-scan") {
+        return node.lastModified >= now - Math.max(config.discovery.recentDays, 60) * 24 * 60 * 60 * 1000;
+      }
       if (config.mode === "forgotten-knowledge") {
         return node.lastModified <= now - config.discovery.forgottenDays * 24 * 60 * 60 * 1000;
+      }
+      if (config.mode === "oldest-first" || config.mode === "memory-lane" || config.mode === "review-loop") {
+        return node.lastModified <= now - Math.max(30, Math.floor(config.discovery.forgottenDays / 2)) * 24 * 60 * 60 * 1000;
+      }
+      if (config.mode === "orphan-hunt") {
+        return node.connectionCount === 0;
       }
       return true;
     });
@@ -136,14 +166,35 @@ export class PathEngine {
       if (mode === "hub-explorer") {
         return Math.max(1, node.connectionCount);
       }
+      if (mode === "dense-route" || mode === "project-map" || mode === "bridge-finder") {
+        return Math.max(1, node.connectionCount * 1.35);
+      }
       if (mode === "hidden-gems") {
         return this.hiddenGemScore(node);
+      }
+      if (mode === "sparse-route" || mode === "orphan-hunt") {
+        return Math.max(1, 12 - node.connectionCount);
       }
       if (mode === "forgotten-knowledge") {
         return Math.max(1, (Date.now() - node.lastModified) / (24 * 60 * 60 * 1000));
       }
+      if (mode === "oldest-first" || mode === "memory-lane" || mode === "review-loop") {
+        return Math.max(1, Math.sqrt((Date.now() - node.lastModified) / (24 * 60 * 60 * 1000)));
+      }
       if (mode === "recent-activity") {
         return Math.max(1, 100 - (Date.now() - node.lastModified) / (24 * 60 * 60 * 1000));
+      }
+      if (mode === "newest-first" || mode === "timeline-run" || mode === "quick-scan") {
+        return Math.max(1, 160 - (Date.now() - node.lastModified) / (24 * 60 * 60 * 1000));
+      }
+      if (mode === "serendipity" || mode === "idea-hop") {
+        return 1 + Math.random() * Math.max(1, node.connectionCount + 4);
+      }
+      if (mode === "balanced-tour" || mode === "research-trail" || mode === "writing-map" || mode === "tag-surf" || mode === "folder-walk") {
+        return 2 + Math.sqrt(node.connectionCount + 1);
+      }
+      if (mode === "deep-dive" || mode === "cluster-sweep") {
+        return 1 + node.connectionCount;
       }
       return 1 + Math.sqrt(node.connectionCount);
     });
@@ -190,4 +241,3 @@ export class PathEngine {
     return Math.floor(lower + Math.random() * (upper - lower + 1));
   }
 }
-

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0
+
+- Added 20 extra exploration modes: Deep Dive, Quick Scan, Review Loop, Idea Hop, Bridge Finder, Cluster Sweep, Orphan Hunt, Timeline Run, Oldest First, Newest First, Dense Route, Sparse Route, Balanced Tour, Serendipity, Research Trail, Writing Map, Project Map, Tag Surf, Folder Walk, and Memory Lane.
+- Expanded journey start selection and path weighting so the new modes influence how Constella chooses and travels between notes.
+- Updated Smart Randomize so every built-in mode can be selected.
+
 ## 0.3.9
 
 - Removed system clipboard access from JSON export, while keeping import/export available through the modal text area.

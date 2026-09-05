@@ -11,7 +11,27 @@ export type ModeId =
   | "hub-explorer"
   | "hidden-gems"
   | "cluster-journey"
-  | "random-discovery";
+  | "random-discovery"
+  | "deep-dive"
+  | "quick-scan"
+  | "review-loop"
+  | "idea-hop"
+  | "bridge-finder"
+  | "cluster-sweep"
+  | "orphan-hunt"
+  | "timeline-run"
+  | "oldest-first"
+  | "newest-first"
+  | "dense-route"
+  | "sparse-route"
+  | "balanced-tour"
+  | "serendipity"
+  | "research-trail"
+  | "writing-map"
+  | "project-map"
+  | "tag-surf"
+  | "folder-walk"
+  | "memory-lane";
 
 export type VisualId =
   | "minimal"
@@ -369,7 +389,27 @@ export const MODES: BuiltInOption<ModeId>[] = [
   { id: "hub-explorer", label: "Hub Explorer" },
   { id: "hidden-gems", label: "Hidden Gems" },
   { id: "cluster-journey", label: "Cluster Journey" },
-  { id: "random-discovery", label: "Random Discovery" }
+  { id: "random-discovery", label: "Random Discovery" },
+  { id: "deep-dive", label: "Deep Dive" },
+  { id: "quick-scan", label: "Quick Scan" },
+  { id: "review-loop", label: "Review Loop" },
+  { id: "idea-hop", label: "Idea Hop" },
+  { id: "bridge-finder", label: "Bridge Finder" },
+  { id: "cluster-sweep", label: "Cluster Sweep" },
+  { id: "orphan-hunt", label: "Orphan Hunt" },
+  { id: "timeline-run", label: "Timeline Run" },
+  { id: "oldest-first", label: "Oldest First" },
+  { id: "newest-first", label: "Newest First" },
+  { id: "dense-route", label: "Dense Route" },
+  { id: "sparse-route", label: "Sparse Route" },
+  { id: "balanced-tour", label: "Balanced Tour" },
+  { id: "serendipity", label: "Serendipity" },
+  { id: "research-trail", label: "Research Trail" },
+  { id: "writing-map", label: "Writing Map" },
+  { id: "project-map", label: "Project Map" },
+  { id: "tag-surf", label: "Tag Surf" },
+  { id: "folder-walk", label: "Folder Walk" },
+  { id: "memory-lane", label: "Memory Lane" }
 ];
 
 export const VISUALS: BuiltInOption<VisualId>[] = [

@@ -9,6 +9,7 @@ import {
   withMode,
   withVisual
 } from "./ActiveConfiguration";
+import { MODES } from "./types";
 import type {
   ActiveConfiguration,
   BackgroundId,
@@ -496,7 +497,7 @@ export class ConstellaController {
   }
 
   async randomizeSafe(): Promise<void> {
-    const modes: ModeId[] = ["wander", "recent-activity", "forgotten-knowledge", "hub-explorer", "random-discovery"];
+    const modes: ModeId[] = MODES.map((mode) => mode.id);
     const visuals: VisualId[] = [
       "minimal",
       "constellation",
