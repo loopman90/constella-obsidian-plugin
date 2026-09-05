@@ -21,7 +21,7 @@ export class GraphDataService {
       return this.applyInteractionFilters(graph, config);
     }
 
-    const depth = scope === "current" ? 0 : localDepth;
+    const depth = scope === "current" ? 0 : Math.max(1, Math.min(50, Math.round(localDepth ?? 4)));
     graph = this.clusterEngine.assignClusters(this.filterAroundFile(global, activeFile, depth));
     return this.applyInteractionFilters(graph, config);
   }
@@ -121,7 +121,8 @@ export class GraphDataService {
     const tags = new Set<string>();
     cache?.tags?.forEach((tag) => tags.add(tag.tag.replace(/^#/, "").toLowerCase()));
 
-    const frontmatterTags = cache?.frontmatter?.tags;
+    const frontmatter = cache?.frontmatter as Record<string, unknown> | undefined;
+    const frontmatterTags = frontmatter?.tags;
     if (typeof frontmatterTags === "string") {
       this.filterTokens(frontmatterTags).forEach((tag) => tags.add(tag.replace(/^#/, "")));
     } else if (Array.isArray(frontmatterTags)) {

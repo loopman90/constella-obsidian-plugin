@@ -7,7 +7,7 @@ export const DEFAULT_CONFIGURATION: ActiveConfiguration = {
   camera: "floating",
   graph: {
     scope: "global",
-    localDepth: 2,
+    localDepth: 4,
     useCurrentGraphWhenAvailable: true,
     folderFilter: "",
     tagFilter: "",

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.2
+
+- Raised Local Depth defaults and controls so local graphs can expand up to 50 link steps.
+- Removed deprecated imperative settings tab rendering in favor of declarative settings definitions.
+- Renamed the settings group from `General` to `Plugin preferences`.
+- Made frontmatter tag filtering type-safe for stricter review tooling.
+
 ## 0.2.1
 
 - Added a `Show All Notes` action that resets graph scope, graph filters, and temporary hide/expand state.

@@ -212,7 +212,7 @@ export class ControlPanel {
     const config = this.controller.configuration;
     const section = this.section(parent, "Graph Source", "Choose how much of your vault Constella should draw.");
     section.appendChild(this.select("Graph Scope", config.graph.scope, this.graphScopeOptions(), (value) => this.controller.updateGraphScope(value)));
-    section.appendChild(this.numberControl("Local Depth", config.graph.localDepth, 1, 8, (value) => this.controller.updateLocalDepth(value)));
+    section.appendChild(this.numberControl("Local Depth", config.graph.localDepth, 1, 50, (value) => this.controller.updateLocalDepth(value)));
     section.appendChild(this.toggleControl("Use Current Note When Available", config.graph.useCurrentGraphWhenAvailable, (value) =>
       this.controller.updateGraphOption("useCurrentGraphWhenAvailable", value)
     ));

@@ -132,11 +132,12 @@ export class ConstellaController {
   }
 
   async updateLocalDepth(localDepth: number): Promise<void> {
+    const clampedDepth = Math.max(1, Math.min(50, Math.round(localDepth)));
     this.updateConfiguration({
       ...cloneConfiguration(this.configuration),
       graph: {
         ...this.configuration.graph,
-        localDepth
+        localDepth: clampedDepth
       },
       template: {
         ...this.configuration.template,

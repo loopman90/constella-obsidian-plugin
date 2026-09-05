@@ -166,7 +166,7 @@ Inside the Constella view:
 Constella supports:
 
 - `Global`: the full vault graph.
-- `Local`: the graph around the current note, with configurable depth.
+- `Local`: the graph around the current note, with configurable depth up to 50 link steps.
 - `Current Note`: a focused graph for the active note.
 
 ## Journey Modes
