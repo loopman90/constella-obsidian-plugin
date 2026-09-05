@@ -23,6 +23,18 @@ interface ClickEffect {
   style: ClickAnimationId;
 }
 
+type VisualEdgeMode = "line" | "dash" | "curve" | "double" | "orthogonal";
+type VisualNodeShape = "circle" | "ring" | "square" | "diamond" | "hex" | "star" | "packet" | "bar" | "stone" | "shard";
+
+interface VisualProfile {
+  edgeMode: VisualEdgeMode;
+  nodeShape: VisualNodeShape;
+  edgeMultiplier: number;
+  nodeMultiplier: number;
+  glowMultiplier: number;
+  labelThreshold: number;
+}
+
 export class ConstellaGraphRenderer {
   private readonly canvas: HTMLCanvasElement;
   private readonly ctx: CanvasRenderingContext2D;
@@ -355,6 +367,7 @@ export class ConstellaGraphRenderer {
 
   private drawEdges(): void {
     const colors = this.getPalette();
+    const profile = this.visualProfile();
     this.ctx.lineCap = "round";
 
     for (const edge of this.graph.edges) {
@@ -373,11 +386,8 @@ export class ConstellaGraphRenderer {
       this.ctx.strokeStyle = edgeColor;
       this.ctx.globalAlpha = this.edgeAlpha(edge, selected || hovered, activeJourneyEdge) * Math.max(0.24, lineProgress);
       const thickness = 0.7 + this.config.display.edgeThickness * 1.8;
-      this.ctx.lineWidth = (activeJourneyEdge ? 2.4 : selected || hovered ? 1.8 : this.edgeWidth(edge)) * thickness / this.viewport.scale;
-      this.ctx.beginPath();
-      this.ctx.moveTo(source.x, source.y);
-      this.ctx.lineTo(drawTarget.x, drawTarget.y);
-      this.ctx.stroke();
+      this.ctx.lineWidth = (activeJourneyEdge ? 2.4 : selected || hovered ? 1.8 : this.edgeWidth(edge)) * thickness * profile.edgeMultiplier / this.viewport.scale;
+      this.drawVisualEdge(source, drawTarget, edge.id, profile.edgeMode);
 
       if (this.config.motion.drawingLinesEnabled && lineProgress < 0.98) {
         this.drawPulseShape(drawTarget.x, drawTarget.y, edgeColor, 0.65, Math.max(1.7, 3 / this.viewport.scale), source, target);
@@ -393,6 +403,7 @@ export class ConstellaGraphRenderer {
 
   private drawNodes(): void {
     const colors = this.getPalette();
+    const profile = this.visualProfile();
     const recentCutoff = Date.now() - 1000 * 60 * 60 * 24 * 30;
 
     this.graph.nodes.forEach((node, index) => {
@@ -407,9 +418,9 @@ export class ConstellaGraphRenderer {
       const dynamicColor = this.dynamicNodeColor(node, index, recent);
       const fill = clusterColor ?? (hueShift === null ? (recent ? colors.nodeRecent : colors.node) : `hsl(${hueShift}, 86%, 64%)`);
       const nodeFill = dynamicColor ?? fill;
-      const radius = this.nodeRadius(node);
+      const radius = this.nodeRadius(node) * profile.nodeMultiplier;
       const dimmedByHover = this.hoverNode && !hovered && !neighbor && !selected;
-      const glowRadius = radius * (currentJourney ? 5.8 : selected || hovered ? 4.4 : 2.4) * this.config.motion.visualIntensity;
+      const glowRadius = radius * (currentJourney ? 5.8 : selected || hovered ? 4.4 : 2.4) * this.config.motion.visualIntensity * profile.glowMultiplier;
 
       if (this.config.motion.glowEnabled && this.config.visual !== "minimal" && glowRadius > 0 && !dimmedByHover) {
         const glow = this.ctx.createRadialGradient(node.x, node.y, radius, node.x, node.y, glowRadius);
@@ -424,11 +435,9 @@ export class ConstellaGraphRenderer {
 
       this.ctx.globalAlpha = dimmedByHover ? 0.22 : 1;
       this.ctx.fillStyle = currentJourney || selected ? colors.nodeActive : visitedJourney ? colors.nodeVisited : nodeFill;
-      this.ctx.beginPath();
-      this.ctx.arc(node.x, node.y, currentJourney ? radius + 3 : selected || hovered ? radius + 2 : radius, 0, Math.PI * 2);
-      this.ctx.fill();
+      this.drawVisualNode(node, currentJourney ? radius + 3 : selected || hovered ? radius + 2 : radius, profile.nodeShape, colors.edgeActive);
 
-      if (this.config.display.showLabels && (selected || this.viewport.scale > 0.88)) {
+      if (this.config.display.showLabels && (selected || this.viewport.scale > profile.labelThreshold)) {
         this.drawLabel(node, colors.label, selected || hovered);
       }
     });
@@ -449,6 +458,136 @@ export class ConstellaGraphRenderer {
       return true;
     });
     this.ctx.globalAlpha = 1;
+  }
+
+  private drawVisualEdge(source: GraphNode, target: { x: number; y: number }, edgeId: string, mode: VisualEdgeMode): void {
+    this.ctx.save();
+    switch (mode) {
+      case "dash":
+        this.ctx.setLineDash([8 / this.viewport.scale, 7 / this.viewport.scale]);
+        this.ctx.lineDashOffset = -this.time * 18;
+        this.ctx.beginPath();
+        this.ctx.moveTo(source.x, source.y);
+        this.ctx.lineTo(target.x, target.y);
+        this.ctx.stroke();
+        break;
+      case "curve": {
+        const normal = this.edgeNormal(source, { ...source, ...target });
+        const bend = (Math.sin(this.edgePhase(edgeId) * Math.PI * 2) * 24) / this.viewport.scale;
+        const midX = (source.x + target.x) / 2 + normal.x * bend;
+        const midY = (source.y + target.y) / 2 + normal.y * bend;
+        this.ctx.beginPath();
+        this.ctx.moveTo(source.x, source.y);
+        this.ctx.quadraticCurveTo(midX, midY, target.x, target.y);
+        this.ctx.stroke();
+        break;
+      }
+      case "double": {
+        const normal = this.edgeNormal(source, { ...source, ...target });
+        for (const offset of [-2.2, 2.2]) {
+          this.ctx.beginPath();
+          this.ctx.moveTo(source.x + normal.x * offset, source.y + normal.y * offset);
+          this.ctx.lineTo(target.x + normal.x * offset, target.y + normal.y * offset);
+          this.ctx.stroke();
+        }
+        break;
+      }
+      case "orthogonal": {
+        const turnX = source.x + (target.x - source.x) * 0.55;
+        this.ctx.beginPath();
+        this.ctx.moveTo(source.x, source.y);
+        this.ctx.lineTo(turnX, source.y);
+        this.ctx.lineTo(turnX, target.y);
+        this.ctx.lineTo(target.x, target.y);
+        this.ctx.stroke();
+        break;
+      }
+      case "line":
+      default:
+        this.ctx.beginPath();
+        this.ctx.moveTo(source.x, source.y);
+        this.ctx.lineTo(target.x, target.y);
+        this.ctx.stroke();
+        break;
+    }
+    this.ctx.restore();
+  }
+
+  private drawVisualNode(node: GraphNode, radius: number, shape: VisualNodeShape, accent: string): void {
+    this.ctx.save();
+    this.ctx.translate(node.x, node.y);
+    switch (shape) {
+      case "ring":
+        this.ctx.beginPath();
+        this.ctx.arc(0, 0, radius, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.strokeStyle = accent;
+        this.ctx.globalAlpha *= 0.78;
+        this.ctx.lineWidth = Math.max(1, 1.5 / this.viewport.scale);
+        this.ctx.beginPath();
+        this.ctx.arc(0, 0, radius * 1.75, 0, Math.PI * 2);
+        this.ctx.stroke();
+        break;
+      case "square":
+        this.ctx.fillRect(-radius, -radius, radius * 2, radius * 2);
+        break;
+      case "diamond":
+        this.ctx.rotate(Math.PI / 4);
+        this.ctx.fillRect(-radius * 0.86, -radius * 0.86, radius * 1.72, radius * 1.72);
+        break;
+      case "hex":
+        this.drawPolygon(6, radius);
+        this.ctx.fill();
+        break;
+      case "star":
+        this.drawStar(radius * 0.8);
+        break;
+      case "packet":
+        this.ctx.fillRect(-radius * 1.25, -radius * 0.58, radius * 2.5, radius * 1.16);
+        this.ctx.globalAlpha *= 0.42;
+        this.ctx.fillStyle = accent;
+        this.ctx.fillRect(-radius * 0.95, -radius * 1.15, radius * 1.9, radius * 0.28);
+        break;
+      case "bar":
+        this.ctx.fillRect(-radius * 0.55, -radius * 1.25, radius * 1.1, radius * 2.5);
+        break;
+      case "stone":
+        this.ctx.beginPath();
+        this.ctx.ellipse(0, 0, radius * 1.18, radius * 0.82, Math.sin(this.edgePhase(node.id) * 6) * 0.7, 0, Math.PI * 2);
+        this.ctx.fill();
+        break;
+      case "shard":
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, -radius * 1.45);
+        this.ctx.lineTo(radius * 0.92, -radius * 0.18);
+        this.ctx.lineTo(radius * 0.28, radius * 1.28);
+        this.ctx.lineTo(-radius * 0.86, radius * 0.42);
+        this.ctx.closePath();
+        this.ctx.fill();
+        break;
+      case "circle":
+      default:
+        this.ctx.beginPath();
+        this.ctx.arc(0, 0, radius, 0, Math.PI * 2);
+        this.ctx.fill();
+        break;
+    }
+    this.ctx.restore();
+  }
+
+  private drawPolygon(sides: number, radius: number): void {
+    this.ctx.beginPath();
+    for (let index = 0; index < sides; index += 1) {
+      const angle = -Math.PI / 2 + index * ((Math.PI * 2) / sides);
+      const x = Math.cos(angle) * radius;
+      const y = Math.sin(angle) * radius;
+      if (index === 0) {
+        this.ctx.moveTo(x, y);
+      } else {
+        this.ctx.lineTo(x, y);
+      }
+    }
+    this.ctx.closePath();
   }
 
   private drawClickEffect(effect: ClickEffect, t: number): void {
@@ -1110,6 +1249,73 @@ export class ConstellaGraphRenderer {
       return 0.75 + Math.min(1.4, edge.weight * 0.22);
     }
     return 0.9;
+  }
+
+  private visualProfile(): VisualProfile {
+    const base: VisualProfile = {
+      edgeMode: "line",
+      nodeShape: "circle",
+      edgeMultiplier: 1,
+      nodeMultiplier: 1,
+      glowMultiplier: 1,
+      labelThreshold: 0.88
+    };
+
+    switch (this.config.visual) {
+      case "minimal":
+        return { ...base, edgeMultiplier: 0.7, nodeMultiplier: 0.86, glowMultiplier: 0, labelThreshold: 1.05 };
+      case "clean":
+        return { ...base, edgeMultiplier: 0.86, nodeMultiplier: 0.92, glowMultiplier: 0.35, labelThreshold: 0.98 };
+      case "soft-glow":
+        return { ...base, edgeMultiplier: 0.95, nodeMultiplier: 1.04, glowMultiplier: 1.45, labelThreshold: 0.92 };
+      case "deep-space":
+        return { ...base, edgeMode: "curve", edgeMultiplier: 1.1, nodeMultiplier: 1.04, glowMultiplier: 1.55, labelThreshold: 0.9 };
+      case "neon":
+        return { ...base, edgeMultiplier: 1.25, nodeMultiplier: 1.08, glowMultiplier: 1.8, labelThreshold: 0.92 };
+      case "star-chart":
+        return { ...base, edgeMode: "dash", nodeShape: "star", edgeMultiplier: 0.82, nodeMultiplier: 0.9, glowMultiplier: 1.1, labelThreshold: 0.8 };
+      case "galaxy-spiral":
+        return { ...base, edgeMode: "curve", nodeShape: "ring", edgeMultiplier: 1.18, nodeMultiplier: 1.04, glowMultiplier: 1.75, labelThreshold: 0.95 };
+      case "matrix-grid":
+        return { ...base, edgeMode: "orthogonal", nodeShape: "square", edgeMultiplier: 0.88, nodeMultiplier: 0.88, glowMultiplier: 1.2, labelThreshold: 1.04 };
+      case "blueprint-lines":
+        return { ...base, edgeMode: "dash", nodeShape: "ring", edgeMultiplier: 0.72, nodeMultiplier: 0.86, glowMultiplier: 0.2, labelThreshold: 0.78 };
+      case "orbital-rings":
+        return { ...base, edgeMode: "curve", nodeShape: "ring", edgeMultiplier: 0.95, nodeMultiplier: 1, glowMultiplier: 1.3, labelThreshold: 0.98 };
+      case "city-network":
+        return { ...base, edgeMode: "double", nodeShape: "bar", edgeMultiplier: 0.88, nodeMultiplier: 0.92, glowMultiplier: 1.15, labelThreshold: 1.02 };
+      case "data-stream":
+        return { ...base, edgeMode: "dash", nodeShape: "packet", edgeMultiplier: 1.05, nodeMultiplier: 0.9, glowMultiplier: 1.25, labelThreshold: 1 };
+      case "heatmap-cloud":
+        return { ...base, edgeMultiplier: 1.35, nodeMultiplier: 1.2, glowMultiplier: 1.55, labelThreshold: 1.02 };
+      case "paper-map":
+        return { ...base, edgeMode: "dash", nodeShape: "circle", edgeMultiplier: 0.62, nodeMultiplier: 0.82, glowMultiplier: 0, labelThreshold: 0.65 };
+      case "library-index":
+        return { ...base, edgeMode: "line", nodeShape: "square", edgeMultiplier: 0.7, nodeMultiplier: 0.8, glowMultiplier: 0.15, labelThreshold: 0.72 };
+      case "zen-stones":
+        return { ...base, edgeMultiplier: 0.58, nodeShape: "stone", nodeMultiplier: 1.05, glowMultiplier: 0.35, labelThreshold: 0.9 };
+      case "crystal-lattice":
+        return { ...base, edgeMode: "double", nodeShape: "shard", edgeMultiplier: 0.82, nodeMultiplier: 1.08, glowMultiplier: 1.65, labelThreshold: 0.92 };
+      case "solar-orbits":
+        return { ...base, edgeMode: "curve", nodeShape: "ring", edgeMultiplier: 0.86, nodeMultiplier: 1.14, glowMultiplier: 1.5, labelThreshold: 1.02 };
+      case "terminal-blocks":
+        return { ...base, edgeMode: "orthogonal", nodeShape: "packet", edgeMultiplier: 0.9, nodeMultiplier: 0.9, glowMultiplier: 1, labelThreshold: 1.08 };
+      case "red-scanner":
+        return { ...base, edgeMode: "dash", nodeShape: "diamond", edgeMultiplier: 1.18, nodeMultiplier: 1.04, glowMultiplier: 1.7, labelThreshold: 1 };
+      case "ocean-bubbles":
+        return { ...base, edgeMode: "curve", nodeShape: "ring", edgeMultiplier: 0.78, nodeMultiplier: 1.08, glowMultiplier: 1.25, labelThreshold: 0.95 };
+      case "prism-shards":
+        return { ...base, edgeMode: "double", nodeShape: "shard", edgeMultiplier: 1.06, nodeMultiplier: 1.06, glowMultiplier: 1.55, labelThreshold: 0.94 };
+      case "radar-sweep":
+        return { ...base, edgeMode: "dash", nodeShape: "ring", edgeMultiplier: 0.92, nodeMultiplier: 0.98, glowMultiplier: 1.25, labelThreshold: 0.96 };
+      case "topographic":
+        return { ...base, edgeMode: "curve", nodeShape: "stone", edgeMultiplier: 0.68, nodeMultiplier: 0.92, glowMultiplier: 0.18, labelThreshold: 0.76 };
+      case "circuit-board":
+        return { ...base, edgeMode: "orthogonal", nodeShape: "hex", edgeMultiplier: 0.76, nodeMultiplier: 0.86, glowMultiplier: 0.85, labelThreshold: 1.04 };
+      case "constellation":
+      default:
+        return base;
+    }
   }
 
   private getPalette() {

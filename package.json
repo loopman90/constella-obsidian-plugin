@@ -1,6 +1,6 @@
 {
   "name": "constella",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "description": "Explore your vault as an interactive, local-first knowledge graph.",
   "main": "main.js",
   "scripts": {

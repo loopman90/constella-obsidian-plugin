@@ -13,7 +13,33 @@ export type ModeId =
   | "cluster-journey"
   | "random-discovery";
 
-export type VisualId = "minimal" | "constellation" | "deep-space" | "neon" | "soft-glow" | "clean";
+export type VisualId =
+  | "minimal"
+  | "constellation"
+  | "deep-space"
+  | "neon"
+  | "soft-glow"
+  | "clean"
+  | "star-chart"
+  | "galaxy-spiral"
+  | "matrix-grid"
+  | "blueprint-lines"
+  | "orbital-rings"
+  | "city-network"
+  | "data-stream"
+  | "heatmap-cloud"
+  | "paper-map"
+  | "library-index"
+  | "zen-stones"
+  | "crystal-lattice"
+  | "solar-orbits"
+  | "terminal-blocks"
+  | "red-scanner"
+  | "ocean-bubbles"
+  | "prism-shards"
+  | "radar-sweep"
+  | "topographic"
+  | "circuit-board";
 export type ColorsId =
   | "aurora"
   | "rainbow-flow"
@@ -324,7 +350,27 @@ export const VISUALS: BuiltInOption<VisualId>[] = [
   { id: "deep-space", label: "Deep Space" },
   { id: "neon", label: "Neon" },
   { id: "soft-glow", label: "Soft Glow" },
-  { id: "clean", label: "Clean" }
+  { id: "clean", label: "Clean" },
+  { id: "star-chart", label: "Star Chart" },
+  { id: "galaxy-spiral", label: "Galaxy Spiral" },
+  { id: "matrix-grid", label: "Matrix Grid" },
+  { id: "blueprint-lines", label: "Blueprint Lines" },
+  { id: "orbital-rings", label: "Orbital Rings" },
+  { id: "city-network", label: "City Network" },
+  { id: "data-stream", label: "Data Stream" },
+  { id: "heatmap-cloud", label: "Heatmap Cloud" },
+  { id: "paper-map", label: "Paper Map" },
+  { id: "library-index", label: "Library Index" },
+  { id: "zen-stones", label: "Zen Stones" },
+  { id: "crystal-lattice", label: "Crystal Lattice" },
+  { id: "solar-orbits", label: "Solar Orbits" },
+  { id: "terminal-blocks", label: "Terminal Blocks" },
+  { id: "red-scanner", label: "Red Scanner" },
+  { id: "ocean-bubbles", label: "Ocean Bubbles" },
+  { id: "prism-shards", label: "Prism Shards" },
+  { id: "radar-sweep", label: "Radar Sweep" },
+  { id: "topographic", label: "Topographic" },
+  { id: "circuit-board", label: "Circuit Board" }
 ];
 
 export const COLORS: BuiltInOption<ColorsId>[] = [

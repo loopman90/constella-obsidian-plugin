@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0
+
+- Added 20 new visual styles tailored to knowledge graph exploration: Star Chart, Galaxy Spiral, Matrix Grid, Blueprint Lines, Orbital Rings, City Network, Data Stream, Heatmap Cloud, Paper Map, Library Index, Zen Stones, Crystal Lattice, Solar Orbits, Terminal Blocks, Red Scanner, Ocean Bubbles, Prism Shards, Radar Sweep, Topographic, and Circuit Board.
+- Added per-style rendering profiles for node shape, edge style, glow behavior, label density, and visual scale.
+- Expanded Smart Randomize so it can use the full visual style library.
+
 ## 0.2.4
 
 - Added Quick Bar buttons for fullscreen display mode and second-screen pop-out display.

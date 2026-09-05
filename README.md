@@ -100,7 +100,7 @@ Constella keeps these systems separate:
 - Filter the graph by folder, tag, recent notes, forgotten notes, and minimum link count.
 - Hover a node to highlight its direct neighbors.
 - Pin nodes, temporarily hide nodes or clusters, expand from a selected note, and preview a path between two notes.
-- Tune background intensity, label size, node size, edge thickness, particles, pulses, drawing lines, and reduce-motion mode.
+- Tune background intensity, label size, node size, edge thickness, particles, pulses, drawing lines, visual styles, and reduce-motion mode.
 - Show an optional legend for color modes such as Heatmap, Age Gradient, Cluster Neon, Focus Fade, and Signal Strength.
 - Show an optional FPS indicator for performance checks.
 
@@ -183,6 +183,41 @@ Available modes:
 - `Random Discovery`
 
 The journey engine follows real relationships in your vault and can prefer recent notes, old notes, hubs, hidden gems, or random discoveries.
+
+## Templates
+
+## Visual Styles
+
+Constella includes a broad visual-style library. Each style changes how nodes and edges are rendered, not just the color palette.
+
+Built-in visual styles:
+
+- Minimal
+- Constellation
+- Deep Space
+- Neon
+- Soft Glow
+- Clean
+- Star Chart
+- Galaxy Spiral
+- Matrix Grid
+- Blueprint Lines
+- Orbital Rings
+- City Network
+- Data Stream
+- Heatmap Cloud
+- Paper Map
+- Library Index
+- Zen Stones
+- Crystal Lattice
+- Solar Orbits
+- Terminal Blocks
+- Red Scanner
+- Ocean Bubbles
+- Prism Shards
+- Radar Sweep
+- Topographic
+- Circuit Board
 
 ## Templates
 

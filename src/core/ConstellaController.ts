@@ -496,7 +496,34 @@ export class ConstellaController {
 
   async randomizeSafe(): Promise<void> {
     const modes: ModeId[] = ["wander", "recent-activity", "forgotten-knowledge", "hub-explorer", "random-discovery"];
-    const visuals: VisualId[] = ["minimal", "constellation", "deep-space", "soft-glow", "clean"];
+    const visuals: VisualId[] = [
+      "minimal",
+      "constellation",
+      "deep-space",
+      "neon",
+      "soft-glow",
+      "clean",
+      "star-chart",
+      "galaxy-spiral",
+      "matrix-grid",
+      "blueprint-lines",
+      "orbital-rings",
+      "city-network",
+      "data-stream",
+      "heatmap-cloud",
+      "paper-map",
+      "library-index",
+      "zen-stones",
+      "crystal-lattice",
+      "solar-orbits",
+      "terminal-blocks",
+      "red-scanner",
+      "ocean-bubbles",
+      "prism-shards",
+      "radar-sweep",
+      "topographic",
+      "circuit-board"
+    ];
     const colors: ColorsId[] = [
       "aurora",
       "deep-ocean",
