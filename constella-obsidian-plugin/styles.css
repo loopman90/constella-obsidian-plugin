@@ -1,0 +1,390 @@
+.constella-view {
+  height: 100%;
+  overflow: hidden;
+  background: var(--background-primary);
+}
+
+.constella-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 360px;
+}
+
+.constella-canvas-host,
+.constella-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.constella-canvas {
+  display: block;
+  cursor: grab;
+  touch-action: none;
+}
+
+.constella-canvas:active {
+  cursor: grabbing;
+}
+
+.constella-overlays {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+}
+
+.constella-quick-bar {
+  pointer-events: auto;
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100% - 28px);
+  min-height: 44px;
+  padding: 8px;
+  transform: translateX(-50%);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--background-primary) 82%, transparent);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(14px);
+  overflow-x: auto;
+}
+
+.constella-quick-bar.is-collapsed {
+  left: 18px;
+  bottom: 18px;
+  transform: none;
+}
+
+.constella-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+}
+
+.constella-brand-button {
+  color: var(--interactive-accent);
+}
+
+.constella-select-control,
+.constella-slider-control {
+  display: grid;
+  gap: 3px;
+  flex: 0 0 auto;
+  min-width: 116px;
+}
+
+.constella-control-label {
+  color: var(--text-muted);
+  font-size: 10px;
+  line-height: 1;
+}
+
+.constella-select-control select {
+  max-width: 154px;
+  min-height: 28px;
+  font-size: 12px;
+}
+
+.constella-slider-control input {
+  width: 108px;
+}
+
+.constella-control-panel {
+  pointer-events: auto;
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(360px, calc(100% - 28px));
+  max-height: calc(100% - 96px);
+  padding: 14px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--background-primary) 88%, transparent);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.26);
+  backdrop-filter: blur(14px);
+  overflow-y: auto;
+}
+
+.constella-control-panel.is-hidden {
+  display: none;
+}
+
+.constella-panel-header {
+  display: grid;
+  gap: 2px;
+}
+
+.constella-panel-title {
+  color: var(--text-normal);
+  font-size: 18px;
+  font-weight: 650;
+}
+
+.constella-panel-subtitle {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.constella-panel-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.constella-panel-tabs button {
+  flex: 0 0 auto;
+  min-height: 28px;
+  padding: 4px 9px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.constella-panel-tabs button.is-active {
+  color: var(--text-on-accent);
+  background: var(--interactive-accent);
+}
+
+.constella-panel-body {
+  display: grid;
+  gap: 12px;
+}
+
+.constella-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.constella-stats div {
+  min-height: 42px;
+  padding: 8px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  background: var(--background-secondary);
+  font-size: 12px;
+  text-align: center;
+}
+
+.constella-panel-section {
+  display: grid;
+  gap: 9px;
+}
+
+.constella-panel-section h3 {
+  margin: 6px 0 0;
+  color: var(--text-normal);
+  font-size: 13px;
+}
+
+.constella-help-text {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.constella-panel-control {
+  display: grid;
+  grid-template-columns: minmax(104px, 1fr) minmax(124px, 1.2fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 32px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.constella-panel-control select,
+.constella-panel-control input[type="range"] {
+  width: 100%;
+}
+
+.constella-panel-control input[type="checkbox"] {
+  justify-self: end;
+}
+
+.constella-roadmap {
+  padding-top: 6px;
+  border-top: 1px solid var(--background-modifier-border);
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.constella-warning {
+  padding: 8px 10px;
+  border: 1px solid var(--background-modifier-border-hover);
+  border-radius: 6px;
+  color: var(--text-warning);
+  background: var(--background-secondary);
+  font-size: 12px;
+}
+
+.constella-panel-action button {
+  width: 100%;
+  min-height: 30px;
+}
+
+.constella-mini-list,
+.constella-template-row {
+  display: grid;
+  gap: 5px;
+  padding: 8px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background: var(--background-secondary);
+  font-size: 12px;
+}
+
+.constella-template-row {
+  grid-template-columns: minmax(90px, 1fr) auto auto auto auto;
+  align-items: center;
+}
+
+.constella-template-row button {
+  min-height: 26px;
+  padding: 2px 8px;
+  font-size: 11px;
+}
+
+.constella-mini-list-title {
+  color: var(--text-normal);
+  font-weight: 600;
+}
+
+.constella-mini-list-items {
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.constella-display-mode .constella-view {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+}
+
+.constella-hide-ui .workspace-ribbon,
+.constella-hide-ui .status-bar,
+.constella-hide-ui .workspace-tabs .workspace-tab-header-container {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.constella-node-info {
+  pointer-events: auto;
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  display: grid;
+  gap: 4px;
+  width: min(280px, calc(100% - 28px));
+  padding: 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--background-primary) 84%, transparent);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(14px);
+}
+
+.constella-node-info.is-empty {
+  opacity: 0.72;
+}
+
+.constella-node-info.is-hidden {
+  display: none;
+}
+
+.constella-node-info-title {
+  color: var(--text-normal);
+  font-size: 14px;
+  font-weight: 620;
+  overflow-wrap: anywhere;
+}
+
+.constella-node-info-meta,
+.constella-node-info-path {
+  color: var(--text-muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.constella-status {
+  cursor: pointer;
+}
+
+.constella-first-run {
+  pointer-events: auto;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: grid;
+  gap: 12px;
+  width: min(420px, calc(100% - 32px));
+  padding: 18px;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--background-primary) 92%, transparent);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(18px);
+}
+
+.constella-first-run-title {
+  color: var(--text-normal);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.constella-first-run-copy {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.constella-first-run-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.constella-first-run-actions button {
+  min-height: 34px;
+}
+
+.constella-json-textarea {
+  width: 100%;
+  min-height: 360px;
+  resize: vertical;
+  font-family: var(--font-monospace);
+  font-size: 12px;
+}
+
+.modal .setting-item {
+  border-top: 0;
+}
+
+@media (max-width: 720px) {
+  .constella-node-info {
+    display: none;
+  }
+
+  .constella-control-panel {
+    left: 14px;
+    right: 14px;
+    width: auto;
+  }
+
+  .constella-quick-bar {
+    justify-content: flex-start;
+  }
+}

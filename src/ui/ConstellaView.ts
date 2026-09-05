@@ -1,0 +1,147 @@
+import { ItemView, WorkspaceLeaf } from "obsidian";
+import type { ConstellaController } from "../core/ConstellaController";
+import type { GraphNode } from "../core/types";
+import { ConstellaGraphRenderer } from "../graph/ConstellaGraphRenderer";
+import { ControlPanel } from "./ControlPanel";
+import { NodeInfoOverlay } from "./NodeInfoOverlay";
+import { QuickBar } from "./QuickBar";
+import type { Unsubscribe } from "../core/EventBus";
+
+export const VIEW_TYPE_CONSTELLA = "constella-view";
+
+export class ConstellaView extends ItemView {
+  private renderer: ConstellaGraphRenderer | null = null;
+  private controlPanel: ControlPanel | null = null;
+  private nodeInfo: NodeInfoOverlay | null = null;
+  private quickBar: QuickBar | null = null;
+  private unsubscribers: Unsubscribe[] = [];
+
+  constructor(leaf: WorkspaceLeaf, private readonly controller: ConstellaController) {
+    super(leaf);
+  }
+
+  getViewType(): string {
+    return VIEW_TYPE_CONSTELLA;
+  }
+
+  getDisplayText(): string {
+    return "Constella";
+  }
+
+  getIcon(): string {
+    return "sparkles";
+  }
+
+  async onOpen(): Promise<void> {
+    const container = this.containerEl.children[1];
+    container.empty();
+    container.addClass("constella-view");
+
+    const stage = container.createDiv({ cls: "constella-stage" });
+    const canvasHost = stage.createDiv({ cls: "constella-canvas-host" });
+    const overlays = stage.createDiv({ cls: "constella-overlays" });
+
+    this.controlPanel = new ControlPanel(overlays, this.controller);
+    this.controlPanel.hide();
+    this.nodeInfo = new NodeInfoOverlay(overlays);
+    this.nodeInfo.setVisible(this.controller.configuration.display.showNodeInfoOverlay, this.controller.currentNode);
+    this.quickBar = new QuickBar(overlays, this.controller, () => this.controlPanel?.toggle());
+
+    this.renderer = new ConstellaGraphRenderer(this.app, canvasHost, this.controller.configuration, {
+      onNodeSelected: (node: GraphNode | null) => this.controller.selectNode(node),
+      onNodeOpened: (node: GraphNode) => void this.controller.openNode(node)
+    });
+
+    this.unsubscribers.push(this.controller.events.on("configuration", (config) => {
+      this.renderer?.setConfiguration(config);
+      this.nodeInfo?.setVisible(config.display.showNodeInfoOverlay, this.controller.currentNode);
+    }));
+    this.unsubscribers.push(this.controller.events.on("graph", (graph) => this.renderer?.setGraph(graph)));
+    this.unsubscribers.push(this.controller.events.on("selectedNode", (node) => {
+      this.renderer?.setSelectedNode(node);
+      this.nodeInfo?.render(node);
+    }));
+    this.unsubscribers.push(this.controller.events.on("journey", (journey) => {
+      this.renderer?.setJourney(journey?.path ?? [], journey?.currentIndex ?? 0);
+    }));
+    this.controller.refreshGraph();
+    if (this.controller.showFirstRun) {
+      this.renderFirstRun(overlays);
+    }
+    this.registerDomEvent(document, "keydown", this.onKeyDown);
+  }
+
+  async onClose(): Promise<void> {
+    this.renderer?.destroy();
+    this.controlPanel?.destroy();
+    this.quickBar?.destroy();
+    this.unsubscribers.forEach((unsubscribe) => unsubscribe());
+    this.unsubscribers = [];
+    this.renderer = null;
+    this.controlPanel = null;
+    this.nodeInfo = null;
+    this.quickBar = null;
+  }
+
+  private readonly onKeyDown = (event: KeyboardEvent): void => {
+    if (event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement || event.target instanceof HTMLTextAreaElement) {
+      return;
+    }
+    if (event.key === " ") {
+      event.preventDefault();
+      if (this.controller.playbackState === "playing") {
+        this.controller.pause();
+      } else {
+        this.controller.play();
+      }
+    }
+    if (event.key === "ArrowLeft") {
+      this.controller.previousJourneyNode();
+    }
+    if (event.key === "ArrowRight") {
+      this.controller.nextJourneyNode();
+    }
+    if (event.key === "Enter" && this.controller.currentNode) {
+      void this.controller.openNode(this.controller.currentNode);
+    }
+    if (event.key === "Escape") {
+      this.controller.stop();
+    }
+  };
+
+  private renderFirstRun(containerEl: HTMLElement): void {
+    const firstRun = containerEl.createDiv({ cls: "constella-first-run" });
+    firstRun.createDiv({ cls: "constella-first-run-title", text: "Welcome to Constella" });
+    firstRun.createDiv({ cls: "constella-first-run-copy", text: "Turn your vault into a living network." });
+    const actions = firstRun.createDiv({ cls: "constella-first-run-actions" });
+    this.firstRunButton(actions, "Start Cinematic", async () => {
+      await this.controller.updateMode("path-journey");
+      await this.controller.updateVisual("deep-space");
+      await this.controller.updateColors("aurora");
+      await this.controller.updateCamera("cinematic");
+      this.controller.play();
+      await this.controller.dismissFirstRun();
+      firstRun.remove();
+    });
+    this.firstRunButton(actions, "Start Constellation", async () => {
+      await this.controller.loadTemplate("builtin-constellation");
+      this.controller.play();
+      await this.controller.dismissFirstRun();
+      firstRun.remove();
+    });
+    this.firstRunButton(actions, "Open Playground", async () => {
+      await this.controller.randomizeSafe();
+      await this.controller.dismissFirstRun();
+      firstRun.remove();
+    });
+    this.firstRunButton(actions, "Skip", async () => {
+      await this.controller.dismissFirstRun();
+      firstRun.remove();
+    });
+  }
+
+  private firstRunButton(containerEl: HTMLElement, label: string, onClick: () => Promise<void>): void {
+    const button = containerEl.createEl("button", { text: label });
+    button.addEventListener("click", () => void onClick());
+  }
+}

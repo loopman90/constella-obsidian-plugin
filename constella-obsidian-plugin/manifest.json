@@ -1,0 +1,10 @@
+{
+  "id": "constella",
+  "name": "Constella",
+  "version": "0.1.0",
+  "minAppVersion": "1.5.0",
+  "description": "Turn your Obsidian vault graph into a living, configurable knowledge visualization.",
+  "author": "",
+  "authorUrl": "",
+  "isDesktopOnly": false
+}
