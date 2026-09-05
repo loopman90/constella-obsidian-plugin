@@ -1,7 +1,7 @@
 {
   "name": "constella",
   "version": "0.1.0",
-  "description": "Constella for Obsidian: your vault in motion.",
+  "description": "Explore your vault as an interactive, local-first knowledge graph.",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs --watch",

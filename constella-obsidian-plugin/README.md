@@ -2,9 +2,9 @@
 
 **Your vault in motion.**
 
-Constella is an Obsidian plugin that turns your vault into a living, interactive knowledge graph. Notes become nodes, links become connections, and the graph can be explored manually, travelled automatically, styled visually, saved as templates, sequenced as playlists, and shown in fullscreen or a pop-out display window.
+Explore your vault as an interactive, local-first knowledge graph. Turn notes into nodes and links into connections, navigate manually or auto-travel, detect clusters, save visual templates and playlists, and open graphs fullscreen or in a pop-out display window - all read-only and local.
 
-Constella is local-first and read-only. It reads vault metadata to render the graph, but it does not modify notes and does not send data anywhere.
+Constella is read-only and local. It reads vault metadata to render the graph, but it does not modify notes and does not send data anywhere.
 
 ## Installation
 

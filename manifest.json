@@ -3,7 +3,7 @@
   "name": "Constella",
   "version": "0.1.0",
   "minAppVersion": "1.5.0",
-  "description": "Turn your Obsidian vault graph into a living, configurable knowledge visualization.",
+  "description": "Explore your vault as an interactive, local-first knowledge graph with manual navigation, auto-travel, clusters, visual templates, playlists, fullscreen, and pop-out display.",
   "author": "",
   "authorUrl": "",
   "isDesktopOnly": false
