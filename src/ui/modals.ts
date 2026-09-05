@@ -50,18 +50,28 @@ export class JsonTransferModal extends Modal {
     textarea.addEventListener("input", () => {
       this.value = textarea.value;
     });
-    new Setting(contentEl)
-      .addButton((button) => {
-        button.setButtonText(this.mode === "export" ? "Copy" : "Import").setCta().onClick(() => {
-          if (this.mode === "export") {
-            void navigator.clipboard?.writeText(textarea.value);
-          } else {
+    const actions = new Setting(contentEl);
+    if (this.mode === "export") {
+      actions.addButton((button) => {
+        button.setButtonText("Close").setCta().onClick(() => this.close());
+      });
+    } else {
+      actions
+        .addButton((button) => {
+          button.setButtonText("Import").setCta().onClick(() => {
             void this.onSubmit(this.value);
-          }
-          this.close();
+            this.close();
+          });
+        })
+        .addButton((button) => {
+          button.setButtonText("Close").onClick(() => this.close());
         });
-      })
-      .addButton((button) => button.setButtonText("Close").onClick(() => this.close()));
+    }
+
+    if (this.mode === "export") {
+      textarea.focus();
+      textarea.select();
+    }
   }
 }
 

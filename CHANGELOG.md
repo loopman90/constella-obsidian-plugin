@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.9
+
+- Removed system clipboard access from JSON export, while keeping import/export available through the modal text area.
+- Added GitHub Actions artifact attestations for release assets so users can verify release provenance.
+
 ## 0.3.8
 
 - Removed the remaining declarative settings group heading so plugin settings do not include avoidable headings.
