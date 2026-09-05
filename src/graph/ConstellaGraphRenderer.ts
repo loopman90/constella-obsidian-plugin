@@ -75,12 +75,12 @@ export class ConstellaGraphRenderer {
       return;
     }
     this.lastFrame = performance.now();
-    this.animationFrame = requestAnimationFrame(this.render);
+    this.animationFrame = window.requestAnimationFrame(this.render);
   }
 
   stop(): void {
     if (this.animationFrame !== null) {
-      cancelAnimationFrame(this.animationFrame);
+      window.cancelAnimationFrame(this.animationFrame);
       this.animationFrame = null;
     }
   }
@@ -113,7 +113,7 @@ export class ConstellaGraphRenderer {
     this.step(dt);
     this.followCamera(dt);
     this.draw();
-    this.animationFrame = requestAnimationFrame(this.render);
+    this.animationFrame = window.requestAnimationFrame(this.render);
   };
 
   private step(dt: number): void {

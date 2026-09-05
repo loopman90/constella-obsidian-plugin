@@ -72,7 +72,7 @@ export class TemplateEditorModal extends Modal {
   constructor(app: App, private readonly template: StoredTemplate, private readonly onSave: (name: string, config: ActiveConfiguration) => void | Promise<void>) {
     super(app);
     this.name = template.name;
-    this.config = structuredClone(template.value) as ActiveConfiguration;
+    this.config = structuredClone(template.value);
   }
 
   onOpen(): void {
@@ -110,7 +110,9 @@ export class TemplateEditorModal extends Modal {
     onChange: (value: T) => void
   ): void {
     new Setting(contentEl).setName(name).addDropdown((dropdown) => {
-      options.forEach((option) => dropdown.addOption(option.id, option.label));
+      options.forEach((option) => {
+        dropdown.addOption(option.id, option.label);
+      });
       dropdown.setValue(value).onChange((next) => onChange(next as T));
     });
   }
@@ -121,7 +123,7 @@ export class PlaylistEditorModal extends Modal {
 
   constructor(app: App, playlist: Playlist, private readonly onSave: (playlist: Playlist) => void | Promise<void>) {
     super(app);
-    this.playlist = structuredClone(playlist) as Playlist;
+    this.playlist = structuredClone(playlist);
   }
 
   onOpen(): void {
@@ -174,9 +176,10 @@ export class PlaylistEditorModal extends Modal {
     onChange: (value: T) => void
   ): void {
     new Setting(contentEl).setName(name).addDropdown((dropdown) => {
-      options.forEach((option) => dropdown.addOption(option.id, option.label));
+      options.forEach((option) => {
+        dropdown.addOption(option.id, option.label);
+      });
       dropdown.setValue(value).onChange((next) => onChange(next as T));
     });
   }
 }
-

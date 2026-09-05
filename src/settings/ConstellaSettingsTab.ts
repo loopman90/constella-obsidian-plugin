@@ -10,7 +10,7 @@ export class ConstellaSettingsTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    containerEl.createEl("h2", { text: "Constella" });
+    new Setting(containerEl).setName("Constella").setHeading();
     containerEl.createEl("p", {
       text: "Structural preferences live here. Visual exploration controls are available inside the Constella view."
     });
@@ -54,4 +54,3 @@ export class ConstellaSettingsTab extends PluginSettingTab {
       );
   }
 }
-
