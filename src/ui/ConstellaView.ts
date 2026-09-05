@@ -131,7 +131,7 @@ export class ConstellaView extends ItemView {
     if (target instanceof Node && this.containerEl.contains(target)) {
       return true;
     }
-    return this.app.workspace.activeLeaf === this.leaf;
+    return this.app.workspace.getActiveViewOfType(ConstellaView) === this;
   }
 
   private renderFirstRun(containerEl: HTMLElement): void {

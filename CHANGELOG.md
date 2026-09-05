@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.7
+
+- Replaced deprecated `workspace.activeLeaf` usage with `workspace.getActiveViewOfType()` for shortcut focus checks.
+
 ## 0.3.6
 
 - Removed an unsafe frontmatter tag assignment warning in graph filtering.
