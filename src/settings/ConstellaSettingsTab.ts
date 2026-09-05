@@ -10,45 +10,39 @@ export class ConstellaSettingsTab extends PluginSettingTab {
   getSettingDefinitions(): SettingDefinitionItem[] {
     return [
       {
-        type: "group",
-        heading: "Plugin preferences",
-        items: [
-          {
-            name: "Performance profile",
-            desc: "Auto is conservative and adapts later phases to vault size and frame rate.",
-            control: {
-              type: "dropdown",
-              key: "performanceProfile",
-              defaultValue: "auto",
-              options: {
-                auto: "Auto",
-                "high-quality": "High Quality",
-                balanced: "Balanced",
-                "large-vault": "Large Vault",
-                "low-power": "Low Power",
-                custom: "Custom"
-              }
-            }
-          },
-          {
-            name: "Debug mode",
-            desc: "Shows extra runtime information in future debug panels.",
-            control: {
-              type: "toggle",
-              key: "debug",
-              defaultValue: false
-            }
-          },
-          {
-            name: "Show first-run experience",
-            desc: "Reserved for the onboarding flow in a later phase.",
-            control: {
-              type: "toggle",
-              key: "showFirstRun",
-              defaultValue: true
-            }
+        name: "Performance profile",
+        desc: "Auto is conservative and adapts later phases to vault size and frame rate.",
+        control: {
+          type: "dropdown",
+          key: "performanceProfile",
+          defaultValue: "auto",
+          options: {
+            auto: "Auto",
+            "high-quality": "High Quality",
+            balanced: "Balanced",
+            "large-vault": "Large Vault",
+            "low-power": "Low Power",
+            custom: "Custom"
           }
-        ]
+        }
+      },
+      {
+        name: "Debug mode",
+        desc: "Shows extra runtime information in future debug panels.",
+        control: {
+          type: "toggle",
+          key: "debug",
+          defaultValue: false
+        }
+      },
+      {
+        name: "Show first-run experience",
+        desc: "Reserved for the onboarding flow in a later phase.",
+        control: {
+          type: "toggle",
+          key: "showFirstRun",
+          defaultValue: true
+        }
       }
     ];
   }

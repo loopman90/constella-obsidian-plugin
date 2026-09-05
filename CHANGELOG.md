@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.8
+
+- Removed the remaining declarative settings group heading so plugin settings do not include avoidable headings.
+- Kept the Obsidian declarative settings API in place so settings can appear in settings search on Obsidian 1.13.0 and newer.
+
 ## 0.3.7
 
 - Replaced deprecated `workspace.activeLeaf` usage with `workspace.getActiveViewOfType()` for shortcut focus checks.
