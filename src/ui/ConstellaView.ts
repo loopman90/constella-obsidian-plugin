@@ -9,6 +9,11 @@ import type { Unsubscribe } from "../core/EventBus";
 
 export const VIEW_TYPE_CONSTELLA = "constella-view";
 
+interface ConstellaViewActions {
+  toggleFullscreen: () => void | Promise<void>;
+  openSecondScreen: () => void | Promise<void>;
+}
+
 export class ConstellaView extends ItemView {
   private renderer: ConstellaGraphRenderer | null = null;
   private controlPanel: ControlPanel | null = null;
@@ -16,7 +21,7 @@ export class ConstellaView extends ItemView {
   private quickBar: QuickBar | null = null;
   private unsubscribers: Unsubscribe[] = [];
 
-  constructor(leaf: WorkspaceLeaf, private readonly controller: ConstellaController) {
+  constructor(leaf: WorkspaceLeaf, private readonly controller: ConstellaController, private readonly actions: ConstellaViewActions) {
     super(leaf);
   }
 
@@ -45,7 +50,11 @@ export class ConstellaView extends ItemView {
     this.controlPanel.hide();
     this.nodeInfo = new NodeInfoOverlay(overlays);
     this.nodeInfo.setVisible(this.controller.configuration.display.showNodeInfoOverlay, this.controller.currentNode);
-    this.quickBar = new QuickBar(overlays, this.controller, () => this.controlPanel?.toggle());
+    this.quickBar = new QuickBar(overlays, this.controller, {
+      togglePanel: () => this.controlPanel?.toggle(),
+      toggleFullscreen: this.actions.toggleFullscreen,
+      openSecondScreen: this.actions.openSecondScreen
+    });
 
     this.renderer = new ConstellaGraphRenderer(this.app, canvasHost, this.controller.configuration, {
       onNodeSelected: (node: GraphNode | null) => this.controller.selectNode(node),

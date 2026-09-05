@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.4
+
+- Added Quick Bar buttons for fullscreen display mode and second-screen pop-out display.
+- Reused the same display-mode behavior as the command palette actions, so fullscreen/pop-out stay consistent.
+
 ## 0.2.3
 
 - Added `Escape` support to close the Constella settings/control panel when it is open.

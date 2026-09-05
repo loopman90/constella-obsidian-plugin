@@ -4,12 +4,18 @@ import type { Unsubscribe } from "../core/EventBus";
 import { CAMERAS, COLORS, MODES, VISUALS } from "../core/types";
 import type { BuiltInOption, CameraId, ColorsId, GraphScope, ModeId, VisualId } from "../core/types";
 
+interface QuickBarActions {
+  togglePanel: () => void;
+  toggleFullscreen: () => void | Promise<void>;
+  openSecondScreen: () => void | Promise<void>;
+}
+
 export class QuickBar {
   private readonly rootEl: HTMLElement;
   private readonly unsubscribers: Unsubscribe[] = [];
   private collapsed = false;
 
-  constructor(containerEl: HTMLElement, private readonly controller: ConstellaController, private readonly togglePanel: () => void) {
+  constructor(containerEl: HTMLElement, private readonly controller: ConstellaController, private readonly actions: QuickBarActions) {
     this.rootEl = containerEl.createDiv({ cls: "constella-quick-bar" });
     this.render();
     this.unsubscribers.push(controller.events.on("configuration", () => this.render()));
@@ -55,7 +61,9 @@ export class QuickBar {
     ));
     this.rootEl.appendChild(this.iconButton("shuffle", "Smart randomize", () => this.controller.randomizeSafe()));
     this.rootEl.appendChild(this.iconButton("save", "Save current setup", () => this.controller.saveTemplate()));
-    this.rootEl.appendChild(this.iconButton("settings", "Open control panel", this.togglePanel));
+    this.rootEl.appendChild(this.iconButton("maximize", "Toggle fullscreen display mode", this.actions.toggleFullscreen));
+    this.rootEl.appendChild(this.iconButton("panel-top-open", "Open second-screen pop-out display", this.actions.openSecondScreen));
+    this.rootEl.appendChild(this.iconButton("settings", "Open control panel", this.actions.togglePanel));
     this.rootEl.appendChild(this.iconButton("chevron-up", "Collapse quick bar", () => {
       this.collapsed = true;
       this.render();

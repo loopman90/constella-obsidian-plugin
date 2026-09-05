@@ -21,7 +21,10 @@ export default class ConstellaPlugin extends Plugin {
     });
     this.controller.registerVaultListeners();
 
-    this.registerView(VIEW_TYPE_CONSTELLA, (leaf) => new ConstellaView(leaf, this.requireController()));
+    this.registerView(VIEW_TYPE_CONSTELLA, (leaf) => new ConstellaView(leaf, this.requireController(), {
+      toggleFullscreen: () => this.toggleFullscreenDisplayMode(),
+      openSecondScreen: () => this.openSecondScreenDisplay()
+    }));
     this.addRibbonIcon("sparkles", "Open Constella", () => void this.activateView());
     this.statusBarEl = this.addStatusBarItem();
     this.statusBarEl.addClass("constella-status");
@@ -192,20 +195,12 @@ export default class ConstellaPlugin extends Plugin {
     this.addCommand({
       id: "start-display-mode",
       name: "Start Display Mode",
-      callback: async () => {
-        await this.activateView();
-        this.requireController().play();
-        await this.displayModeController.enter(document.body, this.requireController().configuration.display.hideUi);
-      }
+      callback: () => void this.startDisplayMode()
     });
     this.addCommand({
       id: "open-display-window",
       name: "Open Display Window",
-      callback: async () => {
-        const leaf = this.app.workspace.openPopoutLeaf();
-        await leaf.setViewState({ type: VIEW_TYPE_CONSTELLA, active: true });
-        this.requireController().play();
-      }
+      callback: () => void this.openSecondScreenDisplay()
     });
     this.addCommand({
       id: "focus-current-note",
@@ -223,14 +218,28 @@ export default class ConstellaPlugin extends Plugin {
     this.addCommand({
       id: "toggle-fullscreen",
       name: "Toggle Fullscreen",
-      callback: () => {
-        if (document.fullscreenElement) {
-          void this.displayModeController.exit(document.body);
-        } else {
-          void this.displayModeController.enter(document.body, this.requireController().configuration.display.hideUi);
-        }
-      }
+      callback: () => void this.toggleFullscreenDisplayMode()
     });
+  }
+
+  private async startDisplayMode(): Promise<void> {
+    await this.activateView();
+    this.requireController().play();
+    await this.displayModeController.enter(document.body, this.requireController().configuration.display.hideUi);
+  }
+
+  private async toggleFullscreenDisplayMode(): Promise<void> {
+    if (document.fullscreenElement) {
+      await this.displayModeController.exit(document.body);
+      return;
+    }
+    await this.startDisplayMode();
+  }
+
+  private async openSecondScreenDisplay(): Promise<void> {
+    const leaf = this.app.workspace.openPopoutLeaf();
+    await leaf.setViewState({ type: VIEW_TYPE_CONSTELLA, active: true });
+    this.requireController().play();
   }
 
   private registerContextMenus(): void {
