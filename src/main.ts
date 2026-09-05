@@ -1,4 +1,4 @@
-import { Plugin, TFile } from "obsidian";
+import { Notice, Plugin, TFile } from "obsidian";
 import { ConstellaController } from "./core/ConstellaController";
 import { ConstellaSettingsTab } from "./settings/ConstellaSettingsTab";
 import { DEFAULT_SETTINGS, normalizeSettings } from "./settings/Settings";
@@ -237,9 +237,31 @@ export default class ConstellaPlugin extends Plugin {
   }
 
   private async openSecondScreenDisplay(): Promise<void> {
-    const leaf = this.app.workspace.openPopoutLeaf();
-    await leaf.setViewState({ type: VIEW_TYPE_CONSTELLA, active: true });
-    this.requireController().play();
+    try {
+      const leaf = this.createPopoutLeaf();
+      await leaf.setViewState({ type: VIEW_TYPE_CONSTELLA, active: true });
+      this.app.workspace.setActiveLeaf(leaf, { focus: true });
+      this.requireController().play();
+      new Notice("Constella opened in a pop-out window. Move it to your second screen.");
+    } catch (error) {
+      console.error("Constella could not open a pop-out display window.", error);
+      new Notice("Constella pop-out windows are not available here. Opening in the main workspace instead.");
+      await this.activateView();
+      this.requireController().play();
+    }
+  }
+
+  private createPopoutLeaf() {
+    try {
+      return this.app.workspace.getLeaf("window");
+    } catch {
+      return this.app.workspace.openPopoutLeaf({
+        size: {
+          width: 1280,
+          height: 800
+        }
+      });
+    }
   }
 
   private registerContextMenus(): void {

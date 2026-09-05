@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.5
+
+- Improved the Quick Bar second-screen button by using Obsidian's pop-out leaf workflow first.
+- Focuses the created pop-out leaf and shows a Notice when the display window opens.
+- Falls back to opening Constella in the main workspace if pop-out windows are not available.
+
 ## 0.3.4
 
 - Removed an unnecessary frontmatter type assertion in graph tag filtering for cleaner review output.
