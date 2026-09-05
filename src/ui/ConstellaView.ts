@@ -84,6 +84,11 @@ export class ConstellaView extends ItemView {
   }
 
   private readonly onKeyDown = (event: KeyboardEvent): void => {
+    if (event.key === "Escape" && this.controlPanel?.isVisible()) {
+      event.preventDefault();
+      this.controlPanel.hide();
+      return;
+    }
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement || event.target instanceof HTMLTextAreaElement) {
       return;
     }

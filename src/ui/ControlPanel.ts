@@ -62,6 +62,10 @@ export class ControlPanel {
     this.rootEl.toggleClass("is-hidden", !this.rootEl.hasClass("is-hidden"));
   }
 
+  isVisible(): boolean {
+    return !this.rootEl.hasClass("is-hidden");
+  }
+
   render(): void {
     const config = this.controller.configuration;
     const graph = this.controller.currentGraph;

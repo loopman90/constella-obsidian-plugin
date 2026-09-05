@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.3
+
+- Added `Escape` support to close the Constella settings/control panel when it is open.
+- `Escape` now closes the panel before triggering the existing graph stop behavior.
+
 ## 0.2.2
 
 - Raised Local Depth defaults and controls so local graphs can expand up to 50 link steps.
