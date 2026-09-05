@@ -564,7 +564,34 @@ export class ConstellaController {
       "constellation-white",
       "infrared"
     ];
-    const cameras: CameraId[] = ["static", "calm", "floating", "cinematic"];
+    const cameras: CameraId[] = [
+      "static",
+      "calm",
+      "floating",
+      "cinematic",
+      "dynamic",
+      "fast",
+      "focus-lock",
+      "slow-drift",
+      "wide-orbit",
+      "close-orbit",
+      "breathing-zoom",
+      "presenter-pan",
+      "scanline",
+      "radar-orbit",
+      "city-cruise",
+      "data-chase",
+      "cluster-hop",
+      "edge-glide",
+      "constellation-tour",
+      "zen-still",
+      "paper-follow",
+      "matrix-rush",
+      "galaxy-dive",
+      "micro-wander",
+      "overview-pulse",
+      "second-screen-calm"
+    ];
     const movements: NodeMovementStyleId[] = ["gentle-float", "drift", "orbit", "breathing", "scatter", "swarm", "jitter", "spiral", "chaos"];
     const clickAnimations: ClickAnimationId[] = [
       "ripple",

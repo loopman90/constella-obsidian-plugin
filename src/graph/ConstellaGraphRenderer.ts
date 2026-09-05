@@ -35,6 +35,15 @@ interface VisualProfile {
   labelThreshold: number;
 }
 
+interface CameraProfile {
+  followStrength: number;
+  zoomMode: "none" | "fit" | "close" | "wide" | "pulse";
+  orbit: number;
+  drift: number;
+  shake: number;
+  lead: number;
+}
+
 export class ConstellaGraphRenderer {
   private readonly canvas: HTMLCanvasElement;
   private readonly ctx: CanvasRenderingContext2D;
@@ -1119,24 +1128,102 @@ export class ConstellaGraphRenderer {
     }
     const width = this.canvas.clientWidth;
     const height = this.canvas.clientHeight;
-    const targetX = -this.selectedNode.x * this.viewport.scale;
-    const targetY = -this.selectedNode.y * this.viewport.scale;
-    const strengthByCamera = {
-      calm: 1.2,
-      floating: 1.8,
-      cinematic: 2.5,
-      dynamic: 3.4,
-      fast: 5,
-      custom: 2,
-      static: 0
-    }[this.config.camera];
-    const easing = Math.min(1, dt * strengthByCamera * (0.35 + this.config.motion.cameraSpeed));
+    const profile = this.cameraProfile();
+    const leadX = this.selectedNode.vx * profile.lead;
+    const leadY = this.selectedNode.vy * profile.lead;
+    const orbitX = Math.cos(this.time * (0.45 + this.config.motion.cameraSpeed) * 2) * profile.orbit;
+    const orbitY = Math.sin(this.time * (0.45 + this.config.motion.cameraSpeed) * 2) * profile.orbit * 0.72;
+    const driftX = Math.sin(this.time * 0.37) * profile.drift;
+    const driftY = Math.cos(this.time * 0.29) * profile.drift;
+    const shakeX = (Math.sin(this.time * 31) + Math.sin(this.time * 17)) * profile.shake;
+    const shakeY = (Math.cos(this.time * 29) - Math.sin(this.time * 13)) * profile.shake;
+    const targetX = -(this.selectedNode.x + leadX) * this.viewport.scale + orbitX + driftX + shakeX;
+    const targetY = -(this.selectedNode.y + leadY) * this.viewport.scale + orbitY + driftY + shakeY;
+    const easing = Math.min(1, dt * profile.followStrength * (0.35 + this.config.motion.cameraSpeed));
     this.viewport.x += (targetX - this.viewport.x) * easing;
     this.viewport.y += (targetY - this.viewport.y) * easing;
 
-    if (this.config.camera === "cinematic" || this.config.camera === "dynamic") {
-      const desiredScale = Math.max(0.35, Math.min(2.4, Math.min(width, height) / 520));
+    if (profile.zoomMode !== "none") {
+      const baseScale = Math.min(width, height) / 520;
+      const desiredScale = Math.max(0.12, Math.min(3.2, this.cameraZoomScale(baseScale, profile.zoomMode)));
       this.viewport.scale += (desiredScale - this.viewport.scale) * easing * 0.35;
+    }
+  }
+
+  private cameraProfile(): CameraProfile {
+    const base: CameraProfile = { followStrength: 1.8, zoomMode: "none", orbit: 0, drift: 0, shake: 0, lead: 0 };
+    switch (this.config.camera) {
+      case "static":
+        return { ...base, followStrength: 0 };
+      case "calm":
+        return { ...base, followStrength: 1.2, drift: 6 };
+      case "floating":
+        return { ...base, followStrength: 1.8, drift: 14 };
+      case "cinematic":
+        return { ...base, followStrength: 2.5, zoomMode: "fit", drift: 18, lead: 0.4 };
+      case "dynamic":
+        return { ...base, followStrength: 3.4, zoomMode: "fit", orbit: 20, drift: 10, lead: 0.65 };
+      case "fast":
+        return { ...base, followStrength: 5, zoomMode: "close", lead: 0.8 };
+      case "focus-lock":
+        return { ...base, followStrength: 6.2, zoomMode: "close", lead: 0.15 };
+      case "slow-drift":
+        return { ...base, followStrength: 0.9, zoomMode: "wide", drift: 32 };
+      case "wide-orbit":
+        return { ...base, followStrength: 1.4, zoomMode: "wide", orbit: 56, drift: 10 };
+      case "close-orbit":
+        return { ...base, followStrength: 2.8, zoomMode: "close", orbit: 28, lead: 0.3 };
+      case "breathing-zoom":
+        return { ...base, followStrength: 1.9, zoomMode: "pulse", drift: 8 };
+      case "presenter-pan":
+        return { ...base, followStrength: 1.1, zoomMode: "fit", drift: 46 };
+      case "scanline":
+        return { ...base, followStrength: 2.2, zoomMode: "fit", drift: 26, lead: 0.35 };
+      case "radar-orbit":
+        return { ...base, followStrength: 2.1, zoomMode: "fit", orbit: 42, lead: 0.2 };
+      case "city-cruise":
+        return { ...base, followStrength: 1.6, zoomMode: "wide", drift: 38, lead: 0.5 };
+      case "data-chase":
+        return { ...base, followStrength: 4.2, zoomMode: "close", lead: 1.15 };
+      case "cluster-hop":
+        return { ...base, followStrength: 3.8, zoomMode: "fit", orbit: 12, lead: 0.25 };
+      case "edge-glide":
+        return { ...base, followStrength: 2.6, zoomMode: "fit", drift: 18, lead: 0.95 };
+      case "constellation-tour":
+        return { ...base, followStrength: 1.7, zoomMode: "wide", orbit: 34, drift: 18 };
+      case "zen-still":
+        return { ...base, followStrength: 0.8, zoomMode: "wide", drift: 4 };
+      case "paper-follow":
+        return { ...base, followStrength: 1.3, zoomMode: "fit", drift: 2 };
+      case "matrix-rush":
+        return { ...base, followStrength: 4.6, zoomMode: "close", shake: 3.2, lead: 1.1 };
+      case "galaxy-dive":
+        return { ...base, followStrength: 2.9, zoomMode: "pulse", orbit: 36, drift: 16, lead: 0.4 };
+      case "micro-wander":
+        return { ...base, followStrength: 1.1, zoomMode: "none", drift: 20 };
+      case "overview-pulse":
+        return { ...base, followStrength: 1.2, zoomMode: "pulse", orbit: 8 };
+      case "second-screen-calm":
+        return { ...base, followStrength: 1, zoomMode: "wide", drift: 12 };
+      case "custom":
+      default:
+        return { ...base, followStrength: 2, zoomMode: "fit", drift: 10 };
+    }
+  }
+
+  private cameraZoomScale(baseScale: number, mode: CameraProfile["zoomMode"]): number {
+    switch (mode) {
+      case "close":
+        return baseScale * 1.45;
+      case "wide":
+        return baseScale * 0.62;
+      case "pulse":
+        return baseScale * (0.9 + Math.sin(this.time * 1.5) * 0.16);
+      case "fit":
+        return baseScale;
+      case "none":
+      default:
+        return this.viewport.scale;
     }
   }
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1
+
+- Added 20 new camera motion styles: Focus Lock, Slow Drift, Wide Orbit, Close Orbit, Breathing Zoom, Presenter Pan, Scanline, Radar Orbit, City Cruise, Data Chase, Cluster Hop, Edge Glide, Constellation Tour, Zen Still, Paper Follow, Matrix Rush, Galaxy Dive, Micro Wander, Overview Pulse, and Second Screen Calm.
+- Added camera profiles for follow strength, zoom behavior, orbit, drift, shake, and motion lead.
+- Expanded Smart Randomize so it can use the full camera motion library.
+
 ## 0.3.0
 
 - Added 20 new visual styles tailored to knowledge graph exploration: Star Chart, Galaxy Spiral, Matrix Grid, Blueprint Lines, Orbital Rings, City Network, Data Stream, Heatmap Cloud, Paper Map, Library Index, Zen Stones, Crystal Lattice, Solar Orbits, Terminal Blocks, Red Scanner, Ocean Bubbles, Prism Shards, Radar Sweep, Topographic, and Circuit Board.

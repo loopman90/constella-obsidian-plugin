@@ -91,7 +91,34 @@ export type ColorsId =
   | "prism-flow"
   | "constellation-white"
   | "infrared";
-export type CameraId = "static" | "calm" | "floating" | "cinematic" | "dynamic" | "fast" | "custom";
+export type CameraId =
+  | "static"
+  | "calm"
+  | "floating"
+  | "cinematic"
+  | "dynamic"
+  | "fast"
+  | "custom"
+  | "focus-lock"
+  | "slow-drift"
+  | "wide-orbit"
+  | "close-orbit"
+  | "breathing-zoom"
+  | "presenter-pan"
+  | "scanline"
+  | "radar-orbit"
+  | "city-cruise"
+  | "data-chase"
+  | "cluster-hop"
+  | "edge-glide"
+  | "constellation-tour"
+  | "zen-still"
+  | "paper-follow"
+  | "matrix-rush"
+  | "galaxy-dive"
+  | "micro-wander"
+  | "overview-pulse"
+  | "second-screen-calm";
 export type TransitionId = "instant" | "crossfade" | "color-morph" | "smooth-camera" | "fade-to-black";
 export type TemplateComponentType = "full" | "mode" | "visual" | "colors" | "camera" | "playlist";
 export type PathAnimationId =
@@ -432,7 +459,27 @@ export const CAMERAS: BuiltInOption<CameraId>[] = [
   { id: "floating", label: "Floating" },
   { id: "cinematic", label: "Cinematic" },
   { id: "dynamic", label: "Dynamic" },
-  { id: "fast", label: "Fast" }
+  { id: "fast", label: "Fast" },
+  { id: "focus-lock", label: "Focus Lock" },
+  { id: "slow-drift", label: "Slow Drift" },
+  { id: "wide-orbit", label: "Wide Orbit" },
+  { id: "close-orbit", label: "Close Orbit" },
+  { id: "breathing-zoom", label: "Breathing Zoom" },
+  { id: "presenter-pan", label: "Presenter Pan" },
+  { id: "scanline", label: "Scanline" },
+  { id: "radar-orbit", label: "Radar Orbit" },
+  { id: "city-cruise", label: "City Cruise" },
+  { id: "data-chase", label: "Data Chase" },
+  { id: "cluster-hop", label: "Cluster Hop" },
+  { id: "edge-glide", label: "Edge Glide" },
+  { id: "constellation-tour", label: "Constellation Tour" },
+  { id: "zen-still", label: "Zen Still" },
+  { id: "paper-follow", label: "Paper Follow" },
+  { id: "matrix-rush", label: "Matrix Rush" },
+  { id: "galaxy-dive", label: "Galaxy Dive" },
+  { id: "micro-wander", label: "Micro Wander" },
+  { id: "overview-pulse", label: "Overview Pulse" },
+  { id: "second-screen-calm", label: "Second Screen Calm" }
 ];
 
 export const TRANSITIONS: BuiltInOption<TransitionId>[] = [

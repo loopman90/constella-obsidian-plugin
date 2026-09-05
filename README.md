@@ -219,6 +219,37 @@ Built-in visual styles:
 - Topographic
 - Circuit Board
 
+## Camera Motion
+
+Constella includes camera motion styles for different exploration moods and screen setups:
+
+- Static
+- Calm
+- Floating
+- Cinematic
+- Dynamic
+- Fast
+- Focus Lock
+- Slow Drift
+- Wide Orbit
+- Close Orbit
+- Breathing Zoom
+- Presenter Pan
+- Scanline
+- Radar Orbit
+- City Cruise
+- Data Chase
+- Cluster Hop
+- Edge Glide
+- Constellation Tour
+- Zen Still
+- Paper Follow
+- Matrix Rush
+- Galaxy Dive
+- Micro Wander
+- Overview Pulse
+- Second Screen Calm
+
 ## Templates
 
 Constella includes built-in templates such as:
