@@ -35,7 +35,8 @@ export class TemplateManager {
           nodeMovementStrength: 0.32,
           nodeMovementSpeed: 0.28,
           pathAnimation: "comet",
-          pulseStyle: "star-spark"
+          pulseStyle: "star-spark",
+          clickAnimation: "starburst"
         },
         display: {
           ...base.display,
@@ -69,7 +70,8 @@ export class TemplateManager {
           nodeMovementStrength: 0.18,
           nodeMovementSpeed: 0.2,
           pathAnimation: "single-pulse",
-          pulseStyle: "hollow-dot"
+          pulseStyle: "hollow-dot",
+          clickAnimation: "halo"
         },
         display: {
           ...base.display,
@@ -92,7 +94,8 @@ export class TemplateManager {
           nodeMovementEnabled: false,
           connectionPulsesEnabled: false,
           glowEnabled: false,
-          backgroundEffectsEnabled: false
+          backgroundEffectsEnabled: false,
+          clickAnimation: "none"
         },
         display: {
           ...base.display,
@@ -241,7 +244,8 @@ export class TemplateManager {
           nodeMovementStrength: 0.68,
           nodeMovementSpeed: 0.82,
           pathAnimation: "data-rain",
-          pulseStyle: "scanner"
+          pulseStyle: "scanner",
+          clickAnimation: "scanner"
         },
         display: {
           ...base.display,
@@ -321,7 +325,8 @@ export class TemplateManager {
           nodeMovementStrength: 0.9,
           nodeMovementSpeed: 0.95,
           pathAnimation: "traffic-flow",
-          pulseStyle: "ripple"
+          pulseStyle: "ripple",
+          clickAnimation: "shockwave"
         }
       }, true),
       this.template("builtin-breathing-graph", "Breathing Graph", now, base, {
@@ -369,7 +374,8 @@ export class TemplateManager {
           nodeMovementStrength: 0.18,
           nodeMovementSpeed: 0.22,
           pathAnimation: "traffic-flow",
-          pulseStyle: "car-lights"
+          pulseStyle: "car-lights",
+          clickAnimation: "comet-bloom"
         },
         display: {
           ...base.display,

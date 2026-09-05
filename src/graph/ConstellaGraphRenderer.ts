@@ -1,5 +1,5 @@
 import type { App } from "obsidian";
-import type { ActiveConfiguration, GraphData, GraphNode, Viewport } from "../core/types";
+import type { ActiveConfiguration, ClickAnimationId, GraphData, GraphNode, Viewport } from "../core/types";
 import { PerformanceManager } from "../performance/PerformanceManager";
 
 interface RendererOptions {
@@ -12,6 +12,15 @@ interface PointerState {
   lastX: number;
   lastY: number;
   moved: boolean;
+}
+
+interface ClickEffect {
+  id: number;
+  x: number;
+  y: number;
+  startedAt: number;
+  color: string;
+  style: ClickAnimationId;
 }
 
 export class ConstellaGraphRenderer {
@@ -28,6 +37,8 @@ export class ConstellaGraphRenderer {
   private journeyPath: string[] = [];
   private journeyIndex = 0;
   private pointer: PointerState = { dragging: false, lastX: 0, lastY: 0, moved: false };
+  private clickEffects: ClickEffect[] = [];
+  private nextClickEffectId = 1;
   private lastFrame = performance.now();
   private time = 0;
 
@@ -205,6 +216,7 @@ export class ConstellaGraphRenderer {
     this.ctx.scale(this.viewport.scale, this.viewport.scale);
     this.drawEdges();
     this.drawNodes();
+    this.drawClickEffects();
     this.ctx.restore();
 
     if (this.graph.nodes.length === 0) {
@@ -363,10 +375,140 @@ export class ConstellaGraphRenderer {
       this.ctx.arc(node.x, node.y, currentJourney ? node.radius + 3 : selected ? node.radius + 2 : node.radius, 0, Math.PI * 2);
       this.ctx.fill();
 
-      if (selected || this.viewport.scale > 0.88) {
+      if (this.config.display.showLabels && (selected || this.viewport.scale > 0.88)) {
         this.drawLabel(node, colors.label, selected);
       }
     });
+  }
+
+  private drawClickEffects(): void {
+    if (this.clickEffects.length === 0) {
+      return;
+    }
+
+    const now = performance.now();
+    this.clickEffects = this.clickEffects.filter((effect) => {
+      const t = Math.min(1, (now - effect.startedAt) / 900);
+      if (t >= 1) {
+        return false;
+      }
+      this.drawClickEffect(effect, t);
+      return true;
+    });
+    this.ctx.globalAlpha = 1;
+  }
+
+  private drawClickEffect(effect: ClickEffect, t: number): void {
+    if (effect.style === "none") {
+      return;
+    }
+
+    const alpha = 1 - t;
+    const size = (12 + t * 54) / this.viewport.scale;
+    this.ctx.save();
+    this.ctx.translate(effect.x, effect.y);
+    this.ctx.strokeStyle = effect.color;
+    this.ctx.fillStyle = effect.color;
+    this.ctx.lineWidth = Math.max(1, 1.6 / this.viewport.scale);
+
+    switch (effect.style) {
+      case "double-ripple":
+        this.drawClickRing(size * 0.62, alpha * 0.7);
+        this.drawClickRing(size * 1.05, alpha * 0.45);
+        break;
+      case "spark":
+        this.drawClickSparks(8, size * 0.9, alpha, false);
+        break;
+      case "starburst":
+        this.drawClickSparks(12, size * 1.08, alpha, true);
+        break;
+      case "halo": {
+        const glow = this.ctx.createRadialGradient(0, 0, 0, 0, 0, size);
+        glow.addColorStop(0, this.withAlpha(effect.color, alpha * 0.28));
+        glow.addColorStop(1, "transparent");
+        this.ctx.globalAlpha = 1;
+        this.ctx.fillStyle = glow;
+        this.ctx.beginPath();
+        this.ctx.arc(0, 0, size, 0, Math.PI * 2);
+        this.ctx.fill();
+        break;
+      }
+      case "pulse-ring":
+        this.ctx.globalAlpha = alpha;
+        this.ctx.beginPath();
+        this.ctx.arc(0, 0, size * 0.72, 0, Math.PI * 2);
+        this.ctx.stroke();
+        this.ctx.globalAlpha = alpha * 0.3;
+        this.ctx.beginPath();
+        this.ctx.arc(0, 0, size * 0.3, 0, Math.PI * 2);
+        this.ctx.fill();
+        break;
+      case "scanner":
+        this.ctx.rotate(t * Math.PI * 2);
+        this.ctx.globalAlpha = alpha * 0.65;
+        this.ctx.fillRect(-size * 0.05, -size * 0.92, size * 0.1, size * 1.84);
+        this.ctx.globalAlpha = alpha * 0.16;
+        this.ctx.fillRect(-size * 0.42, -size * 0.62, size * 0.84, size * 1.24);
+        break;
+      case "diamond-pop":
+        this.ctx.rotate(Math.PI / 4 + t * 0.8);
+        this.ctx.globalAlpha = alpha * 0.8;
+        this.ctx.strokeRect(-size * 0.42, -size * 0.42, size * 0.84, size * 0.84);
+        break;
+      case "orbit-dots":
+        for (let index = 0; index < 6; index += 1) {
+          const angle = t * Math.PI * 2 + index * (Math.PI / 3);
+          this.ctx.globalAlpha = alpha * 0.75;
+          this.ctx.beginPath();
+          this.ctx.arc(Math.cos(angle) * size * 0.62, Math.sin(angle) * size * 0.62, Math.max(1.4, 2.2 / this.viewport.scale), 0, Math.PI * 2);
+          this.ctx.fill();
+        }
+        break;
+      case "shockwave":
+        this.ctx.globalAlpha = alpha * 0.7;
+        this.ctx.beginPath();
+        this.ctx.arc(0, 0, size * 1.15, 0, Math.PI * 2);
+        this.ctx.stroke();
+        this.drawClickSparks(10, size * 0.95, alpha * 0.55, false);
+        break;
+      case "comet-bloom":
+        this.ctx.globalAlpha = alpha * 0.72;
+        this.drawStar(size * 0.28);
+        this.ctx.rotate(-0.7);
+        this.ctx.globalAlpha = alpha * 0.18;
+        this.ctx.fillRect(-size * 0.95, -size * 0.08, size * 1.6, size * 0.16);
+        break;
+      case "ripple":
+      default:
+        this.drawClickRing(size * 0.82, alpha * 0.65);
+        break;
+    }
+
+    this.ctx.restore();
+  }
+
+  private drawClickRing(radius: number, alpha: number): void {
+    this.ctx.globalAlpha = alpha;
+    this.ctx.beginPath();
+    this.ctx.arc(0, 0, radius, 0, Math.PI * 2);
+    this.ctx.stroke();
+  }
+
+  private drawClickSparks(count: number, radius: number, alpha: number, centerStar: boolean): void {
+    if (centerStar) {
+      this.ctx.globalAlpha = alpha * 0.5;
+      this.drawStar(radius * 0.18);
+    }
+    for (let index = 0; index < count; index += 1) {
+      const angle = index * ((Math.PI * 2) / count);
+      const inner = radius * 0.24;
+      const outer = radius;
+      this.ctx.globalAlpha = alpha * (0.45 + (index % 3) * 0.14);
+      this.ctx.beginPath();
+      this.ctx.moveTo(Math.cos(angle) * inner, Math.sin(angle) * inner);
+      this.ctx.lineTo(Math.cos(angle) * outer, Math.sin(angle) * outer);
+      this.ctx.stroke();
+    }
   }
 
   private drawLabel(node: GraphNode, color: string, selected: boolean): void {
@@ -1275,6 +1417,9 @@ export class ConstellaGraphRenderer {
       const node = this.nodeAt(event.clientX, event.clientY);
       this.selectedNode = node;
       this.options.onNodeSelected(node);
+      if (node) {
+        this.addClickEffect(node);
+      }
     }
   };
 
@@ -1288,9 +1433,26 @@ export class ConstellaGraphRenderer {
   private readonly onDoubleClick = (event: MouseEvent): void => {
     const node = this.nodeAt(event.clientX, event.clientY);
     if (node) {
+      this.addClickEffect(node);
       this.options.onNodeOpened(node);
     }
   };
+
+  private addClickEffect(node: GraphNode): void {
+    const colors = this.getPalette();
+    this.clickEffects.push({
+      id: this.nextClickEffectId,
+      x: node.x,
+      y: node.y,
+      startedAt: performance.now(),
+      color: colors.edgeActive,
+      style: this.config.motion.clickAnimation
+    });
+    this.nextClickEffectId += 1;
+    if (this.clickEffects.length > 24) {
+      this.clickEffects.shift();
+    }
+  }
 
   private nodeAt(clientX: number, clientY: number): GraphNode | null {
     const rect = this.canvas.getBoundingClientRect();

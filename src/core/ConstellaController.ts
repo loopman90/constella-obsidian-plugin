@@ -12,6 +12,7 @@ import type {
   ActiveConfiguration,
   BackgroundId,
   CameraId,
+  ClickAnimationId,
   ColorsId,
   GraphData,
   GraphNode,
@@ -363,6 +364,19 @@ export class ConstellaController {
     ];
     const cameras: CameraId[] = ["static", "calm", "floating", "cinematic"];
     const movements: NodeMovementStyleId[] = ["gentle-float", "drift", "orbit", "breathing", "scatter", "swarm", "jitter", "spiral", "chaos"];
+    const clickAnimations: ClickAnimationId[] = [
+      "ripple",
+      "double-ripple",
+      "spark",
+      "starburst",
+      "halo",
+      "pulse-ring",
+      "scanner",
+      "diamond-pop",
+      "orbit-dots",
+      "shockwave",
+      "comet-bloom"
+    ];
     this.updateConfiguration({
       ...cloneConfiguration(this.configuration),
       mode: this.pick(modes),
@@ -381,7 +395,8 @@ export class ConstellaController {
         nodeMovementSpeed: 0.25 + Math.random() * 0.75,
         particleSpeed: 0.2 + Math.random() * 0.8,
         drawingLinesEnabled: Math.random() > 0.35,
-        drawingLineSpeed: 0.2 + Math.random() * 0.75
+        drawingLineSpeed: 0.2 + Math.random() * 0.75,
+        clickAnimation: this.pick(clickAnimations)
       },
       template: {
         ...this.configuration.template,

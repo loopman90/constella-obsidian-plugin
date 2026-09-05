@@ -96,6 +96,19 @@ export type NodeMovementStyleId =
   | "jitter"
   | "spiral"
   | "chaos";
+export type ClickAnimationId =
+  | "ripple"
+  | "double-ripple"
+  | "spark"
+  | "starburst"
+  | "halo"
+  | "pulse-ring"
+  | "scanner"
+  | "diamond-pop"
+  | "orbit-dots"
+  | "shockwave"
+  | "comet-bloom"
+  | "none";
 
 export interface ActiveConfiguration {
   mode: ModeId;
@@ -128,6 +141,7 @@ export interface ActiveConfiguration {
     nodeMovementStyle: NodeMovementStyleId;
     nodeMovementStrength: number;
     nodeMovementSpeed: number;
+    clickAnimation: ClickAnimationId;
   };
   background: {
     style: BackgroundId;
@@ -154,6 +168,7 @@ export interface ActiveConfiguration {
     fullscreen: boolean;
     autoHideCursorSeconds: number;
     showNodeInfoOverlay: boolean;
+    showLabels: boolean;
   };
   template: {
     activeTemplateId: string;
@@ -368,4 +383,19 @@ export const NODE_MOVEMENT_STYLES: BuiltInOption<NodeMovementStyleId>[] = [
   { id: "jitter", label: "Jitter" },
   { id: "spiral", label: "Spiral" },
   { id: "chaos", label: "Chaos" }
+];
+
+export const CLICK_ANIMATIONS: BuiltInOption<ClickAnimationId>[] = [
+  { id: "ripple", label: "Ripple" },
+  { id: "double-ripple", label: "Double Ripple" },
+  { id: "spark", label: "Spark" },
+  { id: "starburst", label: "Starburst" },
+  { id: "halo", label: "Halo" },
+  { id: "pulse-ring", label: "Pulse Ring" },
+  { id: "scanner", label: "Scanner" },
+  { id: "diamond-pop", label: "Diamond Pop" },
+  { id: "orbit-dots", label: "Orbit Dots" },
+  { id: "shockwave", label: "Shockwave" },
+  { id: "comet-bloom", label: "Comet Bloom" },
+  { id: "none", label: "None" }
 ];

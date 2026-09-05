@@ -1,7 +1,7 @@
 import type { ConstellaController } from "../core/ConstellaController";
 import type { Unsubscribe } from "../core/EventBus";
-import { BACKGROUNDS, CAMERAS, COLORS, MODES, NODE_MOVEMENT_STYLES, PATH_ANIMATIONS, PULSE_STYLES, VISUALS } from "../core/types";
-import type { ActiveConfiguration, BackgroundId, BuiltInOption, CameraId, ColorsId, GraphScope, ModeId, NodeMovementStyleId, PathAnimationId, PulseStyleId, VisualId } from "../core/types";
+import { BACKGROUNDS, CAMERAS, CLICK_ANIMATIONS, COLORS, MODES, NODE_MOVEMENT_STYLES, PATH_ANIMATIONS, PULSE_STYLES, VISUALS } from "../core/types";
+import type { ActiveConfiguration, BackgroundId, BuiltInOption, CameraId, ClickAnimationId, ColorsId, GraphScope, ModeId, NodeMovementStyleId, PathAnimationId, PulseStyleId, VisualId } from "../core/types";
 import { PerformanceManager } from "../performance/PerformanceManager";
 import { JsonTransferModal, PlaylistEditorModal, TemplateEditorModal, TextPromptModal } from "./modals";
 
@@ -147,6 +147,9 @@ export class ControlPanel {
     setup.appendChild(this.select("Colors", config.colors, COLORS, (value) => this.controller.updateColors(value)));
     setup.appendChild(this.select("Background", config.background.style, BACKGROUNDS, (value) => this.controller.updateBackground(value)));
     setup.appendChild(this.select("Camera", config.camera, CAMERAS, (value) => this.controller.updateCamera(value)));
+    setup.appendChild(this.select("Click Animation", config.motion.clickAnimation, CLICK_ANIMATIONS, (value) =>
+      this.controller.updateMotion("clickAnimation", value)
+    ));
     setup.appendChild(this.slider("Animation Speed", config.motion.animationSpeed, (value) => this.controller.updateMotion("animationSpeed", value)));
     setup.appendChild(this.slider("Visual Intensity", config.motion.visualIntensity, (value) => this.controller.updateMotion("visualIntensity", value)));
     setup.appendChild(this.buttonGroup([
@@ -238,6 +241,9 @@ export class ControlPanel {
     ));
     section.appendChild(this.select("Movement Style", config.motion.nodeMovementStyle, NODE_MOVEMENT_STYLES, (value) =>
       this.controller.updateMotion("nodeMovementStyle", value)
+    ));
+    section.appendChild(this.select("Click Animation", config.motion.clickAnimation, CLICK_ANIMATIONS, (value) =>
+      this.controller.updateMotion("clickAnimation", value)
     ));
     section.appendChild(this.slider("Movement Strength", config.motion.nodeMovementStrength, (value) =>
       this.controller.updateMotion("nodeMovementStrength", value)
@@ -332,6 +338,7 @@ export class ControlPanel {
     section.appendChild(this.toggleControl("Node Info Overlay", config.display.showNodeInfoOverlay, (value) =>
       this.controller.updateDisplay("showNodeInfoOverlay", value)
     ));
+    section.appendChild(this.toggleControl("Labels", config.display.showLabels, (value) => this.controller.updateDisplay("showLabels", value)));
     section.appendChild(this.toggleControl("Fullscreen Intent", config.display.fullscreen, (value) => this.controller.updateDisplay("fullscreen", value)));
     section.appendChild(this.numberControl("Hide Cursor After", config.display.autoHideCursorSeconds, 0, 60, (value) =>
       this.controller.updateDisplay("autoHideCursorSeconds", value)
@@ -367,7 +374,7 @@ export class ControlPanel {
     ];
   }
 
-  private select<T extends ModeId | VisualId | ColorsId | CameraId | GraphScope | PathAnimationId | PulseStyleId | BackgroundId | NodeMovementStyleId | ActiveConfiguration["journey"]["deadEndBehavior"] | ActiveConfiguration["journey"]["afterJourney"]>(
+  private select<T extends ModeId | VisualId | ColorsId | CameraId | GraphScope | PathAnimationId | PulseStyleId | BackgroundId | NodeMovementStyleId | ClickAnimationId | ActiveConfiguration["journey"]["deadEndBehavior"] | ActiveConfiguration["journey"]["afterJourney"]>(
     label: string,
     value: T,
     options: BuiltInOption<T>[],

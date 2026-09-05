@@ -30,7 +30,8 @@ export const DEFAULT_CONFIGURATION: ActiveConfiguration = {
     pulseStyle: "orb",
     nodeMovementStyle: "gentle-float",
     nodeMovementStrength: 0.35,
-    nodeMovementSpeed: 0.45
+    nodeMovementSpeed: 0.45,
+    clickAnimation: "ripple"
   },
   background: {
     style: "deep-space"
@@ -56,7 +57,8 @@ export const DEFAULT_CONFIGURATION: ActiveConfiguration = {
     hideUi: false,
     fullscreen: false,
     autoHideCursorSeconds: 5,
-    showNodeInfoOverlay: true
+    showNodeInfoOverlay: true,
+    showLabels: true
   },
   template: {
     activeTemplateId: "builtin-constellation",
