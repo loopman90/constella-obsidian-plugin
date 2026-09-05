@@ -145,6 +145,25 @@ export class ConstellaController {
     await this.persist();
   }
 
+  async updateGraphOption<TKey extends keyof ActiveConfiguration["graph"]>(
+    key: TKey,
+    value: ActiveConfiguration["graph"][TKey]
+  ): Promise<void> {
+    this.updateConfiguration({
+      ...cloneConfiguration(this.configuration),
+      graph: {
+        ...this.configuration.graph,
+        [key]: value
+      },
+      template: {
+        ...this.configuration.template,
+        modified: true
+      }
+    });
+    this.refreshGraph();
+    await this.persist();
+  }
+
   async updateMode(mode: ModeId): Promise<void> {
     this.updateConfiguration(withMode(this.configuration, mode));
     await this.persist();

@@ -1,7 +1,7 @@
 import type { ConstellaController } from "../core/ConstellaController";
 import type { Unsubscribe } from "../core/EventBus";
 import { BACKGROUNDS, CAMERAS, COLORS, MODES, NODE_MOVEMENT_STYLES, PATH_ANIMATIONS, PULSE_STYLES, VISUALS } from "../core/types";
-import type { BackgroundId, BuiltInOption, CameraId, ColorsId, GraphScope, ModeId, NodeMovementStyleId, PathAnimationId, PulseStyleId, VisualId } from "../core/types";
+import type { ActiveConfiguration, BackgroundId, BuiltInOption, CameraId, ColorsId, GraphScope, ModeId, NodeMovementStyleId, PathAnimationId, PulseStyleId, VisualId } from "../core/types";
 import { PerformanceManager } from "../performance/PerformanceManager";
 import { JsonTransferModal, PlaylistEditorModal, TemplateEditorModal, TextPromptModal } from "./modals";
 
@@ -133,17 +133,26 @@ export class ControlPanel {
 
   private renderQuick(parent: HTMLElement): void {
     const config = this.controller.configuration;
-    const section = this.section(parent, "Quick Setup", "The most-used controls in one place.");
-    section.appendChild(this.select("Graph", config.graph.scope, this.graphScopeOptions(), (value) => this.controller.updateGraphScope(value)));
-    section.appendChild(this.select("Mode", config.mode, MODES, (value) => this.controller.updateMode(value)));
-    section.appendChild(this.select("Visual", config.visual, VISUALS, (value) => this.controller.updateVisual(value)));
-    section.appendChild(this.select("Colors", config.colors, COLORS, (value) => this.controller.updateColors(value)));
-    section.appendChild(this.select("Background", config.background.style, BACKGROUNDS, (value) => this.controller.updateBackground(value)));
-    section.appendChild(this.select("Camera", config.camera, CAMERAS, (value) => this.controller.updateCamera(value)));
-    section.appendChild(this.slider("Animation Speed", config.motion.animationSpeed, (value) => this.controller.updateMotion("animationSpeed", value)));
-    section.appendChild(this.slider("Visual Intensity", config.motion.visualIntensity, (value) => this.controller.updateMotion("visualIntensity", value)));
-    section.appendChild(this.actionButton("Random Motion", () => this.controller.randomizeSafe()));
-    section.appendChild(this.actionButton("Save Preset", () => this.controller.saveTemplate()));
+    const playback = this.section(parent, "Playback", "Start, pause, or stop the living graph.");
+    playback.appendChild(this.buttonGroup([
+      { label: "Start", onClick: () => this.controller.play() },
+      { label: "Pause", onClick: () => this.controller.pause() },
+      { label: "Stop", onClick: () => this.controller.stop() }
+    ]));
+
+    const setup = this.section(parent, "Quick Setup", "The most-used controls in one place.");
+    setup.appendChild(this.select("Graph", config.graph.scope, this.graphScopeOptions(), (value) => this.controller.updateGraphScope(value)));
+    setup.appendChild(this.select("Mode", config.mode, MODES, (value) => this.controller.updateMode(value)));
+    setup.appendChild(this.select("Visual", config.visual, VISUALS, (value) => this.controller.updateVisual(value)));
+    setup.appendChild(this.select("Colors", config.colors, COLORS, (value) => this.controller.updateColors(value)));
+    setup.appendChild(this.select("Background", config.background.style, BACKGROUNDS, (value) => this.controller.updateBackground(value)));
+    setup.appendChild(this.select("Camera", config.camera, CAMERAS, (value) => this.controller.updateCamera(value)));
+    setup.appendChild(this.slider("Animation Speed", config.motion.animationSpeed, (value) => this.controller.updateMotion("animationSpeed", value)));
+    setup.appendChild(this.slider("Visual Intensity", config.motion.visualIntensity, (value) => this.controller.updateMotion("visualIntensity", value)));
+    setup.appendChild(this.buttonGroup([
+      { label: "Random Motion", onClick: () => this.controller.randomizeSafe() },
+      { label: "Save Preset", onClick: () => this.controller.saveTemplate() }
+    ]));
   }
 
   private renderPresets(parent: HTMLElement): void {
@@ -160,6 +169,7 @@ export class ControlPanel {
     }));
     this.controller.templates.forEach((template) => {
       templates.appendChild(this.templateRow(template.name, template.builtIn, template.favorite, () => this.controller.loadTemplate(template.id), () =>
+        this.controller.toggleTemplateFavorite(template.id), () =>
         this.controller.duplicateTemplate(template.id), () => {
           new TemplateEditorModal(this.controller.app, template, (name, configValue) =>
             this.controller.upsertTemplate(template, name, configValue)
@@ -182,6 +192,9 @@ export class ControlPanel {
     const section = this.section(parent, "Graph Source", "Choose how much of your vault Constella should draw.");
     section.appendChild(this.select("Graph Scope", config.graph.scope, this.graphScopeOptions(), (value) => this.controller.updateGraphScope(value)));
     section.appendChild(this.numberControl("Local Depth", config.graph.localDepth, 1, 8, (value) => this.controller.updateLocalDepth(value)));
+    section.appendChild(this.toggleControl("Use Current Note When Available", config.graph.useCurrentGraphWhenAvailable, (value) =>
+      this.controller.updateGraphOption("useCurrentGraphWhenAvailable", value)
+    ));
   }
 
   private renderVisual(parent: HTMLElement): void {
@@ -268,6 +281,17 @@ export class ControlPanel {
     section.appendChild(this.numberControl("Node Pause", config.journey.nodePauseSeconds, 0.5, 60, (value) =>
       this.controller.updateJourney("nodePauseSeconds", value)
     ));
+    section.appendChild(this.select("Dead End", config.journey.deadEndBehavior, [
+      { id: "random-jump", label: "Random Jump" },
+      { id: "new-start", label: "New Start" },
+      { id: "stop", label: "Stop" }
+    ], (value) => this.controller.updateJourney("deadEndBehavior", value)));
+    section.appendChild(this.select("After Journey", config.journey.afterJourney, [
+      { id: "start-new-journey", label: "Start New Journey" },
+      { id: "zoom-out", label: "Zoom Out" },
+      { id: "pause", label: "Pause" },
+      { id: "stop", label: "Stop" }
+    ], (value) => this.controller.updateJourney("afterJourney", value)));
     section.appendChild(this.toggleControl("Avoid Recently Visited", config.journey.avoidRecentlyVisited, (value) =>
       this.controller.updateJourney("avoidRecentlyVisited", value)
     ));
@@ -291,6 +315,9 @@ export class ControlPanel {
     ));
     section.appendChild(this.toggleControl("Exclude Daily Notes", config.discovery.excludeDailyNotes, (value) =>
       this.controller.updateDiscovery("excludeDailyNotes", value)
+    ));
+    section.appendChild(this.toggleControl("Exclude Attachments", config.discovery.excludeAttachments, (value) =>
+      this.controller.updateDiscovery("excludeAttachments", value)
     ));
     const summary = this.controller.discoverySummary;
     section.appendChild(this.discoveryList("Recent", summary.recent.map((node) => node.title)));
@@ -340,7 +367,7 @@ export class ControlPanel {
     ];
   }
 
-  private select<T extends ModeId | VisualId | ColorsId | CameraId | GraphScope | PathAnimationId | PulseStyleId | BackgroundId | NodeMovementStyleId>(
+  private select<T extends ModeId | VisualId | ColorsId | CameraId | GraphScope | PathAnimationId | PulseStyleId | BackgroundId | NodeMovementStyleId | ActiveConfiguration["journey"]["deadEndBehavior"] | ActiveConfiguration["journey"]["afterJourney"]>(
     label: string,
     value: T,
     options: BuiltInOption<T>[],
@@ -403,6 +430,15 @@ export class ControlPanel {
     return row;
   }
 
+  private buttonGroup(buttons: Array<{ label: string; onClick: () => void | Promise<void> }>): HTMLElement {
+    const row = createDiv({ cls: "constella-button-group" });
+    buttons.forEach(({ label, onClick }) => {
+      const button = row.createEl("button", { text: label });
+      button.addEventListener("click", () => void onClick());
+    });
+    return row;
+  }
+
   private discoveryList(label: string, items: string[]): HTMLElement {
     const box = createDiv({ cls: "constella-mini-list" });
     box.createDiv({ cls: "constella-mini-list-title", text: label });
@@ -415,19 +451,23 @@ export class ControlPanel {
     builtIn: boolean,
     favorite: boolean,
     onApply: () => void | Promise<void>,
+    onFavorite: () => void | Promise<void>,
     onDuplicate: () => void | Promise<void>,
     onEdit: () => void | Promise<void>,
     onDelete: () => void | Promise<void>
   ): HTMLElement {
     const row = createDiv({ cls: "constella-template-row" });
     row.createSpan({ text: `${favorite ? "* " : ""}${name}${builtIn ? " Built-in" : ""}` });
-    const apply = row.createEl("button", { text: "Apply" });
+    const actions = row.createDiv({ cls: "constella-template-actions" });
+    const apply = actions.createEl("button", { text: "Apply" });
     apply.addEventListener("click", () => void onApply());
-    const duplicate = row.createEl("button", { text: "Duplicate" });
+    const fav = actions.createEl("button", { text: favorite ? "Unfavorite" : "Favorite" });
+    fav.addEventListener("click", () => void onFavorite());
+    const duplicate = actions.createEl("button", { text: "Duplicate" });
     duplicate.addEventListener("click", () => void onDuplicate());
-    const edit = row.createEl("button", { text: "Edit" });
+    const edit = actions.createEl("button", { text: "Edit" });
     edit.addEventListener("click", () => void onEdit());
-    const del = row.createEl("button", { text: "Delete" });
+    const del = actions.createEl("button", { text: "Delete" });
     del.disabled = builtIn;
     del.addEventListener("click", () => void onDelete());
     return row;
@@ -442,9 +482,10 @@ export class ControlPanel {
   ): HTMLElement {
     const row = createDiv({ cls: "constella-template-row" });
     row.createSpan({ text: `${favorite ? "* " : ""}${name} (${steps})` });
-    const start = row.createEl("button", { text: "Start" });
+    const actions = row.createDiv({ cls: "constella-template-actions" });
+    const start = actions.createEl("button", { text: "Start" });
     start.addEventListener("click", () => void onStart());
-    const edit = row.createEl("button", { text: "Edit" });
+    const edit = actions.createEl("button", { text: "Edit" });
     edit.addEventListener("click", () => void onEdit());
     return row;
   }

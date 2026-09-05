@@ -138,17 +138,18 @@
 
 .constella-panel-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
-  overflow-x: auto;
   padding-bottom: 2px;
 }
 
 .constella-panel-tabs button {
-  flex: 0 0 auto;
+  flex: 1 1 76px;
   min-height: 28px;
   padding: 4px 9px;
   border-radius: 6px;
   font-size: 12px;
+  white-space: nowrap;
 }
 
 .constella-panel-tabs button.is-active {
@@ -236,6 +237,17 @@
   min-height: 30px;
 }
 
+.constella-button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.constella-button-group button {
+  flex: 1 1 86px;
+  min-height: 30px;
+}
+
 .constella-mini-list,
 .constella-template-row {
   display: grid;
@@ -248,11 +260,22 @@
 }
 
 .constella-template-row {
-  grid-template-columns: minmax(90px, 1fr) auto auto auto auto;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
 }
 
-.constella-template-row button {
+.constella-template-row > span {
+  overflow-wrap: anywhere;
+}
+
+.constella-template-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.constella-template-actions button {
+  flex: 1 1 72px;
   min-height: 26px;
   padding: 2px 8px;
   font-size: 11px;
