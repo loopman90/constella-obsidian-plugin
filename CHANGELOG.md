@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.2
+
+- Scoped Constella keyboard shortcuts to the active Constella view.
+- Prevented `Enter` in other Obsidian tabs from opening the selected Constella node.
+- The settings panel can still close with `Escape` when focus is inside the Constella view.
+
 ## 0.3.1
 
 - Added 20 new camera motion styles: Focus Lock, Slow Drift, Wide Orbit, Close Orbit, Breathing Zoom, Presenter Pan, Scanline, Radar Orbit, City Cruise, Data Chase, Cluster Hop, Edge Glide, Constellation Tour, Zen Still, Paper Follow, Matrix Rush, Galaxy Dive, Micro Wander, Overview Pulse, and Second Screen Calm.

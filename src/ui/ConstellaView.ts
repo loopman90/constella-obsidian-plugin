@@ -93,6 +93,9 @@ export class ConstellaView extends ItemView {
   }
 
   private readonly onKeyDown = (event: KeyboardEvent): void => {
+    if (!this.shouldHandleKeyEvent(event)) {
+      return;
+    }
     if (event.key === "Escape" && this.controlPanel?.isVisible()) {
       event.preventDefault();
       this.controlPanel.hide();
@@ -122,6 +125,14 @@ export class ConstellaView extends ItemView {
       this.controller.stop();
     }
   };
+
+  private shouldHandleKeyEvent(event: KeyboardEvent): boolean {
+    const target = event.target;
+    if (target instanceof Node && this.containerEl.contains(target)) {
+      return true;
+    }
+    return this.app.workspace.activeLeaf === this.leaf;
+  }
 
   private renderFirstRun(containerEl: HTMLElement): void {
     const firstRun = containerEl.createDiv({ cls: "constella-first-run" });
