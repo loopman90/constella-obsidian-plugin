@@ -10,6 +10,7 @@ permissions:
   contents: write
   id-token: write
   attestations: write
+  artifact-metadata: write
 
 jobs:
   build:
@@ -21,7 +22,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
 
       - name: Install
@@ -34,9 +35,9 @@ jobs:
         uses: actions/attest@v4
         with:
           subject-path: |
-            main.js
-            manifest.json
-            styles.css
+            ${{ github.workspace }}/main.js
+            ${{ github.workspace }}/manifest.json
+            ${{ github.workspace }}/styles.css
 
       - name: Create or update release assets
         if: startsWith(github.ref, 'refs/tags/')

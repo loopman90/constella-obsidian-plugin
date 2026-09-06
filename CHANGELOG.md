@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.1
+
+- Hardened the settings tab for automated review by using an unheaded declarative settings group and explicit overrides.
+- Updated the release workflow to use Node 24 and GitHub's current artifact attestation permissions and absolute subject paths.
+
 ## 0.4.0
 
 - Added 20 extra exploration modes: Deep Dive, Quick Scan, Review Loop, Idea Hop, Bridge Finder, Cluster Sweep, Orphan Hunt, Timeline Run, Oldest First, Newest First, Dense Route, Sparse Route, Balanced Tour, Serendipity, Research Trail, Writing Map, Project Map, Tag Surf, Folder Walk, and Memory Lane.
