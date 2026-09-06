@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.2
+
+- Made the Constella view open against Obsidian's stable `contentEl` API instead of relying on internal container child positions.
+- Added a visible startup fallback message if the graph view cannot initialize.
+
 ## 0.4.1
 
 - Hardened the settings tab for automated review by using an unheaded declarative settings group and explicit overrides.

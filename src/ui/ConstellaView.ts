@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf } from "obsidian";
+import { ItemView, Notice, WorkspaceLeaf } from "obsidian";
 import type { ConstellaController } from "../core/ConstellaController";
 import type { GraphNode } from "../core/types";
 import { ConstellaGraphRenderer } from "../graph/ConstellaGraphRenderer";
@@ -38,46 +38,54 @@ export class ConstellaView extends ItemView {
   }
 
   async onOpen(): Promise<void> {
-    const container = this.containerEl.children[1];
+    const container = this.contentEl;
     container.empty();
     container.addClass("constella-view");
 
-    const stage = container.createDiv({ cls: "constella-stage" });
-    const canvasHost = stage.createDiv({ cls: "constella-canvas-host" });
-    const overlays = stage.createDiv({ cls: "constella-overlays" });
+    try {
+      const stage = container.createDiv({ cls: "constella-stage" });
+      const canvasHost = stage.createDiv({ cls: "constella-canvas-host" });
+      const overlays = stage.createDiv({ cls: "constella-overlays" });
 
-    this.controlPanel = new ControlPanel(overlays, this.controller);
-    this.controlPanel.hide();
-    this.nodeInfo = new NodeInfoOverlay(overlays);
-    this.nodeInfo.setVisible(this.controller.configuration.display.showNodeInfoOverlay, this.controller.currentNode);
-    this.quickBar = new QuickBar(overlays, this.controller, {
-      togglePanel: () => this.controlPanel?.toggle(),
-      toggleFullscreen: this.actions.toggleFullscreen,
-      openSecondScreen: this.actions.openSecondScreen
-    });
+      this.controlPanel = new ControlPanel(overlays, this.controller);
+      this.controlPanel.hide();
+      this.nodeInfo = new NodeInfoOverlay(overlays);
+      this.nodeInfo.setVisible(this.controller.configuration.display.showNodeInfoOverlay, this.controller.currentNode);
+      this.quickBar = new QuickBar(overlays, this.controller, {
+        togglePanel: () => this.controlPanel?.toggle(),
+        toggleFullscreen: this.actions.toggleFullscreen,
+        openSecondScreen: this.actions.openSecondScreen
+      });
 
-    this.renderer = new ConstellaGraphRenderer(this.app, canvasHost, this.controller.configuration, {
-      onNodeSelected: (node: GraphNode | null) => this.controller.selectNode(node),
-      onNodeOpened: (node: GraphNode) => void this.controller.openNode(node)
-    });
+      this.renderer = new ConstellaGraphRenderer(this.app, canvasHost, this.controller.configuration, {
+        onNodeSelected: (node: GraphNode | null) => this.controller.selectNode(node),
+        onNodeOpened: (node: GraphNode) => void this.controller.openNode(node)
+      });
 
-    this.unsubscribers.push(this.controller.events.on("configuration", (config) => {
-      this.renderer?.setConfiguration(config);
-      this.nodeInfo?.setVisible(config.display.showNodeInfoOverlay, this.controller.currentNode);
-    }));
-    this.unsubscribers.push(this.controller.events.on("graph", (graph) => this.renderer?.setGraph(graph)));
-    this.unsubscribers.push(this.controller.events.on("selectedNode", (node) => {
-      this.renderer?.setSelectedNode(node);
-      this.nodeInfo?.render(node);
-    }));
-    this.unsubscribers.push(this.controller.events.on("journey", (journey) => {
-      this.renderer?.setJourney(journey?.path ?? [], journey?.currentIndex ?? 0);
-    }));
-    this.controller.refreshGraph();
-    if (this.controller.showFirstRun) {
-      this.renderFirstRun(overlays);
+      this.unsubscribers.push(this.controller.events.on("configuration", (config) => {
+        this.renderer?.setConfiguration(config);
+        this.nodeInfo?.setVisible(config.display.showNodeInfoOverlay, this.controller.currentNode);
+      }));
+      this.unsubscribers.push(this.controller.events.on("graph", (graph) => this.renderer?.setGraph(graph)));
+      this.unsubscribers.push(this.controller.events.on("selectedNode", (node) => {
+        this.renderer?.setSelectedNode(node);
+        this.nodeInfo?.render(node);
+      }));
+      this.unsubscribers.push(this.controller.events.on("journey", (journey) => {
+        this.renderer?.setJourney(journey?.path ?? [], journey?.currentIndex ?? 0);
+      }));
+      this.controller.refreshGraph();
+      if (this.controller.showFirstRun) {
+        this.renderFirstRun(overlays);
+      }
+      this.registerDomEvent(document, "keydown", this.onKeyDown);
+    } catch (error) {
+      console.error("Constella could not open.", error);
+      new Notice("Constella could not open. Check the developer console for details.");
+      container.empty();
+      container.createDiv({ cls: "constella-first-run-title", text: "Constella could not open" });
+      container.createDiv({ cls: "constella-first-run-copy", text: error instanceof Error ? error.message : "Unknown startup error." });
     }
-    this.registerDomEvent(document, "keydown", this.onKeyDown);
   }
 
   async onClose(): Promise<void> {
