@@ -73,6 +73,14 @@ export const DEFAULT_CONFIGURATION: ActiveConfiguration = {
     edgeThickness: 0.32,
     nodeSize: 0.45
   },
+  tools: {
+    showMiniMap: false,
+    showSearchResults: true,
+    showGraphHealth: true,
+    enableSavedViews: true,
+    enableColorRules: false,
+    colorRulesText: "tag:project=#38bdf8\nfolder:Archive=#f59e0b"
+  },
   interaction: {
     pinnedNodeIds: [],
     hiddenNodeIds: [],
@@ -96,6 +104,7 @@ export function cloneConfiguration(config: ActiveConfiguration): ActiveConfigura
     journey: { ...config.journey },
     discovery: { ...config.discovery },
     display: { ...config.display },
+    tools: { ...config.tools },
     interaction: {
       pinnedNodeIds: [...config.interaction.pinnedNodeIds],
       hiddenNodeIds: [...config.interaction.hiddenNodeIds],

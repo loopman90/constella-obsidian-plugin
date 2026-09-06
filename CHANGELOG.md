@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.8
+
+- Removed the empty-feeling Advanced tab from the in-graph control panel.
+- Added a Tools tab with optional search results, graph health insights, saved views, tag/folder color rules, and a mini-map that is off by default.
+
 ## 0.4.7
 
 - Added selectable drawing-line animation styles for graph edges, including Trace, Reverse Trace, Center Out, Dashed March, Lightning, City Lights, Data Packets, Scanner Sweep, Double Trace, Constellation Sketch, and Radar Fan.

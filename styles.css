@@ -232,6 +232,19 @@
   justify-self: end;
 }
 
+.constella-panel-control-stacked {
+  grid-template-columns: 1fr;
+  align-items: stretch;
+}
+
+.constella-panel-control textarea {
+  width: 100%;
+  min-height: 92px;
+  resize: vertical;
+  font-family: var(--font-monospace);
+  font-size: 12px;
+}
+
 .constella-roadmap {
   padding-top: 6px;
   border-top: 1px solid var(--background-modifier-border);
@@ -263,6 +276,45 @@
 .constella-button-group button {
   flex: 1 1 86px;
   min-height: 30px;
+}
+
+.constella-search-box {
+  display: grid;
+  gap: 7px;
+}
+
+.constella-search-results {
+  display: grid;
+  gap: 5px;
+}
+
+.constella-search-result,
+.constella-health-node {
+  width: 100%;
+  min-height: 28px;
+  padding: 4px 8px;
+  overflow: hidden;
+  font-size: 11px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.constella-metric-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 8px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  background: var(--background-secondary);
+  font-size: 12px;
+}
+
+.constella-metric-row span:last-child {
+  color: var(--text-normal);
+  font-weight: 650;
 }
 
 .constella-mini-list,

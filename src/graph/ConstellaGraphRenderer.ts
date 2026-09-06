@@ -1454,6 +1454,11 @@ export class ConstellaGraphRenderer {
   }
 
   private dynamicNodeColor(node: GraphNode, index: number, recent: boolean): string | null {
+    const ruleColor = this.ruleColorForNode(node);
+    if (ruleColor) {
+      return ruleColor;
+    }
+
     switch (this.config.colors) {
       case "heatmap": {
         const heat = Math.min(1, node.connectionCount / 12);
@@ -1490,6 +1495,60 @@ export class ConstellaGraphRenderer {
       default:
         return null;
     }
+  }
+
+  private ruleColorForNode(node: GraphNode): string | null {
+    if (!this.config.tools.enableColorRules) {
+      return null;
+    }
+
+    const rules = this.config.tools.colorRulesText
+      .split(/\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+    if (rules.length === 0) {
+      return null;
+    }
+
+    const path = node.path.toLowerCase();
+    const tags = this.tagsForNode(node);
+    for (const rule of rules) {
+      const match = /^(tag|folder):([^=]+)=(#[0-9a-f]{6})$/i.exec(rule);
+      if (!match) {
+        continue;
+      }
+      const [, kind, rawNeedle, color] = match;
+      const needle = rawNeedle.trim().replace(/^#/, "").toLowerCase();
+      if (kind.toLowerCase() === "folder" && path.includes(needle)) {
+        return color;
+      }
+      if (kind.toLowerCase() === "tag" && tags.some((tag) => tag === needle || tag.startsWith(`${needle}/`))) {
+        return color;
+      }
+    }
+    return null;
+  }
+
+  private tagsForNode(node: GraphNode): string[] {
+    const cache = this.app.metadataCache.getFileCache(node.file);
+    const tags = new Set<string>();
+    cache?.tags?.forEach((tag) => tags.add(tag.tag.replace(/^#/, "").toLowerCase()));
+    const frontmatterTags = cache?.frontmatter?.tags as unknown;
+    if (typeof frontmatterTags === "string") {
+      frontmatterTags
+        .split(/[,;\s]+/)
+        .map((tag) => tag.trim().replace(/^#/, "").toLowerCase())
+        .filter(Boolean)
+        .forEach((tag) => tags.add(tag));
+    }
+    if (Array.isArray(frontmatterTags)) {
+      frontmatterTags.forEach((tag) => {
+        if (typeof tag === "string") {
+          tags.add(tag.replace(/^#/, "").toLowerCase());
+        }
+      });
+    }
+    return Array.from(tags);
   }
 
   private edgeColor(edge: { id: string; weight: number }, selected: boolean, activeJourneyEdge: boolean, base: string, active: string): string {
@@ -2071,6 +2130,9 @@ export class ConstellaGraphRenderer {
 
   private drawHud(width: number, height: number): void {
     const colors = this.getPalette();
+    if (this.config.tools.showMiniMap) {
+      this.drawMiniMap(width, height, colors);
+    }
     if (this.config.display.showLegend) {
       this.drawLegend(width, height, colors);
     }
@@ -2118,6 +2180,90 @@ export class ConstellaGraphRenderer {
       this.ctx.fillText(entry.label, x + 24, rowY, boxWidth - 34);
     });
     this.ctx.restore();
+  }
+
+  private drawMiniMap(width: number, height: number, colors: ReturnType<ConstellaGraphRenderer["getPalette"]>): void {
+    if (this.graph.nodes.length === 0) {
+      return;
+    }
+
+    const mapWidth = 158;
+    const mapHeight = 112;
+    const x = Math.max(14, width - mapWidth - 14);
+    const y = height - mapHeight - 20;
+    const bounds = this.graphBounds();
+    const scale = Math.min((mapWidth - 20) / Math.max(1, bounds.width), (mapHeight - 20) / Math.max(1, bounds.height));
+    const centerX = x + mapWidth / 2;
+    const centerY = y + mapHeight / 2;
+    const project = (node: { x: number; y: number }): { x: number; y: number } => ({
+      x: centerX + (node.x - bounds.centerX) * scale,
+      y: centerY + (node.y - bounds.centerY) * scale
+    });
+
+    this.ctx.save();
+    this.ctx.fillStyle = this.withAlpha(colors.backgroundA, 0.72);
+    this.ctx.strokeStyle = this.withAlpha(colors.edge, 0.24);
+    this.ctx.lineWidth = 1;
+    this.ctx.beginPath();
+    this.ctx.roundRect(x, y, mapWidth, mapHeight, 8);
+    this.ctx.fill();
+    this.ctx.stroke();
+
+    this.ctx.globalAlpha = 0.18;
+    this.ctx.strokeStyle = colors.edge;
+    this.graph.edges.slice(0, 260).forEach((edge) => {
+      const source = this.nodeById.get(edge.source);
+      const target = this.nodeById.get(edge.target);
+      if (!source || !target) {
+        return;
+      }
+      const a = project(source);
+      const b = project(target);
+      this.ctx.beginPath();
+      this.ctx.moveTo(a.x, a.y);
+      this.ctx.lineTo(b.x, b.y);
+      this.ctx.stroke();
+    });
+
+    this.graph.nodes.forEach((node) => {
+      const point = project(node);
+      this.ctx.globalAlpha = this.selectedNode?.id === node.id ? 1 : 0.62;
+      this.ctx.fillStyle = this.selectedNode?.id === node.id ? colors.nodeActive : colors.node;
+      this.ctx.beginPath();
+      this.ctx.arc(point.x, point.y, this.selectedNode?.id === node.id ? 3 : 1.7, 0, Math.PI * 2);
+      this.ctx.fill();
+    });
+
+    this.ctx.globalAlpha = 0.52;
+    this.ctx.strokeStyle = colors.edgeActive;
+    this.ctx.lineWidth = 1;
+    const viewLeft = (-this.viewport.x - width / 2) / this.viewport.scale;
+    const viewTop = (-this.viewport.y - height / 2) / this.viewport.scale;
+    const viewRight = viewLeft + width / this.viewport.scale;
+    const viewBottom = viewTop + height / this.viewport.scale;
+    const viewA = project({ x: viewLeft, y: viewTop });
+    const viewB = project({ x: viewRight, y: viewBottom });
+    this.ctx.strokeRect(viewA.x, viewA.y, viewB.x - viewA.x, viewB.y - viewA.y);
+    this.ctx.restore();
+  }
+
+  private graphBounds(): { centerX: number; centerY: number; width: number; height: number } {
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    this.graph.nodes.forEach((node) => {
+      minX = Math.min(minX, node.x);
+      minY = Math.min(minY, node.y);
+      maxX = Math.max(maxX, node.x);
+      maxY = Math.max(maxY, node.y);
+    });
+    return {
+      centerX: (minX + maxX) / 2,
+      centerY: (minY + maxY) / 2,
+      width: Math.max(1, maxX - minX),
+      height: Math.max(1, maxY - minY)
+    };
   }
 
   private legendEntries(colors: ReturnType<ConstellaGraphRenderer["getPalette"]>): Array<{ label: string; color: string }> {

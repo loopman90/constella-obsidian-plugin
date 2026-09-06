@@ -45,6 +45,16 @@ interface ConstellaEvents {
   playlists: Playlist[];
 }
 
+export interface GraphHealthSummary {
+  totalNotes: number;
+  totalConnections: number;
+  orphanNotes: GraphNode[];
+  forgottenNotes: GraphNode[];
+  hubNotes: GraphNode[];
+  weakNotes: GraphNode[];
+  clusterCount: number;
+}
+
 export class ConstellaController {
   readonly events = new EventBus<ConstellaEvents>();
   private readonly graphDataService: GraphDataService;
@@ -101,6 +111,27 @@ export class ConstellaController {
 
   get discoverySummary(): DiscoverySummary {
     return this.discoveryEngine.summarize(this.graph, this.configuration);
+  }
+
+  get graphHealthSummary(): GraphHealthSummary {
+    const forgottenCutoff = Date.now() - this.configuration.discovery.forgottenDays * 86400000;
+    const clusters = new Set(this.graph.nodes.map((node) => node.clusterId));
+    const byConnections = [...this.graph.nodes].sort((a, b) => b.connectionCount - a.connectionCount);
+    return {
+      totalNotes: this.graph.nodes.length,
+      totalConnections: this.graph.edges.length,
+      orphanNotes: this.graph.nodes.filter((node) => node.connectionCount === 0).slice(0, 6),
+      forgottenNotes: this.graph.nodes
+        .filter((node) => node.lastModified <= forgottenCutoff)
+        .sort((a, b) => a.lastModified - b.lastModified)
+        .slice(0, 6),
+      hubNotes: byConnections.slice(0, 6),
+      weakNotes: this.graph.nodes
+        .filter((node) => node.connectionCount > 0 && node.connectionCount <= this.configuration.discovery.minimumConnections)
+        .sort((a, b) => a.connectionCount - b.connectionCount)
+        .slice(0, 6),
+      clusterCount: clusters.size
+    };
   }
 
   get showFirstRun(): boolean {
@@ -294,6 +325,24 @@ export class ConstellaController {
     await this.persist();
   }
 
+  async updateTools<TKey extends keyof ActiveConfiguration["tools"]>(
+    key: TKey,
+    value: ActiveConfiguration["tools"][TKey]
+  ): Promise<void> {
+    this.updateConfiguration({
+      ...cloneConfiguration(this.configuration),
+      tools: {
+        ...this.configuration.tools,
+        [key]: value
+      },
+      template: {
+        ...this.configuration.template,
+        modified: true
+      }
+    });
+    await this.persist();
+  }
+
   async updateInteraction<TKey extends keyof ActiveConfiguration["interaction"]>(
     key: TKey,
     value: ActiveConfiguration["interaction"][TKey]
@@ -350,6 +399,21 @@ export class ConstellaController {
       item.title.toLowerCase().includes(needle) || item.path.toLowerCase().includes(needle)
     ) ?? null;
     this.selectNode(node);
+  }
+
+  searchNodes(query: string, limit = 8): GraphNode[] {
+    const needle = query.trim().toLowerCase();
+    if (!needle) {
+      return [];
+    }
+    return this.graph.nodes
+      .filter((item) => item.title.toLowerCase().includes(needle) || item.path.toLowerCase().includes(needle))
+      .sort((a, b) => {
+        const aTitle = a.title.toLowerCase().startsWith(needle) ? 0 : 1;
+        const bTitle = b.title.toLowerCase().startsWith(needle) ? 0 : 1;
+        return aTitle - bTitle || b.connectionCount - a.connectionCount || a.title.localeCompare(b.title);
+      })
+      .slice(0, limit);
   }
 
   async togglePinnedSelected(): Promise<void> {
@@ -441,7 +505,7 @@ export class ConstellaController {
     await this.persist();
   }
 
-  async resetSection(section: "graph" | "motion" | "background" | "display" | "journey" | "discovery" | "interaction"): Promise<void> {
+  async resetSection(section: "graph" | "motion" | "background" | "display" | "journey" | "discovery" | "tools" | "interaction"): Promise<void> {
     const defaults = cloneConfiguration(DEFAULT_CONFIGURATION);
     this.updateConfiguration({
       ...cloneConfiguration(this.configuration),

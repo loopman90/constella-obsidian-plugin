@@ -1,7 +1,7 @@
 import type { ConstellaController } from "../core/ConstellaController";
 import type { Unsubscribe } from "../core/EventBus";
 import { BACKGROUNDS, CAMERAS, CLICK_ANIMATIONS, COLORS, DRAWING_LINE_STYLES, MODES, NODE_MOVEMENT_STYLES, PATH_ANIMATIONS, PULSE_STYLES, VISUALS } from "../core/types";
-import type { ActiveConfiguration, BackgroundId, BuiltInOption, CameraId, ClickAnimationId, ColorsId, DrawingLineStyleId, GraphScope, ModeId, NodeMovementStyleId, PathAnimationId, PulseStyleId, VisualId } from "../core/types";
+import type { ActiveConfiguration, BackgroundId, BuiltInOption, CameraId, ClickAnimationId, ColorsId, DrawingLineStyleId, GraphNode, GraphScope, ModeId, NodeMovementStyleId, PathAnimationId, PulseStyleId, VisualId } from "../core/types";
 import { PerformanceManager } from "../performance/PerformanceManager";
 import { JsonTransferModal, PlaylistEditorModal, TemplateEditorModal, TextPromptModal } from "./modals";
 
@@ -13,10 +13,10 @@ type PanelSection =
   | "Background"
   | "Motion"
   | "Paths"
+  | "Tools"
   | "Journey"
   | "Discovery"
-  | "Display"
-  | "Advanced";
+  | "Display";
 
 const PANEL_SECTIONS: PanelSection[] = [
   "Quick",
@@ -26,10 +26,10 @@ const PANEL_SECTIONS: PanelSection[] = [
   "Background",
   "Motion",
   "Paths",
+  "Tools",
   "Journey",
   "Discovery",
-  "Display",
-  "Advanced"
+  "Display"
 ];
 
 export class ControlPanel {
@@ -37,6 +37,7 @@ export class ControlPanel {
   private readonly unsubscribers: Unsubscribe[] = [];
   private readonly performanceManager = new PerformanceManager();
   private activeSection: PanelSection = "Quick";
+  private searchQuery = "";
 
   constructor(containerEl: HTMLElement, private readonly controller: ConstellaController) {
     this.rootEl = containerEl.createDiv({ cls: "constella-control-panel" });
@@ -120,6 +121,9 @@ export class ControlPanel {
       case "Paths":
         this.renderPaths(body);
         break;
+      case "Tools":
+        this.renderTools(body);
+        break;
       case "Journey":
         this.renderJourney(body);
         break;
@@ -128,9 +132,6 @@ export class ControlPanel {
         break;
       case "Display":
         this.renderDisplay(body);
-        break;
-      case "Advanced":
-        this.renderAdvanced(body);
         break;
     }
   }
@@ -145,7 +146,7 @@ export class ControlPanel {
     ]));
 
     const search = this.section(parent, "Search", "Focus a note node by title or path.");
-    search.appendChild(this.textControl("Find Note", "", (value) => this.controller.focusNodeByQuery(value), "Type to focus a note"));
+    search.appendChild(this.searchControl());
     const current = this.controller.currentNode;
     search.createDiv({ cls: "constella-help-text", text: current ? `Focused: ${current.title}` : "No note focused" });
     search.appendChild(this.actionButton("Show All Notes", () => this.controller.showAllNotes()));
@@ -346,6 +347,56 @@ export class ControlPanel {
     section.appendChild(this.actionButton("Reset Paths", () => this.controller.resetSection("motion")));
   }
 
+  private renderTools(parent: HTMLElement): void {
+    const config = this.controller.configuration;
+    const overview = this.section(parent, "Graph Tools", "Add navigation, search, and insight helpers to the graph.");
+    overview.appendChild(this.toggleControl("Mini-map", config.tools.showMiniMap, (value) => this.controller.updateTools("showMiniMap", value)));
+    overview.appendChild(this.toggleControl("Search Results List", config.tools.showSearchResults, (value) =>
+      this.controller.updateTools("showSearchResults", value)
+    ));
+    overview.appendChild(this.toggleControl("Graph Health Panel", config.tools.showGraphHealth, (value) =>
+      this.controller.updateTools("showGraphHealth", value)
+    ));
+    overview.appendChild(this.toggleControl("Saved Views", config.tools.enableSavedViews, (value) => this.controller.updateTools("enableSavedViews", value)));
+    overview.appendChild(this.toggleControl("Tag/Folder Color Rules", config.tools.enableColorRules, (value) =>
+      this.controller.updateTools("enableColorRules", value)
+    ));
+
+    if (config.tools.showSearchResults) {
+      const search = this.section(parent, "Search Results", "Find several matching notes before choosing one.");
+      search.appendChild(this.searchControl());
+    }
+
+    if (config.tools.showGraphHealth) {
+      const health = this.controller.graphHealthSummary;
+      const panel = this.section(parent, "Graph Health", "Spot disconnected, forgotten, weak, and highly connected notes.");
+      panel.appendChild(this.metricRow("Visible Notes", health.totalNotes));
+      panel.appendChild(this.metricRow("Connections", health.totalConnections));
+      panel.appendChild(this.metricRow("Clusters", health.clusterCount));
+      panel.appendChild(this.nodeList("Orphans", health.orphanNotes));
+      panel.appendChild(this.nodeList("Forgotten", health.forgottenNotes));
+      panel.appendChild(this.nodeList("Hubs", health.hubNotes));
+      panel.appendChild(this.nodeList("Weak Links", health.weakNotes));
+    }
+
+    if (config.tools.enableSavedViews) {
+      const views = this.section(parent, "Saved Views", "Save and reuse complete graph setups.");
+      views.appendChild(this.actionButton("Save Current View", () => {
+        new TextPromptModal(this.controller.app, "Save View", "Research View", (name) => this.controller.saveTemplateAs(name)).open();
+      }));
+      this.controller.templates.slice(0, 8).forEach((template) => {
+        views.appendChild(this.savedViewRow(template.name, () => this.controller.loadTemplate(template.id)));
+      });
+    }
+
+    if (config.tools.enableColorRules) {
+      const rules = this.section(parent, "Color Rules", "Use one rule per line, for example tag:project=#38bdf8 or folder:Archive=#f59e0b.");
+      rules.appendChild(this.textareaControl("Rules", config.tools.colorRulesText, (value) => this.controller.updateTools("colorRulesText", value)));
+    }
+
+    overview.appendChild(this.actionButton("Reset Tools", () => this.controller.resetSection("tools")));
+  }
+
   private renderJourney(parent: HTMLElement): void {
     const config = this.controller.configuration;
     const section = this.section(parent, "Journey", "Let Constella travel through related notes.");
@@ -424,14 +475,6 @@ export class ControlPanel {
     section.appendChild(this.actionButton("Reset Display", () => this.controller.resetSection("display")));
   }
 
-  private renderAdvanced(parent: HTMLElement): void {
-    const section = this.section(parent, "Advanced", "Technical plugin status.");
-    section.createDiv({
-      cls: "constella-help-text",
-      text: "Canvas renderer, public Obsidian metadata APIs, local-only storage, protected built-in templates, and read-only vault behavior are active."
-    });
-  }
-
   private section(parent: HTMLElement, title: string, help?: string): HTMLElement {
     const section = parent.createDiv({ cls: "constella-panel-section" });
     section.createEl("h3", { text: title });
@@ -476,6 +519,57 @@ export class ControlPanel {
     input.value = value;
     input.addEventListener("input", () => void onChange(input.value));
     return row;
+  }
+
+  private textareaControl(label: string, value: string, onChange: (value: string) => void | Promise<void>): HTMLElement {
+    const row = createDiv({ cls: "constella-panel-control constella-panel-control-stacked" });
+    row.createSpan({ text: label });
+    const input = row.createEl("textarea", {
+      attr: {
+        rows: "5"
+      }
+    });
+    input.value = value;
+    input.addEventListener("change", () => void onChange(input.value));
+    return row;
+  }
+
+  private searchControl(): HTMLElement {
+    const box = createDiv({ cls: "constella-search-box" });
+    const row = box.createDiv({ cls: "constella-panel-control" });
+    row.createSpan({ text: "Find Note" });
+    const input = row.createEl("input", {
+      type: "text",
+      attr: {
+        placeholder: "Type to focus a note"
+      }
+    });
+    input.value = this.searchQuery;
+    const results = box.createDiv({ cls: "constella-search-results" });
+    const renderResults = (): void => {
+      results.empty();
+      if (!this.controller.configuration.tools.showSearchResults) {
+        return;
+      }
+      const matches = this.controller.searchNodes(this.searchQuery, 8);
+      if (this.searchQuery.trim() && matches.length === 0) {
+        results.createDiv({ cls: "constella-help-text", text: "No matching notes" });
+      }
+      matches.forEach((node) => {
+        const button = results.createEl("button", {
+          cls: "constella-search-result",
+          text: `${node.title} (${node.connectionCount})`
+        });
+        button.addEventListener("click", () => this.controller.selectNode(node));
+      });
+    };
+    input.addEventListener("input", () => {
+      this.searchQuery = input.value;
+      this.controller.focusNodeByQuery(input.value);
+      renderResults();
+    });
+    renderResults();
+    return box;
   }
 
   private slider(label: string, value: number, onChange: (value: number) => void | Promise<void>): HTMLElement {
@@ -540,6 +634,39 @@ export class ControlPanel {
     box.createDiv({ cls: "constella-mini-list-title", text: label });
     box.createDiv({ cls: "constella-mini-list-items", text: items.slice(0, 4).join(", ") || "No matches" });
     return box;
+  }
+
+  private metricRow(label: string, value: number): HTMLElement {
+    const row = createDiv({ cls: "constella-metric-row" });
+    row.createSpan({ text: label });
+    row.createSpan({ text: String(value) });
+    return row;
+  }
+
+  private nodeList(label: string, nodes: GraphNode[]): HTMLElement {
+    const box = createDiv({ cls: "constella-mini-list" });
+    box.createDiv({ cls: "constella-mini-list-title", text: label });
+    if (nodes.length === 0) {
+      box.createDiv({ cls: "constella-mini-list-items", text: "No matches" });
+      return box;
+    }
+    nodes.forEach((node) => {
+      const button = box.createEl("button", {
+        cls: "constella-health-node",
+        text: `${node.title} (${node.connectionCount})`
+      });
+      button.addEventListener("click", () => this.controller.selectNode(node));
+    });
+    return box;
+  }
+
+  private savedViewRow(name: string, onApply: () => void | Promise<void>): HTMLElement {
+    const row = createDiv({ cls: "constella-template-row" });
+    row.createSpan({ text: name });
+    const actions = row.createDiv({ cls: "constella-template-actions" });
+    const apply = actions.createEl("button", { text: "Apply" });
+    apply.addEventListener("click", () => void onApply());
+    return row;
   }
 
   private templateRow(

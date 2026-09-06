@@ -298,6 +298,14 @@ export interface ActiveConfiguration {
     edgeThickness: number;
     nodeSize: number;
   };
+  tools: {
+    showMiniMap: boolean;
+    showSearchResults: boolean;
+    showGraphHealth: boolean;
+    enableSavedViews: boolean;
+    enableColorRules: boolean;
+    colorRulesText: string;
+  };
   interaction: {
     pinnedNodeIds: string[];
     hiddenNodeIds: string[];

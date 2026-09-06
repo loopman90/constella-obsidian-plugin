@@ -136,12 +136,12 @@ The Control Panel includes sections for:
 - Background
 - Motion
 - Paths
+- Tools
 - Journey
 - Discovery
 - Display
-- Advanced
 
-Most visual settings are applied live, including colors, intensity, camera behavior, node movement, glow, particles, connection pulses, drawing-line style, labels, and background style.
+Most visual settings are applied live, including colors, intensity, camera behavior, node movement, glow, particles, connection pulses, drawing-line style, labels, background style, mini-map, search results, graph health, saved views, and tag/folder color rules.
 
 ### Keyboard Controls
 

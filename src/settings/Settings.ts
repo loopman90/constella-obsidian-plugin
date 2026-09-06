@@ -66,6 +66,10 @@ export function normalizeSettings(data: unknown): ConstellaSettings {
         ...DEFAULT_SETTINGS.configuration.display,
         ...(maybe.configuration?.display ?? {})
       },
+      tools: {
+        ...DEFAULT_SETTINGS.configuration.tools,
+        ...(maybe.configuration?.tools ?? {})
+      },
       interaction: {
         ...DEFAULT_SETTINGS.configuration.interaction,
         ...(maybe.configuration?.interaction ?? {}),
