@@ -325,6 +325,24 @@ export class ConstellaController {
     await this.persist();
   }
 
+  async updateQuickUi<TKey extends keyof ActiveConfiguration["quickUi"]>(
+    key: TKey,
+    value: ActiveConfiguration["quickUi"][TKey]
+  ): Promise<void> {
+    this.updateConfiguration({
+      ...cloneConfiguration(this.configuration),
+      quickUi: {
+        ...this.configuration.quickUi,
+        [key]: value
+      },
+      template: {
+        ...this.configuration.template,
+        modified: true
+      }
+    });
+    await this.persist();
+  }
+
   async updateTools<TKey extends keyof ActiveConfiguration["tools"]>(
     key: TKey,
     value: ActiveConfiguration["tools"][TKey]
@@ -505,7 +523,7 @@ export class ConstellaController {
     await this.persist();
   }
 
-  async resetSection(section: "graph" | "motion" | "background" | "display" | "journey" | "discovery" | "tools" | "interaction"): Promise<void> {
+  async resetSection(section: "graph" | "motion" | "background" | "display" | "quickUi" | "journey" | "discovery" | "tools" | "interaction"): Promise<void> {
     const defaults = cloneConfiguration(DEFAULT_CONFIGURATION);
     this.updateConfiguration({
       ...cloneConfiguration(this.configuration),
@@ -588,10 +606,17 @@ export class ConstellaController {
       "prism-shards",
       "radar-sweep",
       "topographic",
-      "circuit-board"
+      "circuit-board",
+      "fog-of-knowledge",
+      "ink-map",
+      "neural-bloom",
+      "satellite-view",
+      "glass-minimal",
+      "academic-light"
     ];
     const colors: ColorsId[] = [
       "aurora",
+      "aqua-mint",
       "deep-ocean",
       "sunset",
       "forest",
@@ -683,6 +708,7 @@ export class ConstellaController {
         animationSpeed: 0.25 + Math.random() * 0.55,
         cameraSpeed: 0.2 + Math.random() * 0.45,
         visualIntensity: 0.45 + Math.random() * 0.45,
+        glowStrength: 0.35 + Math.random() * 0.65,
         colorSpeed: 0.25 + Math.random() * 0.55,
         nodeMovementEnabled: true,
         nodeMovementStyle: this.pick(movements),

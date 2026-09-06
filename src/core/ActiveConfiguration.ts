@@ -25,6 +25,7 @@ export const DEFAULT_CONFIGURATION: ActiveConfiguration = {
     nodeMovementEnabled: true,
     connectionPulsesEnabled: false,
     glowEnabled: true,
+    glowStrength: 0.65,
     backgroundEffectsEnabled: true,
     pulseAmount: 8,
     particleAmount: 70,
@@ -73,6 +74,23 @@ export const DEFAULT_CONFIGURATION: ActiveConfiguration = {
     edgeThickness: 0.32,
     nodeSize: 0.45
   },
+  quickUi: {
+    showPlayback: true,
+    showGraphScope: true,
+    showMode: true,
+    showVisual: true,
+    showColors: true,
+    showCamera: true,
+    showSpeed: true,
+    showIntensity: true,
+    showRandomize: true,
+    showSave: true,
+    showPngExport: true,
+    showFullscreen: true,
+    showSecondScreen: true,
+    showSettings: true,
+    showCollapse: true
+  },
   tools: {
     showMiniMap: false,
     showSearchResults: true,
@@ -104,6 +122,7 @@ export function cloneConfiguration(config: ActiveConfiguration): ActiveConfigura
     journey: { ...config.journey },
     discovery: { ...config.discovery },
     display: { ...config.display },
+    quickUi: { ...config.quickUi },
     tools: { ...config.tools },
     interaction: {
       pinnedNodeIds: [...config.interaction.pinnedNodeIds],

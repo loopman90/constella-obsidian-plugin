@@ -1,9 +1,18 @@
 # Changelog
 
-## 0.4.8
+## 0.4.9
 
 - Removed the empty-feeling Advanced tab from the in-graph control panel.
 - Added a Tools tab with optional search results, graph health insights, saved views, tag/folder color rules, and a mini-map that is off by default.
+- Fixed node glow visibility across quiet visual styles and added a Glow Strength slider.
+- Added Fog of Knowledge, Ink Map, Neural Bloom, Satellite View, Glass Minimal, and Academic Light visual styles.
+- Reordered the in-graph control panel tabs around the user workflow: setup, graph tools, discovery, journeys, visuals, motion, presets, and display.
+- Added a Quick UI tab and settings controls for choosing which compact quick bar controls are visible.
+- Added an Aqua Mint color scheme built around `#71d7d1`.
+
+## 0.4.8
+
+- Added graph tools panel with mini-map, search results, health insights, saved views, and color rules.
 
 ## 0.4.7
 

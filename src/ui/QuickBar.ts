@@ -42,34 +42,65 @@ export class QuickBar {
       return;
     }
 
-    this.rootEl.appendChild(this.iconButton("play", "Start", () => this.controller.play()));
-    this.rootEl.appendChild(this.iconButton("pause", "Pause", () => this.controller.pause()));
-    this.rootEl.appendChild(this.iconButton("square", "Stop", () => this.controller.stop()));
-    this.rootEl.appendChild(this.select("Graph", this.controller.configuration.graph.scope, [
-      { id: "global", label: "Global" },
-      { id: "local", label: "Local" },
-      { id: "current", label: "Current Note" }
-    ], (value) => this.controller.updateGraphScope(value)));
-    this.rootEl.appendChild(this.select("Mode", this.controller.configuration.mode, MODES, (value) => this.controller.updateMode(value)));
-    this.rootEl.appendChild(this.select("Visual", this.controller.configuration.visual, VISUALS, (value) => this.controller.updateVisual(value)));
-    this.rootEl.appendChild(this.select("Colors", this.controller.configuration.colors, COLORS, (value) => this.controller.updateColors(value)));
-    this.rootEl.appendChild(this.select("Camera", this.controller.configuration.camera, CAMERAS, (value) => this.controller.updateCamera(value)));
-    this.rootEl.appendChild(this.slider("Speed", this.controller.configuration.motion.animationSpeed, (value) =>
-      this.controller.updateMotion("animationSpeed", value)
-    ));
-    this.rootEl.appendChild(this.slider("Intensity", this.controller.configuration.motion.visualIntensity, (value) =>
-      this.controller.updateMotion("visualIntensity", value)
-    ));
-    this.rootEl.appendChild(this.iconButton("shuffle", "Smart randomize", () => this.controller.randomizeSafe()));
-    this.rootEl.appendChild(this.iconButton("save", "Save current setup", () => this.controller.saveTemplate()));
-    this.rootEl.appendChild(this.iconButton("image-down", "Export graph as PNG", this.actions.exportPng));
-    this.rootEl.appendChild(this.iconButton("maximize", "Toggle fullscreen display mode", this.actions.toggleFullscreen));
-    this.rootEl.appendChild(this.iconButton("panel-top-open", "Open second-screen pop-out display", this.actions.openSecondScreen));
-    this.rootEl.appendChild(this.iconButton("settings", "Open control panel", this.actions.togglePanel));
-    this.rootEl.appendChild(this.iconButton("chevron-up", "Collapse quick bar", () => {
-      this.collapsed = true;
-      this.render();
-    }));
+    const quickUi = this.controller.configuration.quickUi;
+    if (quickUi.showPlayback) {
+      this.rootEl.appendChild(this.iconButton("play", "Start", () => this.controller.play()));
+      this.rootEl.appendChild(this.iconButton("pause", "Pause", () => this.controller.pause()));
+      this.rootEl.appendChild(this.iconButton("square", "Stop", () => this.controller.stop()));
+    }
+    if (quickUi.showGraphScope) {
+      this.rootEl.appendChild(this.select("Graph", this.controller.configuration.graph.scope, [
+        { id: "global", label: "Global" },
+        { id: "local", label: "Local" },
+        { id: "current", label: "Current Note" }
+      ], (value) => this.controller.updateGraphScope(value), false));
+    }
+    if (quickUi.showMode) {
+      this.rootEl.appendChild(this.select("Mode", this.controller.configuration.mode, MODES, (value) => this.controller.updateMode(value)));
+    }
+    if (quickUi.showVisual) {
+      this.rootEl.appendChild(this.select("Visual", this.controller.configuration.visual, VISUALS, (value) => this.controller.updateVisual(value)));
+    }
+    if (quickUi.showColors) {
+      this.rootEl.appendChild(this.select("Colors", this.controller.configuration.colors, COLORS, (value) => this.controller.updateColors(value)));
+    }
+    if (quickUi.showCamera) {
+      this.rootEl.appendChild(this.select("Camera", this.controller.configuration.camera, CAMERAS, (value) => this.controller.updateCamera(value)));
+    }
+    if (quickUi.showSpeed) {
+      this.rootEl.appendChild(this.slider("Speed", this.controller.configuration.motion.animationSpeed, (value) =>
+        this.controller.updateMotion("animationSpeed", value)
+      ));
+    }
+    if (quickUi.showIntensity) {
+      this.rootEl.appendChild(this.slider("Intensity", this.controller.configuration.motion.visualIntensity, (value) =>
+        this.controller.updateMotion("visualIntensity", value)
+      ));
+    }
+    if (quickUi.showRandomize) {
+      this.rootEl.appendChild(this.iconButton("shuffle", "Smart randomize", () => this.controller.randomizeSafe()));
+    }
+    if (quickUi.showSave) {
+      this.rootEl.appendChild(this.iconButton("save", "Save current setup", () => this.controller.saveTemplate()));
+    }
+    if (quickUi.showPngExport) {
+      this.rootEl.appendChild(this.iconButton("image-down", "Export graph as PNG", this.actions.exportPng));
+    }
+    if (quickUi.showFullscreen) {
+      this.rootEl.appendChild(this.iconButton("maximize", "Toggle fullscreen display mode", this.actions.toggleFullscreen));
+    }
+    if (quickUi.showSecondScreen) {
+      this.rootEl.appendChild(this.iconButton("panel-top-open", "Open second-screen pop-out display", this.actions.openSecondScreen));
+    }
+    if (quickUi.showSettings || this.rootEl.children.length === 0) {
+      this.rootEl.appendChild(this.iconButton("settings", "Open control panel", this.actions.togglePanel));
+    }
+    if (quickUi.showCollapse) {
+      this.rootEl.appendChild(this.iconButton("chevron-up", "Collapse quick bar", () => {
+        this.collapsed = true;
+        this.render();
+      }));
+    }
   }
 
   private iconButton(icon: string, label: string, onClick: () => void | Promise<void>): HTMLButtonElement {
@@ -83,12 +114,14 @@ export class QuickBar {
     label: string,
     value: T,
     options: BuiltInOption<T>[],
-    onChange: (value: T) => void | Promise<void>
+    onChange: (value: T) => void | Promise<void>,
+    sortOptions = true
   ): HTMLElement {
     const wrapper = createDiv({ cls: "constella-select-control" });
     wrapper.createSpan({ cls: "constella-control-label", text: label });
     const select = wrapper.createEl("select");
-    options.forEach((option) => {
+    const orderedOptions = sortOptions ? [...options].sort((a, b) => a.label.localeCompare(b.label)) : options;
+    orderedOptions.forEach((option) => {
       select.createEl("option", { text: option.label, value: option.id });
     });
     select.value = value;

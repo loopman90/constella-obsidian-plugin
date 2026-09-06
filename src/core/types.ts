@@ -59,9 +59,16 @@ export type VisualId =
   | "prism-shards"
   | "radar-sweep"
   | "topographic"
-  | "circuit-board";
+  | "circuit-board"
+  | "fog-of-knowledge"
+  | "ink-map"
+  | "neural-bloom"
+  | "satellite-view"
+  | "glass-minimal"
+  | "academic-light";
 export type ColorsId =
   | "aurora"
+  | "aqua-mint"
   | "rainbow-flow"
   | "deep-ocean"
   | "monochrome"
@@ -250,6 +257,7 @@ export interface ActiveConfiguration {
     nodeMovementEnabled: boolean;
     connectionPulsesEnabled: boolean;
     glowEnabled: boolean;
+    glowStrength: number;
     backgroundEffectsEnabled: boolean;
     pulseAmount: number;
     particleAmount: number;
@@ -297,6 +305,23 @@ export interface ActiveConfiguration {
     labelSize: number;
     edgeThickness: number;
     nodeSize: number;
+  };
+  quickUi: {
+    showPlayback: boolean;
+    showGraphScope: boolean;
+    showMode: boolean;
+    showVisual: boolean;
+    showColors: boolean;
+    showCamera: boolean;
+    showSpeed: boolean;
+    showIntensity: boolean;
+    showRandomize: boolean;
+    showSave: boolean;
+    showPngExport: boolean;
+    showFullscreen: boolean;
+    showSecondScreen: boolean;
+    showSettings: boolean;
+    showCollapse: boolean;
   };
   tools: {
     showMiniMap: boolean;
@@ -459,11 +484,18 @@ export const VISUALS: BuiltInOption<VisualId>[] = [
   { id: "prism-shards", label: "Prism Shards" },
   { id: "radar-sweep", label: "Radar Sweep" },
   { id: "topographic", label: "Topographic" },
-  { id: "circuit-board", label: "Circuit Board" }
+  { id: "circuit-board", label: "Circuit Board" },
+  { id: "fog-of-knowledge", label: "Fog of Knowledge" },
+  { id: "ink-map", label: "Ink Map" },
+  { id: "neural-bloom", label: "Neural Bloom" },
+  { id: "satellite-view", label: "Satellite View" },
+  { id: "glass-minimal", label: "Glass Minimal" },
+  { id: "academic-light", label: "Academic Light" }
 ];
 
 export const COLORS: BuiltInOption<ColorsId>[] = [
   { id: "aurora", label: "Aurora" },
+  { id: "aqua-mint", label: "Aqua Mint" },
   { id: "rainbow-flow", label: "Rainbow Flow" },
   { id: "deep-ocean", label: "Deep Ocean" },
   { id: "monochrome", label: "Monochrome" },

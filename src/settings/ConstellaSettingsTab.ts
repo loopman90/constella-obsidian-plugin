@@ -12,6 +12,26 @@ const TOOL_SETTING_KEYS = [
 
 type ToolSettingKey = typeof TOOL_SETTING_KEYS[number];
 
+const QUICK_UI_SETTING_KEYS = [
+  "showPlayback",
+  "showGraphScope",
+  "showMode",
+  "showVisual",
+  "showColors",
+  "showCamera",
+  "showSpeed",
+  "showIntensity",
+  "showRandomize",
+  "showSave",
+  "showPngExport",
+  "showFullscreen",
+  "showSecondScreen",
+  "showSettings",
+  "showCollapse"
+] as const;
+
+type QuickUiSettingKey = typeof QUICK_UI_SETTING_KEYS[number];
+
 export class ConstellaSettingsTab extends PluginSettingTab {
   constructor(private readonly plugin: ConstellaPlugin) {
     super(plugin.app, plugin);
@@ -55,6 +75,18 @@ export class ConstellaSettingsTab extends PluginSettingTab {
               type: "toggle" as const,
               key: "showFirstRun",
               defaultValue: true
+            }
+          },
+          {
+            name: "Glow strength",
+            desc: "Controls how strong the node glow appears in the graph.",
+            control: {
+              type: "slider" as const,
+              key: "glowStrength",
+              defaultValue: 0.65,
+              min: 0,
+              max: 1,
+              step: 0.01
             }
           },
           {
@@ -112,6 +144,141 @@ export class ConstellaSettingsTab extends PluginSettingTab {
               rows: 5,
               placeholder: "tag:project=#38bdf8\nfolder:Archive=#f59e0b"
             }
+          },
+          {
+            name: "Quick UI playback buttons",
+            desc: "Show Start, Pause, and Stop in the compact quick bar.",
+            control: {
+              type: "toggle" as const,
+              key: "showPlayback",
+              defaultValue: true
+            }
+          },
+          {
+            name: "Quick UI graph scope",
+            desc: "Show the graph scope dropdown in the compact quick bar.",
+            control: {
+              type: "toggle" as const,
+              key: "showGraphScope",
+              defaultValue: true
+            }
+          },
+          {
+            name: "Quick UI mode dropdown",
+            desc: "Show the mode dropdown in the compact quick bar.",
+            control: {
+              type: "toggle" as const,
+              key: "showMode",
+              defaultValue: true
+            }
+          },
+          {
+            name: "Quick UI visual dropdown",
+            desc: "Show the visual dropdown in the compact quick bar.",
+            control: {
+              type: "toggle" as const,
+              key: "showVisual",
+              defaultValue: true
+            }
+          },
+          {
+            name: "Quick UI color dropdown",
+            desc: "Show the color dropdown in the compact quick bar.",
+            control: {
+              type: "toggle" as const,
+              key: "showColors",
+              defaultValue: true
+            }
+          },
+          {
+            name: "Quick UI camera dropdown",
+            desc: "Show the camera dropdown in the compact quick bar.",
+            control: {
+              type: "toggle" as const,
+              key: "showCamera",
+              defaultValue: true
+            }
+          },
+          {
+            name: "Quick UI speed slider",
+            desc: "Show the animation speed slider in the compact quick bar.",
+            control: {
+              type: "toggle" as const,
+              key: "showSpeed",
+              defaultValue: true
+            }
+          },
+          {
+            name: "Quick UI intensity slider",
+            desc: "Show the visual intensity slider in the compact quick bar.",
+            control: {
+              type: "toggle" as const,
+              key: "showIntensity",
+              defaultValue: true
+            }
+          },
+          {
+            name: "Quick UI action buttons",
+            desc: "Show randomize, save, export, fullscreen, second-screen, settings, and collapse controls.",
+            control: {
+              type: "toggle" as const,
+              key: "showRandomize",
+              defaultValue: true
+            }
+          },
+          {
+            name: "Quick UI save button",
+            desc: "Show the save current setup button in the compact quick bar.",
+            control: {
+              type: "toggle" as const,
+              key: "showSave",
+              defaultValue: true
+            }
+          },
+          {
+            name: "Quick UI PNG export",
+            desc: "Show the PNG export button in the compact quick bar.",
+            control: {
+              type: "toggle" as const,
+              key: "showPngExport",
+              defaultValue: true
+            }
+          },
+          {
+            name: "Quick UI fullscreen",
+            desc: "Show the fullscreen button in the compact quick bar.",
+            control: {
+              type: "toggle" as const,
+              key: "showFullscreen",
+              defaultValue: true
+            }
+          },
+          {
+            name: "Quick UI second screen",
+            desc: "Show the second-screen pop-out button in the compact quick bar.",
+            control: {
+              type: "toggle" as const,
+              key: "showSecondScreen",
+              defaultValue: true
+            }
+          },
+          {
+            name: "Quick UI settings button",
+            desc: "Show the control panel button in the compact quick bar.",
+            control: {
+              type: "toggle" as const,
+              key: "showSettings",
+              defaultValue: true
+            }
+          },
+          {
+            name: "Quick UI collapse button",
+            desc: "Show the collapse button in the compact quick bar.",
+            control: {
+              type: "toggle" as const,
+              key: "showCollapse",
+              defaultValue: true
+            }
           }
         ]
       }
@@ -122,8 +289,14 @@ export class ConstellaSettingsTab extends PluginSettingTab {
     if (key === "performanceProfile" || key === "debug" || key === "showFirstRun") {
       return this.plugin.settings[key];
     }
+    if (key === "glowStrength") {
+      return this.plugin.settings.configuration.motion.glowStrength;
+    }
     if (this.isToolSettingKey(key)) {
       return this.plugin.settings.configuration.tools[key];
+    }
+    if (this.isQuickUiSettingKey(key)) {
+      return this.plugin.settings.configuration.quickUi[key];
     }
     return undefined;
   }
@@ -141,11 +314,31 @@ export class ConstellaSettingsTab extends PluginSettingTab {
       this.plugin.settings.showFirstRun = value;
       await this.plugin.saveConstellaSettings();
     }
+    if (key === "glowStrength" && typeof value === "number") {
+      this.plugin.settings.configuration = {
+        ...this.plugin.settings.configuration,
+        motion: {
+          ...this.plugin.settings.configuration.motion,
+          glowStrength: Math.max(0, Math.min(1, value))
+        }
+      };
+      await this.plugin.saveConstellaSettings();
+    }
     if (this.isToolSettingKey(key) && this.isValidToolSettingValue(key, value)) {
       this.plugin.settings.configuration = {
         ...this.plugin.settings.configuration,
         tools: {
           ...this.plugin.settings.configuration.tools,
+          [key]: value
+        }
+      };
+      await this.plugin.saveConstellaSettings();
+    }
+    if (this.isQuickUiSettingKey(key) && typeof value === "boolean") {
+      this.plugin.settings.configuration = {
+        ...this.plugin.settings.configuration,
+        quickUi: {
+          ...this.plugin.settings.configuration.quickUi,
           [key]: value
         }
       };
@@ -162,5 +355,9 @@ export class ConstellaSettingsTab extends PluginSettingTab {
       return typeof value === "string";
     }
     return typeof value === "boolean";
+  }
+
+  private isQuickUiSettingKey(key: string): key is QuickUiSettingKey {
+    return QUICK_UI_SETTING_KEYS.some((quickKey) => quickKey === key);
   }
 }

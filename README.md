@@ -130,18 +130,19 @@ The Quick Bar can also be collapsed into a compact icon.
 The Control Panel includes sections for:
 
 - Quick
-- Templates
+- Quick UI
 - Graph
+- Tools
+- Discovery
+- Journey
 - Visual
 - Background
 - Motion
 - Paths
-- Tools
-- Journey
-- Discovery
+- Templates
 - Display
 
-Most visual settings are applied live, including colors, intensity, camera behavior, node movement, glow, particles, connection pulses, drawing-line style, labels, background style, mini-map, search results, graph health, saved views, and tag/folder color rules.
+Most visual settings are applied live, including colors, intensity, camera behavior, node movement, glow strength, particles, connection pulses, drawing-line style, labels, background style, quick bar visibility, mini-map, search results, graph health, saved views, tag/folder color rules, and specialty visuals like Fog of Knowledge, Ink Map, Neural Bloom, Satellite View, Glass Minimal, and Academic Light.
 
 ### Keyboard Controls
 

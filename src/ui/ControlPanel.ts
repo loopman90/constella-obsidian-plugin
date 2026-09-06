@@ -7,6 +7,7 @@ import { JsonTransferModal, PlaylistEditorModal, TemplateEditorModal, TextPrompt
 
 type PanelSection =
   | "Quick"
+  | "Quick UI"
   | "Presets"
   | "Graph"
   | "Visual"
@@ -20,15 +21,16 @@ type PanelSection =
 
 const PANEL_SECTIONS: PanelSection[] = [
   "Quick",
-  "Presets",
+  "Quick UI",
   "Graph",
+  "Tools",
+  "Discovery",
+  "Journey",
   "Visual",
   "Background",
   "Motion",
   "Paths",
-  "Tools",
-  "Journey",
-  "Discovery",
+  "Presets",
   "Display"
 ];
 
@@ -103,6 +105,9 @@ export class ControlPanel {
       case "Quick":
         this.renderQuick(body);
         break;
+      case "Quick UI":
+        this.renderQuickUi(body);
+        break;
       case "Presets":
         this.renderPresets(body);
         break;
@@ -152,7 +157,7 @@ export class ControlPanel {
     search.appendChild(this.actionButton("Show All Notes", () => this.controller.showAllNotes()));
 
     const setup = this.section(parent, "Quick Setup", "The most-used controls in one place.");
-    setup.appendChild(this.select("Graph", config.graph.scope, this.graphScopeOptions(), (value) => this.controller.updateGraphScope(value)));
+    setup.appendChild(this.select("Graph", config.graph.scope, this.graphScopeOptions(), (value) => this.controller.updateGraphScope(value), false));
     setup.appendChild(this.select("Mode", config.mode, MODES, (value) => this.controller.updateMode(value)));
     setup.appendChild(this.select("Visual", config.visual, VISUALS, (value) => this.controller.updateVisual(value)));
     setup.appendChild(this.select("Colors", config.colors, COLORS, (value) => this.controller.updateColors(value)));
@@ -167,6 +172,27 @@ export class ControlPanel {
       { label: "Random Motion", onClick: () => this.controller.randomizeSafe() },
       { label: "Save Preset", onClick: () => this.controller.saveTemplate() }
     ]));
+  }
+
+  private renderQuickUi(parent: HTMLElement): void {
+    const config = this.controller.configuration.quickUi;
+    const section = this.section(parent, "Quick UI", "Choose which controls appear in the compact quick bar.");
+    section.appendChild(this.toggleControl("Playback Buttons", config.showPlayback, (value) => this.controller.updateQuickUi("showPlayback", value)));
+    section.appendChild(this.toggleControl("Graph Scope", config.showGraphScope, (value) => this.controller.updateQuickUi("showGraphScope", value)));
+    section.appendChild(this.toggleControl("Mode Dropdown", config.showMode, (value) => this.controller.updateQuickUi("showMode", value)));
+    section.appendChild(this.toggleControl("Visual Dropdown", config.showVisual, (value) => this.controller.updateQuickUi("showVisual", value)));
+    section.appendChild(this.toggleControl("Color Dropdown", config.showColors, (value) => this.controller.updateQuickUi("showColors", value)));
+    section.appendChild(this.toggleControl("Camera Dropdown", config.showCamera, (value) => this.controller.updateQuickUi("showCamera", value)));
+    section.appendChild(this.toggleControl("Speed Slider", config.showSpeed, (value) => this.controller.updateQuickUi("showSpeed", value)));
+    section.appendChild(this.toggleControl("Intensity Slider", config.showIntensity, (value) => this.controller.updateQuickUi("showIntensity", value)));
+    section.appendChild(this.toggleControl("Randomize Button", config.showRandomize, (value) => this.controller.updateQuickUi("showRandomize", value)));
+    section.appendChild(this.toggleControl("Save Button", config.showSave, (value) => this.controller.updateQuickUi("showSave", value)));
+    section.appendChild(this.toggleControl("PNG Export Button", config.showPngExport, (value) => this.controller.updateQuickUi("showPngExport", value)));
+    section.appendChild(this.toggleControl("Fullscreen Button", config.showFullscreen, (value) => this.controller.updateQuickUi("showFullscreen", value)));
+    section.appendChild(this.toggleControl("Second Screen Button", config.showSecondScreen, (value) => this.controller.updateQuickUi("showSecondScreen", value)));
+    section.appendChild(this.toggleControl("Settings Button", config.showSettings, (value) => this.controller.updateQuickUi("showSettings", value)));
+    section.appendChild(this.toggleControl("Collapse Button", config.showCollapse, (value) => this.controller.updateQuickUi("showCollapse", value)));
+    section.appendChild(this.actionButton("Reset Quick UI", () => this.controller.resetSection("quickUi")));
   }
 
   private renderPresets(parent: HTMLElement): void {
@@ -216,7 +242,7 @@ export class ControlPanel {
   private renderGraph(parent: HTMLElement): void {
     const config = this.controller.configuration;
     const section = this.section(parent, "Graph Source", "Choose how much of your vault Constella should draw.");
-    section.appendChild(this.select("Graph Scope", config.graph.scope, this.graphScopeOptions(), (value) => this.controller.updateGraphScope(value)));
+    section.appendChild(this.select("Graph Scope", config.graph.scope, this.graphScopeOptions(), (value) => this.controller.updateGraphScope(value), false));
     section.appendChild(this.numberControl("Local Depth", config.graph.localDepth, 1, 50, (value) => this.controller.updateLocalDepth(value)));
     section.appendChild(this.toggleControl("Use Current Note When Available", config.graph.useCurrentGraphWhenAvailable, (value) =>
       this.controller.updateGraphOption("useCurrentGraphWhenAvailable", value)
@@ -230,7 +256,7 @@ export class ControlPanel {
       { id: "all", label: "All Notes" },
       { id: "recent", label: "Recent" },
       { id: "forgotten", label: "Forgotten" }
-    ], (value) => this.controller.updateGraphOption("dateFilter", value)));
+    ], (value) => this.controller.updateGraphOption("dateFilter", value), false));
     section.appendChild(this.numberControl("Minimum Links", config.graph.minimumConnections, 0, 100, (value) =>
       this.controller.updateGraphOption("minimumConnections", value)
     ));
@@ -262,6 +288,7 @@ export class ControlPanel {
     section.appendChild(this.slider("Color Intensity", config.motion.colorIntensity, (value) => this.controller.updateMotion("colorIntensity", value)));
     section.appendChild(this.slider("Color Speed", config.motion.colorSpeed, (value) => this.controller.updateMotion("colorSpeed", value)));
     section.appendChild(this.toggleControl("Glow", config.motion.glowEnabled, (value) => this.controller.updateMotion("glowEnabled", value)));
+    section.appendChild(this.slider("Glow Strength", config.motion.glowStrength, (value) => this.controller.updateMotion("glowStrength", value)));
     section.appendChild(this.slider("Node Size", config.display.nodeSize, (value) => this.controller.updateDisplay("nodeSize", value)));
     section.appendChild(this.slider("Edge Thickness", config.display.edgeThickness, (value) => this.controller.updateDisplay("edgeThickness", value)));
     section.appendChild(this.actionButton("Save Visual Preset", () => {
@@ -409,13 +436,13 @@ export class ControlPanel {
       { id: "random-jump", label: "Random Jump" },
       { id: "new-start", label: "New Start" },
       { id: "stop", label: "Stop" }
-    ], (value) => this.controller.updateJourney("deadEndBehavior", value)));
+    ], (value) => this.controller.updateJourney("deadEndBehavior", value), false));
     section.appendChild(this.select("After Journey", config.journey.afterJourney, [
       { id: "start-new-journey", label: "Start New Journey" },
       { id: "zoom-out", label: "Zoom Out" },
       { id: "pause", label: "Pause" },
       { id: "stop", label: "Stop" }
-    ], (value) => this.controller.updateJourney("afterJourney", value)));
+    ], (value) => this.controller.updateJourney("afterJourney", value), false));
     section.appendChild(this.toggleControl("Avoid Recently Visited", config.journey.avoidRecentlyVisited, (value) =>
       this.controller.updateJourney("avoidRecentlyVisited", value)
     ));
@@ -496,12 +523,14 @@ export class ControlPanel {
     label: string,
     value: T,
     options: BuiltInOption<T>[],
-    onChange: (value: T) => void | Promise<void>
+    onChange: (value: T) => void | Promise<void>,
+    sortOptions = true
   ): HTMLElement {
     const row = createDiv({ cls: "constella-panel-control" });
     row.createSpan({ text: label });
     const select = row.createEl("select");
-    options.forEach((option) => select.createEl("option", { text: option.label, value: option.id }));
+    const orderedOptions = sortOptions ? [...options].sort((a, b) => a.label.localeCompare(b.label)) : options;
+    orderedOptions.forEach((option) => select.createEl("option", { text: option.label, value: option.id }));
     select.value = value;
     select.addEventListener("change", () => void onChange(select.value as T));
     return row;

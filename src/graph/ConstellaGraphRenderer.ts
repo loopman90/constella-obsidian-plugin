@@ -313,6 +313,7 @@ export class ConstellaGraphRenderer {
       if (background.starMap) {
         this.drawStarMapOverlay(width, height, colors.edgeActive);
       }
+      this.drawVisualBackdrop(width, height, colors);
       this.ctx.restore();
       this.ctx.globalAlpha = 1;
     }
@@ -330,6 +331,23 @@ export class ConstellaGraphRenderer {
     starMap: boolean;
     transparent: boolean;
   } {
+    switch (this.config.visual) {
+      case "ink-map":
+        return { a: "#f8f5ec", mid: "#eee8d8", b: "#ded3bd", gradient: true, animated: false, stars: false, nebula: false, matrix: false, starMap: false, transparent: false };
+      case "academic-light":
+        return { a: "#fbfaf6", mid: "#f2efe6", b: "#e8e1d2", gradient: true, animated: false, stars: false, nebula: false, matrix: false, starMap: false, transparent: false };
+      case "satellite-view":
+        return { a: "#020617", mid: "#071426", b: "#0a1f2e", gradient: true, animated: false, stars: true, nebula: false, matrix: false, starMap: false, transparent: false };
+      case "glass-minimal":
+        return { a: "#090b10", mid: "#111827", b: "#18202c", gradient: true, animated: false, stars: false, nebula: false, matrix: false, starMap: false, transparent: false };
+      case "fog-of-knowledge":
+        return { a: "#070b12", mid: "#111827", b: "#1e293b", gradient: true, animated: false, stars: true, nebula: true, matrix: false, starMap: false, transparent: false };
+      case "neural-bloom":
+        return { a: "#070414", mid: "#11143a", b: "#1e1b4b", gradient: true, animated: true, stars: true, nebula: true, matrix: false, starMap: false, transparent: false };
+      default:
+        break;
+    }
+
     switch (this.config.background.style) {
       case "theme":
         return { a: this.cssColor("--background-primary", "#111113"), b: this.cssColor("--background-primary", "#111113"), gradient: false, animated: false, stars: false, nebula: false, matrix: false, starMap: false, transparent: false };
@@ -432,6 +450,8 @@ export class ConstellaGraphRenderer {
       const currentJourney = this.journeyPath[this.journeyIndex] === node.id;
       const visitedJourney = this.journeyPath.includes(node.id);
       const recent = node.lastModified > recentCutoff;
+      const focusFactor = this.focusFactor(node);
+      const bloomFactor = this.clusterBloomFactor(node);
       const hueShift = this.config.colors === "rainbow-flow" || this.config.colors === "prism-flow" ? (this.time * 90 + index * 19) % 360 : null;
       const clusterColor = this.config.colors === "cluster-based" || this.config.colors === "cluster-neon" ? this.clusterColor(node.clusterId) : null;
       const dynamicColor = this.dynamicNodeColor(node, index, recent);
@@ -439,20 +459,23 @@ export class ConstellaGraphRenderer {
       const nodeFill = dynamicColor ?? fill;
       const radius = this.nodeRadius(node) * profile.nodeMultiplier;
       const dimmedByHover = this.hoverNode && !hovered && !neighbor && !selected;
-      const glowRadius = radius * (currentJourney ? 5.8 : selected || hovered ? 4.4 : 2.4) * this.config.motion.visualIntensity * profile.glowMultiplier;
+      const glowStrength = this.config.motion.glowEnabled ? Math.max(0.12, this.config.motion.glowStrength) * Math.max(0.7, profile.glowMultiplier) * bloomFactor : 0;
+      const glowRadius = radius * (currentJourney ? 6.8 : selected || hovered ? 5.2 : 3.2) * Math.max(0.35, this.config.motion.visualIntensity) * glowStrength;
 
-      if (this.config.motion.glowEnabled && this.config.visual !== "minimal" && glowRadius > 0 && !dimmedByHover) {
-        const glow = this.ctx.createRadialGradient(node.x, node.y, radius, node.x, node.y, glowRadius);
+      if (this.config.motion.glowEnabled && glowRadius > radius && !dimmedByHover) {
+        const glow = this.ctx.createRadialGradient(node.x, node.y, Math.max(0, radius * 0.2), node.x, node.y, glowRadius);
         glow.addColorStop(0, currentJourney || selected ? colors.nodeActive : nodeFill);
+        glow.addColorStop(0.35, currentJourney || selected ? colors.nodeActive : nodeFill);
         glow.addColorStop(1, "transparent");
         this.ctx.fillStyle = glow;
-        this.ctx.globalAlpha = selected || hovered ? 0.58 : 0.28;
+        const glowAlpha = 0.28 + this.config.motion.glowStrength * 0.52;
+        this.ctx.globalAlpha = (currentJourney ? glowAlpha : selected || hovered ? glowAlpha * 0.86 : glowAlpha * 0.48) * focusFactor;
         this.ctx.beginPath();
         this.ctx.arc(node.x, node.y, glowRadius, 0, Math.PI * 2);
         this.ctx.fill();
       }
 
-      this.ctx.globalAlpha = dimmedByHover ? 0.22 : 1;
+      this.ctx.globalAlpha = (dimmedByHover ? 0.22 : 1) * focusFactor;
       this.ctx.fillStyle = currentJourney || selected ? colors.nodeActive : visitedJourney ? colors.nodeVisited : nodeFill;
       this.drawVisualNode(node, currentJourney ? radius + 3 : selected || hovered ? radius + 2 : radius, profile.nodeShape, colors.edgeActive);
 
@@ -1209,7 +1232,13 @@ export class ConstellaGraphRenderer {
   }
 
   private drawNebula(width: number, height: number, color: string): void {
-    if (this.config.visual !== "deep-space" && this.config.visual !== "neon" && this.config.visual !== "constellation") {
+    if (
+      this.config.visual !== "deep-space" &&
+      this.config.visual !== "neon" &&
+      this.config.visual !== "constellation" &&
+      this.config.visual !== "fog-of-knowledge" &&
+      this.config.visual !== "neural-bloom"
+    ) {
       return;
     }
     const gradientA = this.ctx.createRadialGradient(width * 0.25, height * 0.3, 0, width * 0.25, height * 0.3, Math.max(width, height) * 0.55);
@@ -1453,6 +1482,25 @@ export class ConstellaGraphRenderer {
     this.ctx.fillText("No notes match this graph scope.", width / 2, height / 2);
   }
 
+  private focusFactor(node: GraphNode): number {
+    if (this.config.visual !== "fog-of-knowledge" || !this.selectedNode) {
+      return 1;
+    }
+    if (node.id === this.selectedNode.id || this.hoverNeighborIds.has(node.id)) {
+      return 1;
+    }
+    const distance = Math.hypot(node.x - this.selectedNode.x, node.y - this.selectedNode.y);
+    const fade = Math.max(0.18, 1 - distance / 720);
+    return Math.min(1, fade);
+  }
+
+  private clusterBloomFactor(node: GraphNode): number {
+    if (this.config.visual !== "neural-bloom" || !this.selectedNode) {
+      return 1;
+    }
+    return node.clusterId === this.selectedNode.clusterId ? 1.9 : 0.72;
+  }
+
   private dynamicNodeColor(node: GraphNode, index: number, recent: boolean): string | null {
     const ruleColor = this.ruleColorForNode(node);
     if (ruleColor) {
@@ -1666,6 +1714,18 @@ export class ConstellaGraphRenderer {
         return { ...base, edgeMode: "curve", nodeShape: "stone", edgeMultiplier: 0.68, nodeMultiplier: 0.92, glowMultiplier: 0.18, labelThreshold: 0.76 };
       case "circuit-board":
         return { ...base, edgeMode: "orthogonal", nodeShape: "hex", edgeMultiplier: 0.76, nodeMultiplier: 0.86, glowMultiplier: 0.85, labelThreshold: 1.04 };
+      case "fog-of-knowledge":
+        return { ...base, edgeMode: "curve", nodeShape: "circle", edgeMultiplier: 0.62, nodeMultiplier: 0.96, glowMultiplier: 1.25, labelThreshold: 0.95 };
+      case "ink-map":
+        return { ...base, edgeMode: "curve", nodeShape: "circle", edgeMultiplier: 0.58, nodeMultiplier: 0.82, glowMultiplier: 0.18, labelThreshold: 0.68 };
+      case "neural-bloom":
+        return { ...base, edgeMode: "curve", nodeShape: "ring", edgeMultiplier: 1.08, nodeMultiplier: 1.02, glowMultiplier: 1.85, labelThreshold: 0.92 };
+      case "satellite-view":
+        return { ...base, edgeMode: "dash", nodeShape: "ring", edgeMultiplier: 0.9, nodeMultiplier: 0.92, glowMultiplier: 1.35, labelThreshold: 0.98 };
+      case "glass-minimal":
+        return { ...base, edgeMode: "line", nodeShape: "ring", edgeMultiplier: 0.55, nodeMultiplier: 0.82, glowMultiplier: 0.7, labelThreshold: 0.86 };
+      case "academic-light":
+        return { ...base, edgeMode: "dash", nodeShape: "circle", edgeMultiplier: 0.52, nodeMultiplier: 0.78, glowMultiplier: 0.12, labelThreshold: 0.58 };
       case "constellation":
       default:
         return base;
@@ -1673,7 +1733,96 @@ export class ConstellaGraphRenderer {
   }
 
   private getPalette() {
+    switch (this.config.visual) {
+      case "ink-map":
+        return {
+          backgroundA: "#f8f5ec",
+          backgroundB: "#ded3bd",
+          node: "#1f2937",
+          nodeRecent: "#334155",
+          nodeActive: "#111827",
+          nodeVisited: "#475569",
+          edge: "#334155",
+          edgeActive: "#0f172a",
+          label: "#111827"
+        };
+      case "academic-light":
+        return {
+          backgroundA: "#fbfaf6",
+          backgroundB: "#e8e1d2",
+          node: "#334155",
+          nodeRecent: "#0f766e",
+          nodeActive: "#111827",
+          nodeVisited: "#64748b",
+          edge: "#64748b",
+          edgeActive: "#1d4ed8",
+          label: "#1f2937"
+        };
+      case "satellite-view":
+        return {
+          backgroundA: "#020617",
+          backgroundB: "#0a1f2e",
+          node: "#93c5fd",
+          nodeRecent: "#67e8f9",
+          nodeActive: "#f8fafc",
+          nodeVisited: "#60a5fa",
+          edge: "#38bdf8",
+          edgeActive: "#facc15",
+          label: "#e0f2fe"
+        };
+      case "glass-minimal":
+        return {
+          backgroundA: "#090b10",
+          backgroundB: "#18202c",
+          node: "#cbd5e1",
+          nodeRecent: "#e2e8f0",
+          nodeActive: "#ffffff",
+          nodeVisited: "#94a3b8",
+          edge: "#94a3b8",
+          edgeActive: "#bae6fd",
+          label: "#f8fafc"
+        };
+      case "fog-of-knowledge":
+        return {
+          backgroundA: "#070b12",
+          backgroundB: "#1e293b",
+          node: "#c4b5fd",
+          nodeRecent: "#bfdbfe",
+          nodeActive: "#ffffff",
+          nodeVisited: "#a78bfa",
+          edge: "#64748b",
+          edgeActive: "#f8fafc",
+          label: "#e5e7eb"
+        };
+      case "neural-bloom":
+        return {
+          backgroundA: "#070414",
+          backgroundB: "#1e1b4b",
+          node: "#a78bfa",
+          nodeRecent: "#67e8f9",
+          nodeActive: "#ffffff",
+          nodeVisited: "#c084fc",
+          edge: "#818cf8",
+          edgeActive: "#f0abfc",
+          label: "#faf5ff"
+        };
+      default:
+        break;
+    }
+
     switch (this.config.colors) {
+      case "aqua-mint":
+        return {
+          backgroundA: "#061716",
+          backgroundB: "#102f2d",
+          node: "#71d7d1",
+          nodeRecent: "#b7fff7",
+          nodeActive: "#f0fffd",
+          nodeVisited: "#4fb9b4",
+          edge: "#2fbfba",
+          edgeActive: "#71d7d1",
+          label: "#d9fffb"
+        };
       case "deep-ocean":
         return {
           backgroundA: "#071923",
@@ -2179,6 +2328,88 @@ export class ConstellaGraphRenderer {
       this.ctx.globalAlpha = 0.78;
       this.ctx.fillText(entry.label, x + 24, rowY, boxWidth - 34);
     });
+    this.ctx.restore();
+  }
+
+  private drawVisualBackdrop(width: number, height: number, colors: ReturnType<ConstellaGraphRenderer["getPalette"]>): void {
+    switch (this.config.visual) {
+      case "ink-map":
+      case "academic-light":
+        this.drawPaperGrid(width, height, colors.edge);
+        break;
+      case "satellite-view":
+        this.drawSatelliteSweep(width, height, colors.edgeActive);
+        break;
+      case "glass-minimal":
+        this.drawGlassWash(width, height, colors.edgeActive);
+        break;
+      case "fog-of-knowledge":
+        this.drawKnowledgeFog(width, height, colors.backgroundA);
+        break;
+      default:
+        break;
+    }
+  }
+
+  private drawPaperGrid(width: number, height: number, color: string): void {
+    this.ctx.save();
+    this.ctx.strokeStyle = color;
+    this.ctx.lineWidth = 1;
+    for (let x = 0; x < width; x += 46) {
+      this.ctx.globalAlpha = 0.045;
+      this.ctx.beginPath();
+      this.ctx.moveTo(x, 0);
+      this.ctx.lineTo(x + Math.sin(x * 0.07) * 3, height);
+      this.ctx.stroke();
+    }
+    for (let y = 0; y < height; y += 46) {
+      this.ctx.globalAlpha = 0.04;
+      this.ctx.beginPath();
+      this.ctx.moveTo(0, y);
+      this.ctx.lineTo(width, y + Math.cos(y * 0.07) * 3);
+      this.ctx.stroke();
+    }
+    this.ctx.restore();
+  }
+
+  private drawSatelliteSweep(width: number, height: number, color: string): void {
+    const centerX = width * 0.5;
+    const centerY = height * 0.5;
+    const radius = Math.max(width, height) * 0.42;
+    this.ctx.save();
+    this.ctx.strokeStyle = color;
+    this.ctx.lineWidth = 1;
+    for (let ring = 1; ring <= 4; ring += 1) {
+      this.ctx.globalAlpha = 0.05;
+      this.ctx.beginPath();
+      this.ctx.arc(centerX, centerY, radius * ring * 0.25, 0, Math.PI * 2);
+      this.ctx.stroke();
+    }
+    this.ctx.globalAlpha = 0.14;
+    this.ctx.beginPath();
+    this.ctx.moveTo(centerX, centerY);
+    this.ctx.lineTo(centerX + Math.cos(this.time * 0.7) * radius, centerY + Math.sin(this.time * 0.7) * radius);
+    this.ctx.stroke();
+    this.ctx.restore();
+  }
+
+  private drawGlassWash(width: number, height: number, color: string): void {
+    const gradient = this.ctx.createRadialGradient(width * 0.3, height * 0.2, 0, width * 0.3, height * 0.2, Math.max(width, height) * 0.7);
+    gradient.addColorStop(0, this.withAlpha(color, 0.08));
+    gradient.addColorStop(1, "transparent");
+    this.ctx.save();
+    this.ctx.fillStyle = gradient;
+    this.ctx.fillRect(0, 0, width, height);
+    this.ctx.restore();
+  }
+
+  private drawKnowledgeFog(width: number, height: number, color: string): void {
+    const gradient = this.ctx.createRadialGradient(width / 2, height / 2, Math.min(width, height) * 0.18, width / 2, height / 2, Math.max(width, height) * 0.72);
+    gradient.addColorStop(0, "transparent");
+    gradient.addColorStop(1, this.withAlpha(color, 0.38));
+    this.ctx.save();
+    this.ctx.fillStyle = gradient;
+    this.ctx.fillRect(0, 0, width, height);
     this.ctx.restore();
   }
 
