@@ -42,19 +42,10 @@ export class ConstellaView extends ItemView {
     const container = this.contentEl;
     container.empty();
     container.addClass("constella-view");
-    container.style.position = "relative";
-    container.style.height = "100%";
-    container.style.padding = "0";
-    container.style.overflow = "hidden";
 
     try {
       const stage = container.createDiv({ cls: "constella-stage" });
-      stage.style.position = "absolute";
-      stage.style.inset = "0";
-      stage.style.minHeight = "360px";
       const canvasHost = stage.createDiv({ cls: "constella-canvas-host" });
-      canvasHost.style.position = "absolute";
-      canvasHost.style.inset = "0";
       const overlays = stage.createDiv({ cls: "constella-overlays" });
 
       this.controlPanel = new ControlPanel(overlays, this.controller);

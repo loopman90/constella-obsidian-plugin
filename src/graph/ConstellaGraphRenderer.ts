@@ -2045,8 +2045,10 @@ export class ConstellaGraphRenderer {
     const height = Math.max(1, this.containerEl.clientHeight);
     this.canvas.width = Math.floor(width * ratio);
     this.canvas.height = Math.floor(height * ratio);
-    this.canvas.style.width = `${width}px`;
-    this.canvas.style.height = `${height}px`;
+    this.canvas.setCssStyles({
+      width: `${width}px`,
+      height: `${height}px`
+    });
     this.ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
   }
 

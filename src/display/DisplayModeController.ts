@@ -13,10 +13,9 @@ export class DisplayModeController {
   async exit(root: HTMLElement): Promise<void> {
     root.toggleClass("constella-display-mode", false);
     root.toggleClass("constella-hide-ui", false);
-    document.body.style.cursor = this.previousCursor;
+    document.body.setCssStyles({ cursor: this.previousCursor });
     if (document.fullscreenElement && document.exitFullscreen) {
       await document.exitFullscreen();
     }
   }
 }
-

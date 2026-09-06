@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.4
+
+- Moved the Constella tab layout fallback fully into CSS so the view remains review-compliant without direct style assignments.
+
 ## 0.4.3
 
 - Added stronger layout fallbacks for the Constella view so the graph canvas remains visible inside Obsidian tabs and themes.
