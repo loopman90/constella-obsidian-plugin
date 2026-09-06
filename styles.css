@@ -1,17 +1,34 @@
-.constella-view {
+.constella-leaf,
+.workspace-leaf-content[data-type="constella-view"] {
   height: 100%;
+}
+
+.constella-leaf .view-content,
+.workspace-leaf-content[data-type="constella-view"] .view-content,
+.constella-view {
+  position: relative;
+  height: 100%;
+  min-height: 360px;
+  padding: 0;
   overflow: hidden;
   background: var(--background-primary);
 }
 
 .constella-stage {
-  position: relative;
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   min-height: 360px;
 }
 
-.constella-canvas-host,
+.constella-canvas-host {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
 .constella-canvas {
   width: 100%;
   height: 100%;

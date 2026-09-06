@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.3
+
+- Added stronger layout fallbacks for the Constella view so the graph canvas remains visible inside Obsidian tabs and themes.
+- Marked the leaf container explicitly while the view is open and removed the marker on close.
+
 ## 0.4.2
 
 - Made the Constella view open against Obsidian's stable `contentEl` API instead of relying on internal container child positions.
