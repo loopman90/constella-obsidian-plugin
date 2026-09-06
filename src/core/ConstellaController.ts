@@ -9,7 +9,7 @@ import {
   withMode,
   withVisual
 } from "./ActiveConfiguration";
-import { DRAWING_LINE_STYLES, MODES } from "./types";
+import { COLORS, DRAWING_LINE_STYLES, MODES, VISUALS } from "./types";
 import type {
   ActiveConfiguration,
   BackgroundId,
@@ -580,81 +580,8 @@ export class ConstellaController {
 
   async randomizeSafe(): Promise<void> {
     const modes: ModeId[] = MODES.map((mode) => mode.id);
-    const visuals: VisualId[] = [
-      "minimal",
-      "constellation",
-      "deep-space",
-      "neon",
-      "soft-glow",
-      "clean",
-      "star-chart",
-      "galaxy-spiral",
-      "matrix-grid",
-      "blueprint-lines",
-      "orbital-rings",
-      "city-network",
-      "data-stream",
-      "heatmap-cloud",
-      "paper-map",
-      "library-index",
-      "zen-stones",
-      "crystal-lattice",
-      "solar-orbits",
-      "terminal-blocks",
-      "red-scanner",
-      "ocean-bubbles",
-      "prism-shards",
-      "radar-sweep",
-      "topographic",
-      "circuit-board",
-      "fog-of-knowledge",
-      "ink-map",
-      "neural-bloom",
-      "satellite-view",
-      "glass-minimal",
-      "academic-light"
-    ];
-    const colors: ColorsId[] = [
-      "aurora",
-      "aqua-mint",
-      "deep-ocean",
-      "sunset",
-      "forest",
-      "rainbow-flow",
-      "cluster-based",
-      "pastel",
-      "glacier",
-      "ember",
-      "cyberpunk",
-      "rose-garden",
-      "vaporwave",
-      "nord",
-      "midnight-gold",
-      "violet-storm",
-      "ocean-sunset",
-      "star-map",
-      "dark-mode",
-      "zen-garden",
-      "blueprint",
-      "solar-system",
-      "library-night",
-      "crystal",
-      "terminal-amber",
-      "red-alert",
-      "ocean-depths",
-      "paper-minimal",
-      "galaxy-core",
-      "heatmap",
-      "age-gradient",
-      "cluster-neon",
-      "focus-fade",
-      "signal-strength",
-      "night-vision",
-      "archive-dust",
-      "prism-flow",
-      "constellation-white",
-      "infrared"
-    ];
+    const visuals: VisualId[] = VISUALS.map((visual) => visual.id);
+    const colors: ColorsId[] = COLORS.map((color) => color.id);
     const cameras: CameraId[] = [
       "static",
       "calm",

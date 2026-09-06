@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.1
+
+- Added eight visual styles: Timeline Map, Mind Palace, Circuit Minimal, Archive Fog, Focus Lens, Thread Weaver, Research Board, and Signal Radar.
+- Added eight journey modes: Review Queue, Cluster Compare, Bridge Notes, Tag Drift, Orphan Rescue, Writing Flow, Daily Reflection, and Deep Archive.
+- Added eight color schemes: Sepia Archive, Polar Night, Electric Lime, Soft Lavender, Copper Blue, Notebook Blue, Ruby Graph, and Moss & Gold.
+- Updated Smart Randomize to use the central mode, visual, and color option lists automatically.
+
 ## 0.5.0
 
 - Organized official Obsidian settings into clearer Core preferences, Visual controls, Graph tools, and Quick UI groups for a cleaner release-ready settings flow.

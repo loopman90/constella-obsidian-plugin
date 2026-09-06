@@ -31,7 +31,15 @@ export type ModeId =
   | "project-map"
   | "tag-surf"
   | "folder-walk"
-  | "memory-lane";
+  | "memory-lane"
+  | "review-queue"
+  | "cluster-compare"
+  | "bridge-notes"
+  | "tag-drift"
+  | "orphan-rescue"
+  | "writing-flow"
+  | "daily-reflection"
+  | "deep-archive";
 
 export type VisualId =
   | "minimal"
@@ -65,7 +73,15 @@ export type VisualId =
   | "neural-bloom"
   | "satellite-view"
   | "glass-minimal"
-  | "academic-light";
+  | "academic-light"
+  | "timeline-map"
+  | "mind-palace"
+  | "circuit-minimal"
+  | "archive-fog"
+  | "focus-lens"
+  | "thread-weaver"
+  | "research-board"
+  | "signal-radar";
 export type ColorsId =
   | "aurora"
   | "aqua-mint"
@@ -117,7 +133,15 @@ export type ColorsId =
   | "archive-dust"
   | "prism-flow"
   | "constellation-white"
-  | "infrared";
+  | "infrared"
+  | "sepia-archive"
+  | "polar-night"
+  | "electric-lime"
+  | "soft-lavender"
+  | "copper-blue"
+  | "notebook-blue"
+  | "ruby-graph"
+  | "moss-gold";
 export type CameraId =
   | "static"
   | "calm"
@@ -455,7 +479,15 @@ export const MODES: BuiltInOption<ModeId>[] = [
   { id: "project-map", label: "Project Map" },
   { id: "tag-surf", label: "Tag Surf" },
   { id: "folder-walk", label: "Folder Walk" },
-  { id: "memory-lane", label: "Memory Lane" }
+  { id: "memory-lane", label: "Memory Lane" },
+  { id: "review-queue", label: "Review Queue" },
+  { id: "cluster-compare", label: "Cluster Compare" },
+  { id: "bridge-notes", label: "Bridge Notes" },
+  { id: "tag-drift", label: "Tag Drift" },
+  { id: "orphan-rescue", label: "Orphan Rescue" },
+  { id: "writing-flow", label: "Writing Flow" },
+  { id: "daily-reflection", label: "Daily Reflection" },
+  { id: "deep-archive", label: "Deep Archive" }
 ];
 
 export const VISUALS: BuiltInOption<VisualId>[] = [
@@ -490,7 +522,15 @@ export const VISUALS: BuiltInOption<VisualId>[] = [
   { id: "neural-bloom", label: "Neural Bloom" },
   { id: "satellite-view", label: "Satellite View" },
   { id: "glass-minimal", label: "Glass Minimal" },
-  { id: "academic-light", label: "Academic Light" }
+  { id: "academic-light", label: "Academic Light" },
+  { id: "timeline-map", label: "Timeline Map" },
+  { id: "mind-palace", label: "Mind Palace" },
+  { id: "circuit-minimal", label: "Circuit Minimal" },
+  { id: "archive-fog", label: "Archive Fog" },
+  { id: "focus-lens", label: "Focus Lens" },
+  { id: "thread-weaver", label: "Thread Weaver" },
+  { id: "research-board", label: "Research Board" },
+  { id: "signal-radar", label: "Signal Radar" }
 ];
 
 export const COLORS: BuiltInOption<ColorsId>[] = [
@@ -544,7 +584,15 @@ export const COLORS: BuiltInOption<ColorsId>[] = [
   { id: "archive-dust", label: "Archive Dust" },
   { id: "prism-flow", label: "Prism Flow" },
   { id: "constellation-white", label: "Constellation White" },
-  { id: "infrared", label: "Infrared" }
+  { id: "infrared", label: "Infrared" },
+  { id: "sepia-archive", label: "Sepia Archive" },
+  { id: "polar-night", label: "Polar Night" },
+  { id: "electric-lime", label: "Electric Lime" },
+  { id: "soft-lavender", label: "Soft Lavender" },
+  { id: "copper-blue", label: "Copper Blue" },
+  { id: "notebook-blue", label: "Notebook Blue" },
+  { id: "ruby-graph", label: "Ruby Graph" },
+  { id: "moss-gold", label: "Moss & Gold" }
 ];
 
 export const CAMERAS: BuiltInOption<CameraId>[] = [

@@ -344,6 +344,22 @@ export class ConstellaGraphRenderer {
         return { a: "#070b12", mid: "#111827", b: "#1e293b", gradient: true, animated: false, stars: true, nebula: true, matrix: false, starMap: false, transparent: false };
       case "neural-bloom":
         return { a: "#070414", mid: "#11143a", b: "#1e1b4b", gradient: true, animated: true, stars: true, nebula: true, matrix: false, starMap: false, transparent: false };
+      case "timeline-map":
+        return { a: "#08111f", mid: "#0f172a", b: "#111827", gradient: true, animated: false, stars: true, nebula: false, matrix: false, starMap: false, transparent: false };
+      case "mind-palace":
+        return { a: "#10151f", mid: "#151b28", b: "#1f2937", gradient: true, animated: false, stars: false, nebula: false, matrix: false, starMap: false, transparent: false };
+      case "circuit-minimal":
+        return { a: "#050908", mid: "#09110f", b: "#101714", gradient: true, animated: false, stars: false, nebula: false, matrix: false, starMap: false, transparent: false };
+      case "archive-fog":
+        return { a: "#14100b", mid: "#1f1a12", b: "#272016", gradient: true, animated: false, stars: false, nebula: true, matrix: false, starMap: false, transparent: false };
+      case "focus-lens":
+        return { a: "#060914", mid: "#0b1020", b: "#111827", gradient: true, animated: false, stars: true, nebula: false, matrix: false, starMap: false, transparent: false };
+      case "thread-weaver":
+        return { a: "#120d16", mid: "#1b1220", b: "#241724", gradient: true, animated: true, stars: false, nebula: true, matrix: false, starMap: false, transparent: false };
+      case "research-board":
+        return { a: "#fbfaf6", mid: "#f2efe6", b: "#e8e1d2", gradient: true, animated: false, stars: false, nebula: false, matrix: false, starMap: false, transparent: false };
+      case "signal-radar":
+        return { a: "#020617", mid: "#041225", b: "#081426", gradient: true, animated: false, stars: true, nebula: false, matrix: false, starMap: false, transparent: false };
       default:
         break;
     }
@@ -1483,22 +1499,28 @@ export class ConstellaGraphRenderer {
   }
 
   private focusFactor(node: GraphNode): number {
-    if (this.config.visual !== "fog-of-knowledge" || !this.selectedNode) {
+    if ((this.config.visual !== "fog-of-knowledge" && this.config.visual !== "focus-lens") || !this.selectedNode) {
       return 1;
     }
     if (node.id === this.selectedNode.id || this.hoverNeighborIds.has(node.id)) {
       return 1;
     }
     const distance = Math.hypot(node.x - this.selectedNode.x, node.y - this.selectedNode.y);
-    const fade = Math.max(0.18, 1 - distance / 720);
+    const minimum = this.config.visual === "focus-lens" ? 0.24 : 0.18;
+    const range = this.config.visual === "focus-lens" ? 520 : 720;
+    const fade = Math.max(minimum, 1 - distance / range);
     return Math.min(1, fade);
   }
 
   private clusterBloomFactor(node: GraphNode): number {
-    if (this.config.visual !== "neural-bloom" || !this.selectedNode) {
+    if ((this.config.visual !== "neural-bloom" && this.config.visual !== "mind-palace") || !this.selectedNode) {
       return 1;
     }
-    return node.clusterId === this.selectedNode.clusterId ? 1.9 : 0.72;
+    const activeCluster = node.clusterId === this.selectedNode.clusterId;
+    if (this.config.visual === "mind-palace") {
+      return activeCluster ? 1.35 : 0.82;
+    }
+    return activeCluster ? 1.9 : 0.72;
   }
 
   private dynamicNodeColor(node: GraphNode, index: number, recent: boolean): string | null {
@@ -1624,6 +1646,8 @@ export class ConstellaGraphRenderer {
         return this.selectedNode ? "#334155" : base;
       case "night-vision":
         return "#22c55e";
+      case "electric-lime":
+        return "#84cc16";
       case "archive-dust":
         return "#a16207";
       case "constellation-white":
@@ -1631,12 +1655,25 @@ export class ConstellaGraphRenderer {
       case "infrared":
         return "#f97316";
       default:
+        if (this.config.visual === "signal-radar") {
+          const strength = Math.min(1, edge.weight / 5);
+          return `hsl(${150 - strength * 65}, 86%, ${42 + strength * 24}%)`;
+        }
         return base;
     }
   }
 
   private edgeAlpha(edge: { weight: number }, selected: boolean, activeJourneyEdge: boolean): number {
     const base = activeJourneyEdge ? 0.92 : selected ? 0.78 : 0.22 + this.config.motion.visualIntensity * 0.16;
+    if (this.config.visual === "focus-lens" && this.selectedNode && !selected && !activeJourneyEdge) {
+      return 0.08;
+    }
+    if (this.config.visual === "archive-fog" && !selected && !activeJourneyEdge) {
+      return Math.max(0.08, base * 0.64);
+    }
+    if (this.config.visual === "signal-radar") {
+      return Math.min(0.88, base + edge.weight * 0.09);
+    }
     if (this.config.colors === "focus-fade" && this.selectedNode && !selected && !activeJourneyEdge) {
       return 0.08;
     }
@@ -1726,6 +1763,22 @@ export class ConstellaGraphRenderer {
         return { ...base, edgeMode: "line", nodeShape: "ring", edgeMultiplier: 0.55, nodeMultiplier: 0.82, glowMultiplier: 0.7, labelThreshold: 0.86 };
       case "academic-light":
         return { ...base, edgeMode: "dash", nodeShape: "circle", edgeMultiplier: 0.52, nodeMultiplier: 0.78, glowMultiplier: 0.12, labelThreshold: 0.58 };
+      case "timeline-map":
+        return { ...base, edgeMode: "dash", nodeShape: "circle", edgeMultiplier: 0.68, nodeMultiplier: 0.82, glowMultiplier: 0.45, labelThreshold: 0.62 };
+      case "mind-palace":
+        return { ...base, edgeMode: "orthogonal", nodeShape: "square", edgeMultiplier: 0.72, nodeMultiplier: 0.9, glowMultiplier: 0.85, labelThreshold: 0.82 };
+      case "circuit-minimal":
+        return { ...base, edgeMode: "orthogonal", nodeShape: "hex", edgeMultiplier: 0.58, nodeMultiplier: 0.78, glowMultiplier: 0.55, labelThreshold: 0.98 };
+      case "archive-fog":
+        return { ...base, edgeMode: "curve", nodeShape: "stone", edgeMultiplier: 0.52, nodeMultiplier: 0.84, glowMultiplier: 0.4, labelThreshold: 0.9 };
+      case "focus-lens":
+        return { ...base, edgeMode: "curve", nodeShape: "ring", edgeMultiplier: 0.82, nodeMultiplier: 1, glowMultiplier: 1.35, labelThreshold: 0.82 };
+      case "thread-weaver":
+        return { ...base, edgeMode: "curve", nodeShape: "circle", edgeMultiplier: 0.75, nodeMultiplier: 0.88, glowMultiplier: 0.75, labelThreshold: 0.82 };
+      case "research-board":
+        return { ...base, edgeMode: "line", nodeShape: "square", edgeMultiplier: 0.55, nodeMultiplier: 0.78, glowMultiplier: 0.18, labelThreshold: 0.62 };
+      case "signal-radar":
+        return { ...base, edgeMode: "dash", nodeShape: "ring", edgeMultiplier: 1, nodeMultiplier: 0.96, glowMultiplier: 1.45, labelThreshold: 0.92 };
       case "constellation":
       default:
         return base;
@@ -1806,6 +1859,22 @@ export class ConstellaGraphRenderer {
           edgeActive: "#f0abfc",
           label: "#faf5ff"
         };
+      case "timeline-map":
+        return { backgroundA: "#08111f", backgroundB: "#111827", node: "#93c5fd", nodeRecent: "#fef08a", nodeActive: "#ffffff", nodeVisited: "#60a5fa", edge: "#475569", edgeActive: "#facc15", label: "#dbeafe" };
+      case "mind-palace":
+        return { backgroundA: "#10151f", backgroundB: "#1f2937", node: "#d8b4fe", nodeRecent: "#f9a8d4", nodeActive: "#fff7ed", nodeVisited: "#a78bfa", edge: "#64748b", edgeActive: "#f0abfc", label: "#f8fafc" };
+      case "circuit-minimal":
+        return { backgroundA: "#050908", backgroundB: "#101714", node: "#71d7d1", nodeRecent: "#d9fffb", nodeActive: "#ffffff", nodeVisited: "#4fb9b4", edge: "#2dd4bf", edgeActive: "#71d7d1", label: "#d9fffb" };
+      case "archive-fog":
+        return { backgroundA: "#14100b", backgroundB: "#272016", node: "#d6c7a1", nodeRecent: "#fef3c7", nodeActive: "#fff7ed", nodeVisited: "#a8a29e", edge: "#78716c", edgeActive: "#f59e0b", label: "#fafaf9" };
+      case "focus-lens":
+        return { backgroundA: "#060914", backgroundB: "#111827", node: "#93c5fd", nodeRecent: "#bae6fd", nodeActive: "#ffffff", nodeVisited: "#60a5fa", edge: "#475569", edgeActive: "#f8fafc", label: "#e0f2fe" };
+      case "thread-weaver":
+        return { backgroundA: "#120d16", backgroundB: "#241724", node: "#f0abfc", nodeRecent: "#f9a8d4", nodeActive: "#ffffff", nodeVisited: "#c084fc", edge: "#f9a8d4", edgeActive: "#fde68a", label: "#fdf4ff" };
+      case "research-board":
+        return { backgroundA: "#fbfaf6", backgroundB: "#e8e1d2", node: "#1f2937", nodeRecent: "#7c2d12", nodeActive: "#000000", nodeVisited: "#475569", edge: "#94a3b8", edgeActive: "#292524", label: "#111827" };
+      case "signal-radar":
+        return { backgroundA: "#020617", backgroundB: "#081426", node: "#86efac", nodeRecent: "#fef08a", nodeActive: "#f8fafc", nodeVisited: "#22c55e", edge: "#22c55e", edgeActive: "#bbf7d0", label: "#dcfce7" };
       default:
         break;
     }
@@ -2211,6 +2280,22 @@ export class ConstellaGraphRenderer {
         return { backgroundA: "#020617", backgroundB: "#0f172a", node: "#dbeafe", nodeRecent: "#ffffff", nodeActive: "#ffffff", nodeVisited: "#93c5fd", edge: "#64748b", edgeActive: "#bfdbfe", label: "#eff6ff" };
       case "infrared":
         return { backgroundA: "#120312", backgroundB: "#2a0c20", node: "#f97316", nodeRecent: "#f43f5e", nodeActive: "#fff7ed", nodeVisited: "#c026d3", edge: "#be123c", edgeActive: "#fb923c", label: "#ffe4e6" };
+      case "sepia-archive":
+        return { backgroundA: "#21180f", backgroundB: "#3a2a1a", node: "#d6b98c", nodeRecent: "#fef3c7", nodeActive: "#fff7ed", nodeVisited: "#a16207", edge: "#8a6a43", edgeActive: "#f59e0b", label: "#f8ead3" };
+      case "polar-night":
+        return { backgroundA: "#07111f", backgroundB: "#182238", node: "#93a4bd", nodeRecent: "#bfdbfe", nodeActive: "#f8fafc", nodeVisited: "#64748b", edge: "#334155", edgeActive: "#93c5fd", label: "#dbeafe" };
+      case "electric-lime":
+        return { backgroundA: "#020402", backgroundB: "#10170b", node: "#84cc16", nodeRecent: "#d9f99d", nodeActive: "#f7fee7", nodeVisited: "#65a30d", edge: "#4d7c0f", edgeActive: "#bef264", label: "#ecfccb" };
+      case "soft-lavender":
+        return { backgroundA: "#171321", backgroundB: "#2d2438", node: "#c4b5fd", nodeRecent: "#f5d0fe", nodeActive: "#ffffff", nodeVisited: "#a78bfa", edge: "#7c6aa6", edgeActive: "#ddd6fe", label: "#f5f3ff" };
+      case "copper-blue":
+        return { backgroundA: "#08111f", backgroundB: "#26160c", node: "#38bdf8", nodeRecent: "#fb923c", nodeActive: "#fff7ed", nodeVisited: "#0ea5e9", edge: "#b45309", edgeActive: "#67e8f9", label: "#e0f2fe" };
+      case "notebook-blue":
+        return { backgroundA: "#f8fbff", backgroundB: "#dbeafe", node: "#1d4ed8", nodeRecent: "#0f766e", nodeActive: "#0f172a", nodeVisited: "#2563eb", edge: "#93c5fd", edgeActive: "#1e40af", label: "#172554" };
+      case "ruby-graph":
+        return { backgroundA: "#14050d", backgroundB: "#30101d", node: "#fb7185", nodeRecent: "#f9a8d4", nodeActive: "#fff1f2", nodeVisited: "#be123c", edge: "#881337", edgeActive: "#f472b6", label: "#ffe4e6" };
+      case "moss-gold":
+        return { backgroundA: "#09140c", backgroundB: "#1f2a13", node: "#86efac", nodeRecent: "#fbbf24", nodeActive: "#fffbeb", nodeVisited: "#65a30d", edge: "#4d7c0f", edgeActive: "#fde68a", label: "#f7fee7" };
       case "aurora":
       default:
         return {
@@ -2333,10 +2418,31 @@ export class ConstellaGraphRenderer {
 
   private drawVisualBackdrop(width: number, height: number, colors: ReturnType<ConstellaGraphRenderer["getPalette"]>): void {
     switch (this.config.visual) {
+      case "timeline-map":
+        this.drawTimelineGuide(width, height, colors.edgeActive);
+        break;
+      case "mind-palace":
+        this.drawMindPalaceZones(width, height, colors.edge);
+        break;
+      case "circuit-minimal":
+        this.drawCircuitGrid(width, height, colors.edgeActive);
+        break;
+      case "archive-fog":
+        this.drawKnowledgeFog(width, height, colors.backgroundA);
+        this.drawTimelineGuide(width, height, colors.edge);
+        break;
+      case "focus-lens":
+        this.drawFocusLens(width, height, colors.edgeActive);
+        break;
+      case "thread-weaver":
+        this.drawThreadWeave(width, height, colors.edgeActive);
+        break;
+      case "research-board":
       case "ink-map":
       case "academic-light":
         this.drawPaperGrid(width, height, colors.edge);
         break;
+      case "signal-radar":
       case "satellite-view":
         this.drawSatelliteSweep(width, height, colors.edgeActive);
         break;
@@ -2349,6 +2455,113 @@ export class ConstellaGraphRenderer {
       default:
         break;
     }
+  }
+
+  private drawTimelineGuide(width: number, height: number, color: string): void {
+    const centerY = height * 0.72;
+    this.ctx.save();
+    this.ctx.strokeStyle = color;
+    this.ctx.lineWidth = 1;
+    this.ctx.globalAlpha = 0.16;
+    this.ctx.beginPath();
+    this.ctx.moveTo(width * 0.08, centerY);
+    this.ctx.lineTo(width * 0.92, centerY);
+    this.ctx.stroke();
+    for (let index = 0; index <= 12; index += 1) {
+      const x = width * (0.08 + index * 0.07);
+      const pulse = 0.5 + Math.sin(this.time * 0.8 + index) * 0.5;
+      this.ctx.globalAlpha = 0.07 + pulse * 0.1;
+      this.ctx.beginPath();
+      this.ctx.moveTo(x, centerY - 14);
+      this.ctx.lineTo(x, centerY + 14);
+      this.ctx.stroke();
+    }
+    this.ctx.restore();
+  }
+
+  private drawMindPalaceZones(width: number, height: number, color: string): void {
+    this.ctx.save();
+    this.ctx.strokeStyle = color;
+    this.ctx.lineWidth = 1;
+    const marginX = width * 0.08;
+    const marginY = height * 0.12;
+    const zoneWidth = (width - marginX * 2) / 3;
+    const zoneHeight = (height - marginY * 2) / 2;
+    for (let column = 0; column < 3; column += 1) {
+      for (let row = 0; row < 2; row += 1) {
+        this.ctx.globalAlpha = 0.055;
+        this.ctx.strokeRect(marginX + column * zoneWidth + 8, marginY + row * zoneHeight + 8, zoneWidth - 16, zoneHeight - 16);
+      }
+    }
+    this.ctx.restore();
+  }
+
+  private drawCircuitGrid(width: number, height: number, color: string): void {
+    this.ctx.save();
+    this.ctx.strokeStyle = color;
+    this.ctx.lineWidth = 1;
+    for (let x = 32; x < width; x += 72) {
+      this.ctx.globalAlpha = 0.06;
+      this.ctx.beginPath();
+      this.ctx.moveTo(x, 0);
+      this.ctx.lineTo(x, height);
+      this.ctx.stroke();
+    }
+    for (let y = 28; y < height; y += 64) {
+      this.ctx.globalAlpha = 0.05;
+      this.ctx.beginPath();
+      this.ctx.moveTo(0, y);
+      this.ctx.lineTo(width, y);
+      this.ctx.stroke();
+    }
+    for (let index = 0; index < 18; index += 1) {
+      const x = (index * 113 + Math.sin(this.time + index) * 12) % width;
+      const y = (index * 67 + Math.cos(this.time * 0.7 + index) * 12) % height;
+      this.ctx.globalAlpha = 0.1;
+      this.ctx.beginPath();
+      this.ctx.arc(x, y, 2.2, 0, Math.PI * 2);
+      this.ctx.stroke();
+    }
+    this.ctx.restore();
+  }
+
+  private drawFocusLens(width: number, height: number, color: string): void {
+    if (!this.selectedNode) {
+      return;
+    }
+    const x = width / 2 + this.viewport.x + this.selectedNode.x * this.viewport.scale;
+    const y = height / 2 + this.viewport.y + this.selectedNode.y * this.viewport.scale;
+    const radius = 150 + Math.sin(this.time * 1.4) * 8;
+    const gradient = this.ctx.createRadialGradient(x, y, 8, x, y, radius);
+    gradient.addColorStop(0, this.withAlpha(color, 0.2));
+    gradient.addColorStop(0.55, this.withAlpha(color, 0.08));
+    gradient.addColorStop(1, "transparent");
+    this.ctx.save();
+    this.ctx.fillStyle = gradient;
+    this.ctx.fillRect(0, 0, width, height);
+    this.ctx.globalAlpha = 0.18;
+    this.ctx.strokeStyle = color;
+    this.ctx.lineWidth = 1;
+    this.ctx.beginPath();
+    this.ctx.arc(x, y, radius * 0.66, 0, Math.PI * 2);
+    this.ctx.stroke();
+    this.ctx.restore();
+  }
+
+  private drawThreadWeave(width: number, height: number, color: string): void {
+    this.ctx.save();
+    this.ctx.strokeStyle = color;
+    this.ctx.lineWidth = 1;
+    for (let index = 0; index < 7; index += 1) {
+      const y = height * (0.16 + index * 0.11);
+      const phase = this.time * 0.35 + index;
+      this.ctx.globalAlpha = 0.045 + (index % 2) * 0.018;
+      this.ctx.beginPath();
+      this.ctx.moveTo(-30, y);
+      this.ctx.bezierCurveTo(width * 0.28, y + Math.sin(phase) * 58, width * 0.64, y + Math.cos(phase) * 46, width + 30, y + Math.sin(phase * 0.8) * 34);
+      this.ctx.stroke();
+    }
+    this.ctx.restore();
   }
 
   private drawPaperGrid(width: number, height: number, color: string): void {
