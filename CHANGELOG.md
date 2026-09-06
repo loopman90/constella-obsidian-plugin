@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.0
+
+- Organized official Obsidian settings into clearer Core preferences, Visual controls, Graph tools, and Quick UI groups for a cleaner release-ready settings flow.
+- Cleaned up confusing Quick UI settings text before the 0.5.0 release candidate.
+
 ## 0.4.9
 
 - Removed the empty-feeling Advanced tab from the in-graph control panel.

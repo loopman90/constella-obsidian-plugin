@@ -41,6 +41,7 @@ export class ConstellaSettingsTab extends PluginSettingTab {
     return [
       {
         type: "group" as const,
+        heading: "Core preferences",
         items: [
           {
             name: "Performance",
@@ -76,7 +77,13 @@ export class ConstellaSettingsTab extends PluginSettingTab {
               key: "showFirstRun",
               defaultValue: true
             }
-          },
+          }
+        ]
+      },
+      {
+        type: "group" as const,
+        heading: "Visual controls",
+        items: [
           {
             name: "Glow strength",
             desc: "Controls how strong the node glow appears in the graph.",
@@ -88,7 +95,13 @@ export class ConstellaSettingsTab extends PluginSettingTab {
               max: 1,
               step: 0.01
             }
-          },
+          }
+        ]
+      },
+      {
+        type: "group" as const,
+        heading: "Graph tools",
+        items: [
           {
             name: "Mini-map",
             desc: "Show a compact graph overview in the canvas HUD.",
@@ -144,7 +157,13 @@ export class ConstellaSettingsTab extends PluginSettingTab {
               rows: 5,
               placeholder: "tag:project=#38bdf8\nfolder:Archive=#f59e0b"
             }
-          },
+          }
+        ]
+      },
+      {
+        type: "group" as const,
+        heading: "Quick UI",
+        items: [
           {
             name: "Quick UI playback buttons",
             desc: "Show Start, Pause, and Stop in the compact quick bar.",
@@ -218,8 +237,8 @@ export class ConstellaSettingsTab extends PluginSettingTab {
             }
           },
           {
-            name: "Quick UI action buttons",
-            desc: "Show randomize, save, export, fullscreen, second-screen, settings, and collapse controls.",
+            name: "Quick UI randomize button",
+            desc: "Show the smart randomize button in the compact quick bar.",
             control: {
               type: "toggle" as const,
               key: "showRandomize",
