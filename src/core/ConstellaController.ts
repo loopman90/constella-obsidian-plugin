@@ -9,7 +9,7 @@ import {
   withMode,
   withVisual
 } from "./ActiveConfiguration";
-import { MODES } from "./types";
+import { DRAWING_LINE_STYLES, MODES } from "./types";
 import type {
   ActiveConfiguration,
   BackgroundId,
@@ -627,6 +627,7 @@ export class ConstellaController {
         particleSpeed: 0.2 + Math.random() * 0.8,
         drawingLinesEnabled: Math.random() > 0.35,
         drawingLineSpeed: 0.2 + Math.random() * 0.75,
+        drawingLineStyle: this.pick(DRAWING_LINE_STYLES.map((style) => style.id)),
         clickAnimation: this.pick(clickAnimations)
       },
       template: {

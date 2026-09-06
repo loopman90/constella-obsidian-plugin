@@ -150,6 +150,18 @@ export type PathAnimationId =
   | "traffic-flow"
   | "data-rain"
   | "signal-burst";
+export type DrawingLineStyleId =
+  | "trace"
+  | "reverse-trace"
+  | "center-out"
+  | "dashed-march"
+  | "lightning"
+  | "city-lights"
+  | "data-packets"
+  | "scanner-sweep"
+  | "double-trace"
+  | "constellation-sketch"
+  | "radar-fan";
 export type PulseStyleId =
   | "orb"
   | "ring"
@@ -244,6 +256,7 @@ export interface ActiveConfiguration {
     particleSpeed: number;
     drawingLinesEnabled: boolean;
     drawingLineSpeed: number;
+    drawingLineStyle: DrawingLineStyleId;
     pathAnimation: PathAnimationId;
     pulseStyle: PulseStyleId;
     nodeMovementStyle: NodeMovementStyleId;
@@ -540,6 +553,20 @@ export const PATH_ANIMATIONS: BuiltInOption<PathAnimationId>[] = [
   { id: "traffic-flow", label: "Traffic Flow" },
   { id: "data-rain", label: "Data Rain" },
   { id: "signal-burst", label: "Signal Burst" }
+];
+
+export const DRAWING_LINE_STYLES: BuiltInOption<DrawingLineStyleId>[] = [
+  { id: "trace", label: "Trace" },
+  { id: "reverse-trace", label: "Reverse Trace" },
+  { id: "center-out", label: "Center Out" },
+  { id: "dashed-march", label: "Dashed March" },
+  { id: "lightning", label: "Lightning" },
+  { id: "city-lights", label: "City Lights" },
+  { id: "data-packets", label: "Data Packets" },
+  { id: "scanner-sweep", label: "Scanner Sweep" },
+  { id: "double-trace", label: "Double Trace" },
+  { id: "constellation-sketch", label: "Constellation Sketch" },
+  { id: "radar-fan", label: "Radar Fan" }
 ];
 
 export const PULSE_STYLES: BuiltInOption<PulseStyleId>[] = [

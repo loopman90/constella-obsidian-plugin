@@ -101,7 +101,7 @@ Constella keeps these systems separate:
 - Keep floating/orphan notes visible in local graph views.
 - Hover a node to highlight its direct neighbors.
 - Pin nodes, temporarily hide nodes or clusters, expand from a selected note, and preview a path between two notes.
-- Tune background intensity, label size, node size, edge thickness, particles, pulses, drawing lines, visual styles, and reduce-motion mode.
+- Tune background intensity, label size, node size, edge thickness, particles, pulses, selectable drawing-line animations, visual styles, and reduce-motion mode.
 - Show an optional legend for color modes such as Heatmap, Age Gradient, Cluster Neon, Focus Fade, and Signal Strength.
 - Show an optional FPS indicator for performance checks.
 
@@ -141,7 +141,7 @@ The Control Panel includes sections for:
 - Display
 - Advanced
 
-Most visual settings are applied live, including colors, intensity, camera behavior, node movement, glow, particles, connection pulses, drawing lines, labels, and background style.
+Most visual settings are applied live, including colors, intensity, camera behavior, node movement, glow, particles, connection pulses, drawing-line style, labels, and background style.
 
 ### Keyboard Controls
 

@@ -31,6 +31,7 @@ export const DEFAULT_CONFIGURATION: ActiveConfiguration = {
     particleSpeed: 0.45,
     drawingLinesEnabled: false,
     drawingLineSpeed: 0.35,
+    drawingLineStyle: "trace",
     pathAnimation: "comet",
     pulseStyle: "orb",
     nodeMovementStyle: "gentle-float",

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.7
+
+- Added selectable drawing-line animation styles for graph edges, including Trace, Reverse Trace, Center Out, Dashed March, Lightning, City Lights, Data Packets, Scanner Sweep, Double Trace, Constellation Sketch, and Radar Fan.
+- Updated Smart Randomize so it can choose different drawing-line styles automatically.
+
 ## 0.4.6
 
 - Replaced the PNG export link creation with Obsidian's `createEl` helper for cleaner marketplace review output.

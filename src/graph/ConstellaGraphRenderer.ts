@@ -410,11 +410,7 @@ export class ConstellaGraphRenderer {
       this.ctx.globalAlpha = this.edgeAlpha(edge, selected || hovered, activeJourneyEdge) * Math.max(0.24, lineProgress);
       const thickness = 0.7 + this.config.display.edgeThickness * 1.8;
       this.ctx.lineWidth = (activeJourneyEdge ? 2.4 : selected || hovered ? 1.8 : this.edgeWidth(edge)) * thickness * profile.edgeMultiplier / this.viewport.scale;
-      this.drawVisualEdge(source, drawTarget, edge.id, profile.edgeMode);
-
-      if (this.config.motion.drawingLinesEnabled && lineProgress < 0.98) {
-        this.drawPulseShape(drawTarget.x, drawTarget.y, edgeColor, 0.65, Math.max(1.7, 3 / this.viewport.scale), source, target);
-      }
+      this.drawDrawingLine(source, target, drawTarget, edge.id, edgeColor, profile.edgeMode, lineProgress);
 
       if (this.config.motion.connectionPulsesEnabled && lineProgress > 0.35 && (activeJourneyEdge || Math.random() < 0.002 * this.config.motion.pulseAmount)) {
         this.drawPathAnimation(source, target, edgeColor, activeJourneyEdge);
@@ -534,6 +530,204 @@ export class ConstellaGraphRenderer {
         break;
     }
     this.ctx.restore();
+  }
+
+  private drawDrawingLine(
+    source: GraphNode,
+    target: GraphNode,
+    drawTarget: { x: number; y: number },
+    edgeId: string,
+    color: string,
+    mode: VisualEdgeMode,
+    progress: number
+  ): void {
+    if (!this.config.motion.drawingLinesEnabled) {
+      this.drawVisualEdge(source, target, edgeId, mode);
+      return;
+    }
+
+    const tipSize = Math.max(1.7, 3 / this.viewport.scale);
+    const normal = this.edgeNormal(source, target);
+    const fullAlpha = this.ctx.globalAlpha;
+    this.ctx.save();
+
+    switch (this.config.motion.drawingLineStyle) {
+      case "reverse-trace": {
+        const reverseTarget = this.pointOnEdge(target, source, progress);
+        this.drawVisualEdge(target, reverseTarget, edgeId, mode);
+        if (progress < 0.98) {
+          this.drawPulseShape(reverseTarget.x, reverseTarget.y, color, 0.65, tipSize, source, target);
+        }
+        break;
+      }
+      case "center-out": {
+        const half = progress * 0.5;
+        const from = this.pointOnEdge(source, target, 0.5 - half);
+        const to = this.pointOnEdge(source, target, 0.5 + half);
+        this.drawSimpleLine(from, to);
+        if (progress < 0.98) {
+          this.drawPulseShape(from.x, from.y, color, 0.48, tipSize, source, target);
+          this.drawPulseShape(to.x, to.y, color, 0.48, tipSize, source, target);
+        }
+        break;
+      }
+      case "dashed-march":
+        this.ctx.setLineDash([7 / this.viewport.scale, 7 / this.viewport.scale]);
+        this.ctx.lineDashOffset = -this.time * (24 + this.config.motion.drawingLineSpeed * 48);
+        this.drawVisualEdge(source, drawTarget, edgeId, mode);
+        if (progress < 0.98) {
+          this.drawPulseShape(drawTarget.x, drawTarget.y, color, 0.55, tipSize, source, target);
+        }
+        break;
+      case "lightning":
+        this.drawLightningLine(source, drawTarget, edgeId, progress);
+        if (progress < 0.98) {
+          this.drawPulseShape(drawTarget.x, drawTarget.y, "#ffffff", 0.7, tipSize * 1.15, source, target);
+        }
+        break;
+      case "city-lights":
+        this.ctx.globalAlpha = fullAlpha * 0.3;
+        this.drawVisualEdge(source, target, edgeId, mode);
+        this.ctx.globalAlpha = fullAlpha;
+        this.drawVisualEdge(source, drawTarget, edgeId, mode);
+        this.drawMovingDots(source, target, color, 7, "circle", progress);
+        break;
+      case "data-packets":
+        this.ctx.globalAlpha = fullAlpha * 0.32;
+        this.drawVisualEdge(source, target, edgeId, mode);
+        this.ctx.globalAlpha = fullAlpha;
+        this.drawVisualEdge(source, drawTarget, edgeId, mode);
+        this.drawMovingDots(source, target, color, 6, "square", progress);
+        break;
+      case "scanner-sweep": {
+        this.ctx.globalAlpha = fullAlpha * 0.36;
+        this.drawVisualEdge(source, target, edgeId, mode);
+        this.ctx.globalAlpha = fullAlpha;
+        this.drawVisualEdge(source, drawTarget, edgeId, mode);
+        const sweep = this.pointOnEdge(source, target, progress);
+        const size = Math.max(8, 14 / this.viewport.scale);
+        this.ctx.beginPath();
+        this.ctx.moveTo(sweep.x - normal.x * size, sweep.y - normal.y * size);
+        this.ctx.lineTo(sweep.x + normal.x * size, sweep.y + normal.y * size);
+        this.ctx.stroke();
+        break;
+      }
+      case "double-trace": {
+        const offset = 3 / this.viewport.scale;
+        for (const side of [-1, 1]) {
+          this.ctx.beginPath();
+          this.ctx.moveTo(source.x + normal.x * offset * side, source.y + normal.y * offset * side);
+          this.ctx.lineTo(drawTarget.x + normal.x * offset * side, drawTarget.y + normal.y * offset * side);
+          this.ctx.stroke();
+        }
+        if (progress < 0.98) {
+          this.drawPulseShape(drawTarget.x, drawTarget.y, color, 0.58, tipSize, source, target);
+        }
+        break;
+      }
+      case "constellation-sketch":
+        this.ctx.globalAlpha = fullAlpha * 0.22;
+        this.drawVisualEdge(source, target, edgeId, mode);
+        this.ctx.globalAlpha = fullAlpha;
+        this.ctx.setLineDash([2 / this.viewport.scale, 6 / this.viewport.scale]);
+        this.drawVisualEdge(source, drawTarget, edgeId, mode);
+        this.drawSketchStars(source, target, color, progress);
+        break;
+      case "radar-fan": {
+        this.ctx.globalAlpha = fullAlpha * 0.34;
+        this.drawVisualEdge(source, target, edgeId, mode);
+        this.ctx.globalAlpha = fullAlpha;
+        this.drawVisualEdge(source, drawTarget, edgeId, mode);
+        const radius = Math.max(7, 12 / this.viewport.scale);
+        this.ctx.beginPath();
+        this.ctx.arc(drawTarget.x, drawTarget.y, radius, 0, Math.PI * 2);
+        this.ctx.stroke();
+        this.ctx.globalAlpha = fullAlpha * 0.18;
+        this.ctx.beginPath();
+        this.ctx.moveTo(drawTarget.x, drawTarget.y);
+        this.ctx.arc(drawTarget.x, drawTarget.y, radius * 2.1, this.time * 2.2, this.time * 2.2 + 0.7);
+        this.ctx.closePath();
+        this.ctx.fillStyle = color;
+        this.ctx.fill();
+        break;
+      }
+      case "trace":
+      default:
+        this.drawVisualEdge(source, drawTarget, edgeId, mode);
+        if (progress < 0.98) {
+          this.drawPulseShape(drawTarget.x, drawTarget.y, color, 0.65, tipSize, source, target);
+        }
+        break;
+    }
+
+    this.ctx.restore();
+    this.ctx.globalAlpha = fullAlpha;
+  }
+
+  private drawSimpleLine(from: { x: number; y: number }, to: { x: number; y: number }): void {
+    this.ctx.beginPath();
+    this.ctx.moveTo(from.x, from.y);
+    this.ctx.lineTo(to.x, to.y);
+    this.ctx.stroke();
+  }
+
+  private drawLightningLine(source: GraphNode, target: { x: number; y: number }, edgeId: string, progress: number): void {
+    const normal = this.edgeNormal(source, { ...source, ...target });
+    const segments = 6;
+    this.ctx.beginPath();
+    for (let index = 0; index <= segments; index += 1) {
+      const t = index / segments;
+      const point = this.pointOnEdge(source, { ...source, ...target }, t);
+      const jitter = index === 0 || index === segments ? 0 : (Math.sin(this.edgePhase(edgeId) * 60 + index * 2.7 + this.time * 12) * 7 * progress) / this.viewport.scale;
+      const x = point.x + normal.x * jitter;
+      const y = point.y + normal.y * jitter;
+      if (index === 0) {
+        this.ctx.moveTo(x, y);
+      } else {
+        this.ctx.lineTo(x, y);
+      }
+    }
+    this.ctx.stroke();
+  }
+
+  private drawMovingDots(source: GraphNode, target: GraphNode, color: string, count: number, shape: "circle" | "square", progress: number): void {
+    const normal = this.edgeNormal(source, target);
+    const baseAlpha = this.ctx.globalAlpha;
+    this.ctx.fillStyle = color;
+    for (let index = 0; index < count; index += 1) {
+      const t = (this.time * (0.2 + this.config.motion.drawingLineSpeed * 1.7) + index / count + this.edgePhase(`${source.id}-${target.id}-${index}`)) % 1;
+      if (t > Math.max(0.08, progress)) {
+        continue;
+      }
+      const point = this.pointOnEdge(source, target, t);
+      const offset = ((index % 3) - 1) * 2.5 / this.viewport.scale;
+      const size = Math.max(1.6, 3.2 / this.viewport.scale);
+      this.ctx.globalAlpha = baseAlpha * 0.72;
+      if (shape === "square") {
+        this.ctx.fillRect(point.x + normal.x * offset - size / 2, point.y + normal.y * offset - size / 2, size, size);
+      } else {
+        this.ctx.beginPath();
+        this.ctx.arc(point.x + normal.x * offset, point.y + normal.y * offset, size * 0.55, 0, Math.PI * 2);
+        this.ctx.fill();
+      }
+    }
+  }
+
+  private drawSketchStars(source: GraphNode, target: GraphNode, color: string, progress: number): void {
+    const baseAlpha = this.ctx.globalAlpha;
+    this.ctx.fillStyle = color;
+    for (let index = 0; index < 5; index += 1) {
+      const t = (index + 1) / 6;
+      if (t > progress) {
+        continue;
+      }
+      const point = this.pointOnEdge(source, target, t);
+      const size = Math.max(1.2, (1.8 + index * 0.18) / this.viewport.scale);
+      this.ctx.globalAlpha = baseAlpha * 0.78;
+      this.ctx.beginPath();
+      this.ctx.arc(point.x, point.y, size, 0, Math.PI * 2);
+      this.ctx.fill();
+    }
   }
 
   private drawVisualNode(node: GraphNode, radius: number, shape: VisualNodeShape, accent: string): void {

@@ -1,7 +1,7 @@
 import type { ConstellaController } from "../core/ConstellaController";
 import type { Unsubscribe } from "../core/EventBus";
-import { BACKGROUNDS, CAMERAS, CLICK_ANIMATIONS, COLORS, MODES, NODE_MOVEMENT_STYLES, PATH_ANIMATIONS, PULSE_STYLES, VISUALS } from "../core/types";
-import type { ActiveConfiguration, BackgroundId, BuiltInOption, CameraId, ClickAnimationId, ColorsId, GraphScope, ModeId, NodeMovementStyleId, PathAnimationId, PulseStyleId, VisualId } from "../core/types";
+import { BACKGROUNDS, CAMERAS, CLICK_ANIMATIONS, COLORS, DRAWING_LINE_STYLES, MODES, NODE_MOVEMENT_STYLES, PATH_ANIMATIONS, PULSE_STYLES, VISUALS } from "../core/types";
+import type { ActiveConfiguration, BackgroundId, BuiltInOption, CameraId, ClickAnimationId, ColorsId, DrawingLineStyleId, GraphScope, ModeId, NodeMovementStyleId, PathAnimationId, PulseStyleId, VisualId } from "../core/types";
 import { PerformanceManager } from "../performance/PerformanceManager";
 import { JsonTransferModal, PlaylistEditorModal, TemplateEditorModal, TextPromptModal } from "./modals";
 
@@ -285,6 +285,9 @@ export class ControlPanel {
     section.appendChild(this.toggleControl("Drawing Lines", config.motion.drawingLinesEnabled, (value) =>
       this.controller.updateMotion("drawingLinesEnabled", value)
     ));
+    section.appendChild(this.select("Drawing Line Style", config.motion.drawingLineStyle, DRAWING_LINE_STYLES, (value) =>
+      this.controller.updateMotion("drawingLineStyle", value)
+    ));
     section.appendChild(this.slider("Drawing Line Speed", config.motion.drawingLineSpeed, (value) =>
       this.controller.updateMotion("drawingLineSpeed", value)
     ));
@@ -333,6 +336,9 @@ export class ControlPanel {
     section.appendChild(this.select("Pulse Style", config.motion.pulseStyle, PULSE_STYLES, (value) => this.controller.updateMotion("pulseStyle", value)));
     section.appendChild(this.toggleControl("Drawing Lines", config.motion.drawingLinesEnabled, (value) =>
       this.controller.updateMotion("drawingLinesEnabled", value)
+    ));
+    section.appendChild(this.select("Drawing Line Style", config.motion.drawingLineStyle, DRAWING_LINE_STYLES, (value) =>
+      this.controller.updateMotion("drawingLineStyle", value)
     ));
     section.appendChild(this.slider("Drawing Line Speed", config.motion.drawingLineSpeed, (value) =>
       this.controller.updateMotion("drawingLineSpeed", value)
@@ -443,7 +449,7 @@ export class ControlPanel {
     ];
   }
 
-  private select<T extends ModeId | VisualId | ColorsId | CameraId | GraphScope | PathAnimationId | PulseStyleId | BackgroundId | NodeMovementStyleId | ClickAnimationId | ActiveConfiguration["graph"]["dateFilter"] | ActiveConfiguration["journey"]["deadEndBehavior"] | ActiveConfiguration["journey"]["afterJourney"]>(
+  private select<T extends ModeId | VisualId | ColorsId | CameraId | GraphScope | PathAnimationId | PulseStyleId | BackgroundId | NodeMovementStyleId | ClickAnimationId | DrawingLineStyleId | ActiveConfiguration["graph"]["dateFilter"] | ActiveConfiguration["journey"]["deadEndBehavior"] | ActiveConfiguration["journey"]["afterJourney"]>(
     label: string,
     value: T,
     options: BuiltInOption<T>[],
