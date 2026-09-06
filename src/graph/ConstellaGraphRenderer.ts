@@ -109,6 +109,20 @@ export class ConstellaGraphRenderer {
     this.journeyIndex = currentIndex;
   }
 
+  exportPng(): Promise<Blob> {
+    this.resize();
+    this.draw();
+    return new Promise((resolve, reject) => {
+      this.canvas.toBlob((blob) => {
+        if (blob) {
+          resolve(blob);
+          return;
+        }
+        reject(new Error("Constella could not create a PNG export."));
+      }, "image/png");
+    });
+  }
+
   start(): void {
     if (this.animationFrame !== null) {
       return;

@@ -119,6 +119,8 @@ The Quick Bar appears at the bottom of the Constella view. It lets you quickly:
 - adjust speed and intensity;
 - randomize the current setup;
 - save the current setup;
+- export the current graph as a PNG;
+- open fullscreen or a second-screen pop-out;
 - open the Control Panel.
 
 The Quick Bar can also be collapsed into a compact icon.
@@ -322,12 +324,13 @@ The built-in `Evening Flow` playlist demonstrates this system. You can create a 
 
 ## Import and Export
 
-Constella can export and import templates and playlists as JSON.
+Constella can export and import templates and playlists as JSON. It can also export the current graph view as a PNG image from the Quick Bar or Command Palette.
 
 Relevant commands:
 
 - `Constella: Export Templates and Playlists`
 - `Constella: Import Templates and Playlists`
+- `Constella: Export Graph as PNG`
 
 The exported JSON contains Constella settings only. It does not include note content.
 
@@ -368,6 +371,7 @@ Useful commands:
 - `Constella: Save Current Setup`
 - `Constella: Focus Current Note`
 - `Constella: Toggle Fullscreen`
+- `Constella: Export Graph as PNG`
 - `Constella: Export Templates and Playlists`
 - `Constella: Import Templates and Playlists`
 

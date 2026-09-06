@@ -23,7 +23,8 @@ export default class ConstellaPlugin extends Plugin {
 
     this.registerView(VIEW_TYPE_CONSTELLA, (leaf) => new ConstellaView(leaf, this.requireController(), {
       toggleFullscreen: () => this.toggleFullscreenDisplayMode(),
-      openSecondScreen: () => this.openSecondScreenDisplay()
+      openSecondScreen: () => this.openSecondScreenDisplay(),
+      exportPng: () => this.exportPng()
     }));
     this.addRibbonIcon("sparkles", "Open Constella", () => void this.activateView());
     this.statusBarEl = this.addStatusBarItem();
@@ -167,6 +168,11 @@ export default class ConstellaPlugin extends Plugin {
       }
     });
     this.addCommand({
+      id: "export-png",
+      name: "Export Graph as PNG",
+      callback: () => void this.exportPng()
+    });
+    this.addCommand({
       id: "import-json",
       name: "Import Templates and Playlists",
       callback: () => {
@@ -249,6 +255,25 @@ export default class ConstellaPlugin extends Plugin {
       await this.activateView();
       this.requireController().play();
     }
+  }
+
+  private async exportPng(): Promise<void> {
+    await this.activateView();
+    const view = this.getConstellaView();
+    if (!view) {
+      new Notice("Open Constella before exporting a PNG.");
+      return;
+    }
+    await view.exportPng();
+  }
+
+  private getConstellaView(): ConstellaView | null {
+    for (const leaf of this.app.workspace.getLeavesOfType(VIEW_TYPE_CONSTELLA)) {
+      if (leaf.view instanceof ConstellaView) {
+        return leaf.view;
+      }
+    }
+    return null;
   }
 
   private createPopoutLeaf() {

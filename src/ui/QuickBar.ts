@@ -8,6 +8,7 @@ interface QuickBarActions {
   togglePanel: () => void;
   toggleFullscreen: () => void | Promise<void>;
   openSecondScreen: () => void | Promise<void>;
+  exportPng: () => void | Promise<void>;
 }
 
 export class QuickBar {
@@ -61,6 +62,7 @@ export class QuickBar {
     ));
     this.rootEl.appendChild(this.iconButton("shuffle", "Smart randomize", () => this.controller.randomizeSafe()));
     this.rootEl.appendChild(this.iconButton("save", "Save current setup", () => this.controller.saveTemplate()));
+    this.rootEl.appendChild(this.iconButton("image-down", "Export graph as PNG", this.actions.exportPng));
     this.rootEl.appendChild(this.iconButton("maximize", "Toggle fullscreen display mode", this.actions.toggleFullscreen));
     this.rootEl.appendChild(this.iconButton("panel-top-open", "Open second-screen pop-out display", this.actions.openSecondScreen));
     this.rootEl.appendChild(this.iconButton("settings", "Open control panel", this.actions.togglePanel));

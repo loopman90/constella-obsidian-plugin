@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.5
+
+- Added PNG export for the current Constella graph view from both the command palette and the Quick Bar.
+
 ## 0.4.4
 
 - Moved the Constella tab layout fallback fully into CSS so the view remains review-compliant without direct style assignments.

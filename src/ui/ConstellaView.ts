@@ -12,6 +12,7 @@ export const VIEW_TYPE_CONSTELLA = "constella-view";
 interface ConstellaViewActions {
   toggleFullscreen: () => void | Promise<void>;
   openSecondScreen: () => void | Promise<void>;
+  exportPng: () => void | Promise<void>;
 }
 
 export class ConstellaView extends ItemView {
@@ -55,7 +56,8 @@ export class ConstellaView extends ItemView {
       this.quickBar = new QuickBar(overlays, this.controller, {
         togglePanel: () => this.controlPanel?.toggle(),
         toggleFullscreen: this.actions.toggleFullscreen,
-        openSecondScreen: this.actions.openSecondScreen
+        openSecondScreen: this.actions.openSecondScreen,
+        exportPng: this.actions.exportPng
       });
 
       this.renderer = new ConstellaGraphRenderer(this.app, canvasHost, this.controller.configuration, {
@@ -100,6 +102,21 @@ export class ConstellaView extends ItemView {
     this.nodeInfo = null;
     this.quickBar = null;
     this.containerEl.removeClass("constella-leaf");
+  }
+
+  async exportPng(): Promise<void> {
+    if (!this.renderer) {
+      new Notice("Open Constella before exporting a PNG.");
+      return;
+    }
+    const blob = await this.renderer.exportPng();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = this.exportFilename();
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    new Notice("Constella PNG export started.");
   }
 
   private readonly onKeyDown = (event: KeyboardEvent): void => {
@@ -178,5 +195,10 @@ export class ConstellaView extends ItemView {
   private firstRunButton(containerEl: HTMLElement, label: string, onClick: () => Promise<void>): void {
     const button = containerEl.createEl("button", { text: label });
     button.addEventListener("click", () => void onClick());
+  }
+
+  private exportFilename(): string {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    return `constella-graph-${timestamp}.png`;
   }
 }
