@@ -111,7 +111,7 @@ export class ConstellaView extends ItemView {
     }
     const blob = await this.renderer.exportPng();
     const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
+    const link = createEl("a");
     link.href = url;
     link.download = this.exportFilename();
     link.click();

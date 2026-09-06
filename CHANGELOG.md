@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.6
+
+- Replaced the PNG export link creation with Obsidian's `createEl` helper for cleaner marketplace review output.
+
 ## 0.4.5
 
 - Added PNG export for the current Constella graph view from both the command palette and the Quick Bar.
