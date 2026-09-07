@@ -2,7 +2,12 @@
 
 ## Unreleased
 
+## 0.7.0
+
 - Added a marketplace kit with final plugin page text, privacy copy, screenshot guidance, review response text, and release checklist.
+- Added Mac trackpad-friendly zoom behavior, preserving the cursor focus point instead of jumping around the graph center.
+- Added settings to preserve viewport on graph refresh and temporarily pause automatic camera movement after manual pan or zoom.
+- Added a Quick UI View Lock button that freezes automatic camera movement while keeping manual pan and zoom available.
 
 ## 0.6.0
 

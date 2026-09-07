@@ -330,6 +330,10 @@ export interface ActiveConfiguration {
     showNodeIcons: boolean;
     densityMode: boolean;
     depthLayers: boolean;
+    viewportLock: boolean;
+    preserveViewportOnRefresh: boolean;
+    pauseCameraAfterManualNavigation: boolean;
+    manualCameraPauseSeconds: number;
     labelSize: number;
     edgeThickness: number;
     nodeSize: number;
@@ -346,6 +350,7 @@ export interface ActiveConfiguration {
     showRandomize: boolean;
     showSave: boolean;
     showPngExport: boolean;
+    showViewportLock: boolean;
     showFullscreen: boolean;
     showSecondScreen: boolean;
     showSettings: boolean;

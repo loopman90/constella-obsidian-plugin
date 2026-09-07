@@ -74,6 +74,10 @@ export const DEFAULT_CONFIGURATION: ActiveConfiguration = {
     showNodeIcons: false,
     densityMode: false,
     depthLayers: false,
+    viewportLock: false,
+    preserveViewportOnRefresh: true,
+    pauseCameraAfterManualNavigation: true,
+    manualCameraPauseSeconds: 8,
     labelSize: 0.48,
     edgeThickness: 0.32,
     nodeSize: 0.45
@@ -90,6 +94,7 @@ export const DEFAULT_CONFIGURATION: ActiveConfiguration = {
     showRandomize: true,
     showSave: true,
     showPngExport: true,
+    showViewportLock: true,
     showFullscreen: true,
     showSecondScreen: true,
     showSettings: true,

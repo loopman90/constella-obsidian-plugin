@@ -16,7 +16,11 @@ const DISPLAY_SETTING_KEYS = [
   "showClusterHalos",
   "showNodeIcons",
   "densityMode",
-  "depthLayers"
+  "depthLayers",
+  "viewportLock",
+  "preserveViewportOnRefresh",
+  "pauseCameraAfterManualNavigation",
+  "manualCameraPauseSeconds"
 ] as const;
 
 type DisplaySettingKey = typeof DISPLAY_SETTING_KEYS[number];
@@ -33,6 +37,7 @@ const QUICK_UI_SETTING_KEYS = [
   "showRandomize",
   "showSave",
   "showPngExport",
+  "showViewportLock",
   "showFullscreen",
   "showSecondScreen",
   "showSettings",
@@ -139,6 +144,45 @@ export class ConstellaSettingsTab extends PluginSettingTab {
               type: "toggle" as const,
               key: "depthLayers",
               defaultValue: false
+            }
+          },
+          {
+            name: "View lock",
+            desc: "Prevent automatic camera movement while keeping manual pan and zoom available.",
+            control: {
+              type: "toggle" as const,
+              key: "viewportLock",
+              defaultValue: false
+            }
+          },
+          {
+            name: "Preserve viewport on refresh",
+            desc: "Keep the current zoom and pan when the graph refreshes after metadata or filter changes.",
+            control: {
+              type: "toggle" as const,
+              key: "preserveViewportOnRefresh",
+              defaultValue: true
+            }
+          },
+          {
+            name: "Pause camera after manual navigation",
+            desc: "Temporarily stop automatic camera movement after trackpad zooming or dragging.",
+            control: {
+              type: "toggle" as const,
+              key: "pauseCameraAfterManualNavigation",
+              defaultValue: true
+            }
+          },
+          {
+            name: "Manual camera pause seconds",
+            desc: "How long automatic camera movement pauses after trackpad zooming or dragging.",
+            control: {
+              type: "slider" as const,
+              key: "manualCameraPauseSeconds",
+              defaultValue: 8,
+              min: 0,
+              max: 60,
+              step: 1
             }
           }
         ]
@@ -309,6 +353,15 @@ export class ConstellaSettingsTab extends PluginSettingTab {
             }
           },
           {
+            name: "Quick UI view lock",
+            desc: "Show the lock button that prevents automatic camera movement.",
+            control: {
+              type: "toggle" as const,
+              key: "showViewportLock",
+              defaultValue: true
+            }
+          },
+          {
             name: "Quick UI fullscreen",
             desc: "Show the fullscreen button in the compact quick bar.",
             control: {
@@ -390,11 +443,17 @@ export class ConstellaSettingsTab extends PluginSettingTab {
       };
       await this.plugin.saveConstellaSettings();
     }
-    if (this.isDisplaySettingKey(key) && typeof value === "boolean") {
+    if (this.isDisplaySettingKey(key) && this.isValidDisplaySettingValue(key, value)) {
       this.plugin.settings.configuration = {
         ...this.plugin.settings.configuration,
         display: {
           ...this.plugin.settings.configuration.display,
+          preserveViewportOnRefresh: key === "viewportLock" && value === true
+            ? true
+            : this.plugin.settings.configuration.display.preserveViewportOnRefresh,
+          pauseCameraAfterManualNavigation: key === "viewportLock" && value === true
+            ? true
+            : this.plugin.settings.configuration.display.pauseCameraAfterManualNavigation,
           [key]: value
         }
       };
@@ -428,6 +487,13 @@ export class ConstellaSettingsTab extends PluginSettingTab {
 
   private isDisplaySettingKey(key: string): key is DisplaySettingKey {
     return DISPLAY_SETTING_KEYS.some((displayKey) => displayKey === key);
+  }
+
+  private isValidDisplaySettingValue(key: DisplaySettingKey, value: unknown): boolean {
+    if (key === "manualCameraPauseSeconds") {
+      return typeof value === "number";
+    }
+    return typeof value === "boolean";
   }
 
   private isValidToolSettingValue(key: ToolSettingKey, value: unknown): boolean {

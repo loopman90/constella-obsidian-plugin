@@ -463,11 +463,38 @@ export class ConstellaController {
     key: TKey,
     value: ActiveConfiguration["display"][TKey]
   ): Promise<void> {
+    const normalizedValue = key === "manualCameraPauseSeconds" && typeof value === "number"
+      ? Math.max(0, Math.min(60, Math.round(value)))
+      : value;
     this.updateConfiguration({
       ...cloneConfiguration(this.configuration),
       display: {
         ...this.configuration.display,
-        [key]: value
+        preserveViewportOnRefresh: key === "viewportLock" && normalizedValue === true
+          ? true
+          : this.configuration.display.preserveViewportOnRefresh,
+        pauseCameraAfterManualNavigation: key === "viewportLock" && normalizedValue === true
+          ? true
+          : this.configuration.display.pauseCameraAfterManualNavigation,
+        [key]: normalizedValue
+      },
+      template: {
+        ...this.configuration.template,
+        modified: true
+      }
+    });
+    await this.persist();
+  }
+
+  async toggleViewportLock(): Promise<void> {
+    const viewportLock = !this.configuration.display.viewportLock;
+    this.updateConfiguration({
+      ...cloneConfiguration(this.configuration),
+      display: {
+        ...this.configuration.display,
+        viewportLock,
+        preserveViewportOnRefresh: viewportLock ? true : this.configuration.display.preserveViewportOnRefresh,
+        pauseCameraAfterManualNavigation: viewportLock ? true : this.configuration.display.pauseCameraAfterManualNavigation
       },
       template: {
         ...this.configuration.template,

@@ -192,7 +192,7 @@ Inside the Constella view:
 - Click a node to select it.
 - Double-click a node to open the note.
 - Hover a node to highlight its direct neighbors.
-- Use the Quick Bar to start journeys, switch modes, export PNG screenshots, open fullscreen, or open a pop-out display window.
+- Use the Quick Bar to start journeys, switch modes, lock the view, export PNG screenshots, open fullscreen, or open a pop-out display window.
 
 ## Main Features
 
@@ -207,6 +207,7 @@ Inside the Constella view:
 - Auto-travel journey modes.
 - Visual styles, color schemes, camera motion, node movement, pulses, particles, and drawing-line animations.
 - Optional cluster halos, node icons, density mode, and depth layers.
+- Trackpad-friendly zoom, View Lock, viewport preservation on graph refresh, and optional camera pause after manual navigation.
 - Mini-map, graph health panel, legends, FPS indicator, and reduce-motion mode.
 - Saved visual templates and playlists.
 - PNG screenshot export.
@@ -218,7 +219,7 @@ Inside the Constella view:
 The Control Panel is organized around workflow:
 
 - `Quick`: common actions.
-- `Quick UI`: choose which Quick Bar controls are visible.
+- `Quick UI`: choose which Quick Bar controls are visible, including View Lock.
 - `Graph`: scope, depth, floating notes, filters, and node interaction.
 - `Tools`: mini-map, search results, graph health, saved views, and color rules.
 - `Discovery`: recent, forgotten, hub, orphan, and template filtering.
@@ -228,7 +229,7 @@ The Control Panel is organized around workflow:
 - `Motion`: camera, movement style, pulses, click effects, and reduce motion.
 - `Paths`: path animation and drawing-line behavior.
 - `Presets`: templates and playlists.
-- `Display`: labels, overlays, legend, FPS, fullscreen intent, cursor hiding, and visual display toggles.
+- `Display`: labels, overlays, View Lock, viewport preservation, camera pause after manual navigation, legend, FPS, fullscreen intent, cursor hiding, and visual display toggles.
 
 ## Keyboard Controls
 

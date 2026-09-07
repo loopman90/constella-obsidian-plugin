@@ -194,6 +194,7 @@ export class ControlPanel {
     section.appendChild(this.toggleControl("Randomize Button", config.showRandomize, (value) => this.controller.updateQuickUi("showRandomize", value)));
     section.appendChild(this.toggleControl("Save Button", config.showSave, (value) => this.controller.updateQuickUi("showSave", value)));
     section.appendChild(this.toggleControl("PNG Export Button", config.showPngExport, (value) => this.controller.updateQuickUi("showPngExport", value)));
+    section.appendChild(this.toggleControl("View Lock Button", config.showViewportLock, (value) => this.controller.updateQuickUi("showViewportLock", value)));
     section.appendChild(this.toggleControl("Fullscreen Button", config.showFullscreen, (value) => this.controller.updateQuickUi("showFullscreen", value)));
     section.appendChild(this.toggleControl("Second Screen Button", config.showSecondScreen, (value) => this.controller.updateQuickUi("showSecondScreen", value)));
     section.appendChild(this.toggleControl("Settings Button", config.showSettings, (value) => this.controller.updateQuickUi("showSettings", value)));
@@ -321,6 +322,15 @@ export class ControlPanel {
     });
     section.appendChild(this.toggleControl("Density Mode", config.display.densityMode, (value) => this.controller.updateDisplay("densityMode", value)));
     section.appendChild(this.toggleControl("Reduce Motion", config.motion.reduceMotion, (value) => this.controller.updateMotion("reduceMotion", value)));
+    section.appendChild(this.toggleControl("Preserve Viewport On Refresh", config.display.preserveViewportOnRefresh, (value) =>
+      this.controller.updateDisplay("preserveViewportOnRefresh", value)
+    ));
+    section.appendChild(this.toggleControl("Pause Camera After Manual Navigation", config.display.pauseCameraAfterManualNavigation, (value) =>
+      this.controller.updateDisplay("pauseCameraAfterManualNavigation", value)
+    ));
+    section.appendChild(this.numberControl("Manual Camera Pause Seconds", config.display.manualCameraPauseSeconds, 0, 60, (value) =>
+      this.controller.updateDisplay("manualCameraPauseSeconds", value)
+    ));
     section.appendChild(this.toggleControl("FPS Indicator", config.display.showFps, (value) => this.controller.updateDisplay("showFps", value)));
     section.appendChild(this.toggleControl("Background Effects", config.motion.backgroundEffectsEnabled, (value) =>
       this.controller.updateMotion("backgroundEffectsEnabled", value)
@@ -527,6 +537,16 @@ export class ControlPanel {
     section.appendChild(this.toggleControl("Node Icons", config.display.showNodeIcons, (value) => this.controller.updateDisplay("showNodeIcons", value)));
     section.appendChild(this.toggleControl("Density Mode", config.display.densityMode, (value) => this.controller.updateDisplay("densityMode", value)));
     section.appendChild(this.toggleControl("Depth Layers", config.display.depthLayers, (value) => this.controller.updateDisplay("depthLayers", value)));
+    section.appendChild(this.toggleControl("View Lock", config.display.viewportLock, (value) => this.controller.updateDisplay("viewportLock", value)));
+    section.appendChild(this.toggleControl("Preserve Viewport On Refresh", config.display.preserveViewportOnRefresh, (value) =>
+      this.controller.updateDisplay("preserveViewportOnRefresh", value)
+    ));
+    section.appendChild(this.toggleControl("Pause Camera After Manual Navigation", config.display.pauseCameraAfterManualNavigation, (value) =>
+      this.controller.updateDisplay("pauseCameraAfterManualNavigation", value)
+    ));
+    section.appendChild(this.numberControl("Manual Camera Pause Seconds", config.display.manualCameraPauseSeconds, 0, 60, (value) =>
+      this.controller.updateDisplay("manualCameraPauseSeconds", value)
+    ));
     section.appendChild(this.toggleControl("Legend", config.display.showLegend, (value) => this.controller.updateDisplay("showLegend", value)));
     section.appendChild(this.toggleControl("FPS Indicator", config.display.showFps, (value) => this.controller.updateDisplay("showFps", value)));
     section.appendChild(this.toggleControl("Fullscreen Intent", config.display.fullscreen, (value) => this.controller.updateDisplay("fullscreen", value)));

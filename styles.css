@@ -90,6 +90,13 @@
   color: var(--interactive-accent);
 }
 
+.constella-icon-button.is-active {
+  border-color: rgba(113, 215, 209, 0.82);
+  background: rgba(113, 215, 209, 0.18);
+  color: #e8fffb;
+  box-shadow: 0 0 18px rgba(113, 215, 209, 0.26);
+}
+
 .constella-select-control,
 .constella-slider-control {
   display: grid;

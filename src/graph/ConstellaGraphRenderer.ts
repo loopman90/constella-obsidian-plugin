@@ -67,6 +67,8 @@ export class ConstellaGraphRenderer {
   private fps = 0;
   private fpsFrameCount = 0;
   private fpsStartedAt = performance.now();
+  private hasCenteredGraph = false;
+  private cameraPausedUntil = 0;
 
   constructor(
     private readonly app: App,
@@ -87,13 +89,18 @@ export class ConstellaGraphRenderer {
   }
 
   setGraph(graph: GraphData): void {
+    const previousSelectedId = this.selectedNode?.id ?? null;
     this.graph = graph;
     this.nodeById = new Map(graph.nodes.map((node) => [node.id, node]));
     this.hoverNode = null;
     this.hoverNeighborIds = new Set();
-    this.selectedNode = null;
-    this.options.onNodeSelected(null);
-    this.centerGraph();
+    const nextSelected = previousSelectedId ? this.nodeById.get(previousSelectedId) ?? null : null;
+    this.selectedNode = nextSelected;
+    this.options.onNodeSelected(nextSelected);
+    if ((!this.config.display.viewportLock && !this.config.display.preserveViewportOnRefresh) || !this.hasCenteredGraph) {
+      this.centerGraph();
+      this.hasCenteredGraph = true;
+    }
   }
 
   setConfiguration(config: ActiveConfiguration): void {
@@ -1543,7 +1550,13 @@ export class ConstellaGraphRenderer {
   }
 
   private followCamera(dt: number): void {
-    if (this.config.camera === "static" || !this.selectedNode || this.pointer.dragging) {
+    if (
+      this.config.display.viewportLock ||
+      this.config.camera === "static" ||
+      !this.selectedNode ||
+      this.pointer.dragging ||
+      performance.now() < this.cameraPausedUntil
+    ) {
       return;
     }
     const width = this.canvas.clientWidth;
@@ -3011,6 +3024,7 @@ export class ConstellaGraphRenderer {
   private centerGraph(): void {
     if (this.graph.nodes.length === 0) {
       this.viewport = { x: 0, y: 0, scale: 1 };
+      this.hasCenteredGraph = false;
       return;
     }
 
@@ -3033,6 +3047,7 @@ export class ConstellaGraphRenderer {
       y: -((bounds.minY + bounds.maxY) / 2),
       scale: Math.max(0.18, Math.min(1.8, Math.min(width / graphWidth, height / graphHeight) * 0.68))
     };
+    this.hasCenteredGraph = true;
   }
 
   private resize(): void {
@@ -3066,6 +3081,9 @@ export class ConstellaGraphRenderer {
     this.pointer.moved = this.pointer.moved || Math.abs(dx) + Math.abs(dy) > 3;
     this.viewport.x += dx;
     this.viewport.y += dy;
+    if (this.pointer.moved) {
+      this.pauseCameraAfterManualNavigation();
+    }
     this.updateHover(null);
   };
 
@@ -3090,10 +3108,29 @@ export class ConstellaGraphRenderer {
 
   private readonly onWheel = (event: WheelEvent): void => {
     event.preventDefault();
+    this.pauseCameraAfterManualNavigation();
+    const rect = this.canvas.getBoundingClientRect();
+    const width = this.canvas.clientWidth;
+    const height = this.canvas.clientHeight;
+    const pointerX = event.clientX - rect.left - width / 2;
+    const pointerY = event.clientY - rect.top - height / 2;
     const previousScale = this.viewport.scale;
-    const nextScale = Math.max(0.08, Math.min(5, previousScale * (event.deltaY > 0 ? 0.9 : 1.1)));
+    const worldX = (pointerX - this.viewport.x) / previousScale;
+    const worldY = (pointerY - this.viewport.y) / previousScale;
+    const delta = Math.max(-80, Math.min(80, event.deltaY));
+    const zoomFactor = Math.exp(-delta * 0.0025);
+    const nextScale = Math.max(0.08, Math.min(5, previousScale * zoomFactor));
     this.viewport.scale = nextScale;
+    this.viewport.x = pointerX - worldX * nextScale;
+    this.viewport.y = pointerY - worldY * nextScale;
   };
+
+  private pauseCameraAfterManualNavigation(): void {
+    if (!this.config.display.pauseCameraAfterManualNavigation) {
+      return;
+    }
+    this.cameraPausedUntil = performance.now() + Math.max(0, this.config.display.manualCameraPauseSeconds) * 1000;
+  }
 
   private readonly onDoubleClick = (event: MouseEvent): void => {
     const node = this.nodeAt(event.clientX, event.clientY);

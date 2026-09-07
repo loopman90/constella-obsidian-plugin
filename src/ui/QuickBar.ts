@@ -86,6 +86,14 @@ export class QuickBar {
     if (quickUi.showPngExport) {
       this.rootEl.appendChild(this.iconButton("image-down", "Export graph as PNG", this.actions.exportPng));
     }
+    if (quickUi.showViewportLock) {
+      const locked = this.controller.configuration.display.viewportLock;
+      const button = this.iconButton(locked ? "lock" : "unlock", locked ? "Unlock view" : "Lock view", () =>
+        this.controller.toggleViewportLock()
+      );
+      button.toggleClass("is-active", locked);
+      this.rootEl.appendChild(button);
+    }
     if (quickUi.showFullscreen) {
       this.rootEl.appendChild(this.iconButton("maximize", "Toggle fullscreen display mode", this.actions.toggleFullscreen));
     }
