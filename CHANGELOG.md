@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Added a marketplace kit with final plugin page text, privacy copy, screenshot guidance, review response text, and release checklist.
+
 ## 0.6.0
 
 - Added a first-run onboarding wizard with Calm, Research, Presentation, and Large Vault starter profiles.

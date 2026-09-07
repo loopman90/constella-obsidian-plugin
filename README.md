@@ -7,6 +7,7 @@ Constella turns your Obsidian vault into an interactive, local-first knowledge g
 - GitHub: [https://github.com/loopman90/constella-obsidian-plugin](https://github.com/loopman90/constella-obsidian-plugin)
 - Releases: [https://github.com/loopman90/constella-obsidian-plugin/releases](https://github.com/loopman90/constella-obsidian-plugin/releases)
 - Website: [https://loopman90.github.io/constella-obsidian-plugin/](https://loopman90.github.io/constella-obsidian-plugin/)
+- Marketplace kit: [MARKETPLACE.md](MARKETPLACE.md)
 
 Constella is read-only and local. It reads vault metadata to render the graph, but it does not modify notes, does not use analytics, and does not send vault data anywhere.
 
@@ -311,3 +312,5 @@ npm run build
 ```
 
 See [CHANGELOG.md](CHANGELOG.md) for release notes.
+
+Use [MARKETPLACE.md](MARKETPLACE.md) for the final Obsidian plugin page text, privacy explanation, screenshot checklist, and release checklist.
