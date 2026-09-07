@@ -163,10 +163,29 @@ export class ConstellaView extends ItemView {
 
   private renderFirstRun(containerEl: HTMLElement): void {
     const firstRun = containerEl.createDiv({ cls: "constella-first-run" });
-    firstRun.createDiv({ cls: "constella-first-run-title", text: "Welcome to Constella" });
-    firstRun.createDiv({ cls: "constella-first-run-copy", text: "Turn your vault into a living network." });
+    firstRun.createDiv({ cls: "constella-first-run-kicker", text: "First setup" });
+    firstRun.createDiv({ cls: "constella-first-run-title", text: "Choose how Constella should start" });
+    firstRun.createDiv({
+      cls: "constella-first-run-copy",
+      text: "Pick one safe starter profile. You can change every setting later from the Control Panel."
+    });
     const actions = firstRun.createDiv({ cls: "constella-first-run-actions" });
-    this.firstRunButton(actions, "Start Cinematic", async () => {
+    this.firstRunButton(actions, "Calm", "Quiet graph, readable labels, gentle motion.", async () => {
+      await this.controller.loadTemplate("builtin-calm");
+      await this.controller.applyPerformanceProfile("balanced");
+      await this.controller.dismissFirstRun();
+      firstRun.remove();
+    });
+    this.firstRunButton(actions, "Research", "Balanced exploration with graph tools visible.", async () => {
+      await this.controller.applyPerformanceProfile("balanced");
+      await this.controller.updateMode("research-trail");
+      await this.controller.updateVisual("research-board");
+      await this.controller.updateColors("notebook-blue");
+      await this.controller.dismissFirstRun();
+      firstRun.remove();
+    });
+    this.firstRunButton(actions, "Presentation", "Cinematic visuals for fullscreen or second screen.", async () => {
+      await this.controller.applyPerformanceProfile("high-quality");
       await this.controller.updateMode("path-journey");
       await this.controller.updateVisual("deep-space");
       await this.controller.updateColors("aurora");
@@ -175,25 +194,25 @@ export class ConstellaView extends ItemView {
       await this.controller.dismissFirstRun();
       firstRun.remove();
     });
-    this.firstRunButton(actions, "Start Constellation", async () => {
-      await this.controller.loadTemplate("builtin-constellation");
-      this.controller.play();
+    this.firstRunButton(actions, "Large Vault", "Faster defaults for big vaults and laptops.", async () => {
+      await this.controller.applyPerformanceProfile("large-vault");
+      await this.controller.updateMode("hub-explorer");
+      await this.controller.updateVisual("clean");
+      await this.controller.updateColors("graphite");
       await this.controller.dismissFirstRun();
       firstRun.remove();
     });
-    this.firstRunButton(actions, "Open Playground", async () => {
-      await this.controller.randomizeSafe();
-      await this.controller.dismissFirstRun();
-      firstRun.remove();
-    });
-    this.firstRunButton(actions, "Skip", async () => {
+    const footer = firstRun.createDiv({ cls: "constella-first-run-footer" });
+    this.firstRunButton(footer, "Skip setup", "Keep defaults and open the graph.", async () => {
       await this.controller.dismissFirstRun();
       firstRun.remove();
     });
   }
 
-  private firstRunButton(containerEl: HTMLElement, label: string, onClick: () => Promise<void>): void {
-    const button = containerEl.createEl("button", { text: label });
+  private firstRunButton(containerEl: HTMLElement, label: string, description: string, onClick: () => Promise<void>): void {
+    const button = containerEl.createEl("button", { cls: "constella-first-run-option" });
+    button.createSpan({ cls: "constella-first-run-option-title", text: label });
+    button.createSpan({ cls: "constella-first-run-option-copy", text: description });
     button.addEventListener("click", () => void onClick());
   }
 

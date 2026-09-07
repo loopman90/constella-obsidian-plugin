@@ -178,7 +178,8 @@ export class ConstellaGraphRenderer {
       return;
     }
 
-    const strength = (4 + this.config.motion.nodeMovementStrength * 42) * this.config.motion.visualIntensity;
+    const budget = this.performanceManager.budget(this.graph, this.config);
+    const strength = (4 + this.config.motion.nodeMovementStrength * 42) * this.config.motion.visualIntensity * budget.motionScale;
     const speed = 0.25 + this.config.motion.nodeMovementSpeed * 3.5 + this.config.motion.animationSpeed;
     const pinned = new Set(this.config.interaction.pinnedNodeIds);
     this.graph.nodes.forEach((node, index) => {
@@ -477,7 +478,8 @@ export class ConstellaGraphRenderer {
       const depth = this.nodeDepthFactor(node);
       const radius = this.nodeRadius(node) * profile.nodeMultiplier * depth.radius;
       const dimmedByHover = this.hoverNode && !hovered && !neighbor && !selected;
-      const glowStrength = this.config.motion.glowEnabled ? Math.max(0.12, this.config.motion.glowStrength) * Math.max(0.7, profile.glowMultiplier) * bloomFactor : 0;
+      const budget = this.performanceManager.budget(this.graph, this.config);
+      const glowStrength = this.config.motion.glowEnabled ? Math.max(0.12, this.config.motion.glowStrength) * Math.max(0.7, profile.glowMultiplier) * bloomFactor * budget.glowScale : 0;
       const glowRadius = radius * (currentJourney ? 6.8 : selected || hovered ? 5.2 : 3.2) * Math.max(0.35, this.config.motion.visualIntensity) * glowStrength;
 
       if (this.config.motion.glowEnabled && glowRadius > radius && !dimmedByHover) {
@@ -1122,7 +1124,7 @@ export class ConstellaGraphRenderer {
       return true;
     }
     if (!this.config.display.densityMode) {
-      return this.viewport.scale > labelThreshold;
+      return this.viewport.scale > labelThreshold / this.performanceManager.budget(this.graph, this.config).labelScale;
     }
     const nodeCount = this.graph.nodes.length;
     const densityPenalty = nodeCount > 650 ? 0.48 : nodeCount > 350 ? 0.32 : nodeCount > 180 ? 0.18 : 0.08;
@@ -1132,7 +1134,7 @@ export class ConstellaGraphRenderer {
     if (nodeCount > 350) {
       return node.connectionCount >= 4 || node.lastModified > Date.now() - 1000 * 60 * 60 * 24 * 21;
     }
-    return true;
+    return this.performanceManager.budget(this.graph, this.config).labelScale > 0.35 || node.connectionCount >= 3;
   }
 
   private drawPathAnimation(source: GraphNode, target: GraphNode, color: string, activeJourneyEdge: boolean): void {
@@ -2513,19 +2515,20 @@ export class ConstellaGraphRenderer {
 
   private densityEdgeFactor(): number {
     if (!this.config.display.densityMode) {
-      return 1;
+      return this.performanceManager.budget(this.graph, this.config).edgeScale;
     }
+    const budgetScale = this.performanceManager.budget(this.graph, this.config).edgeScale;
     const nodeCount = this.graph.nodes.length;
     if (nodeCount <= 160) {
-      return 0.9;
+      return 0.9 * budgetScale;
     }
     if (nodeCount <= 350) {
-      return 0.74;
+      return 0.74 * budgetScale;
     }
     if (nodeCount <= 700) {
-      return 0.58;
+      return 0.58 * budgetScale;
     }
-    return 0.42;
+    return 0.42 * budgetScale;
   }
 
   private updateHover(node: GraphNode | null): void {

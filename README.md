@@ -256,16 +256,18 @@ Constella enumerates Markdown files in the vault because it needs file paths and
 
 Obsidian expects the GitHub release tag to match the `manifest.json` version exactly.
 
+Constella follows minor-version discipline for larger changes. Do not overwrite existing releases. Use the next meaningful version, such as `0.6.0`, `0.7.0`, and eventually `1.0.0`.
+
 Correct:
 
 ```text
-0.5.1
+0.6.0
 ```
 
 Incorrect:
 
 ```text
-v0.5.1
+v0.6.0
 ```
 
 Each release must include:
@@ -304,6 +306,7 @@ Useful commands:
 
 ```bash
 npm run typecheck
+npm run version:check
 npm run build
 ```
 

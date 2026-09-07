@@ -3,6 +3,7 @@ import type { Unsubscribe } from "../core/EventBus";
 import { BACKGROUNDS, CAMERAS, CLICK_ANIMATIONS, COLORS, DRAWING_LINE_STYLES, MODES, NODE_MOVEMENT_STYLES, PATH_ANIMATIONS, PULSE_STYLES, VISUALS } from "../core/types";
 import type { ActiveConfiguration, BackgroundId, BuiltInOption, CameraId, ClickAnimationId, ColorsId, DrawingLineStyleId, GraphNode, GraphScope, ModeId, NodeMovementStyleId, PathAnimationId, PulseStyleId, VisualId } from "../core/types";
 import { PerformanceManager } from "../performance/PerformanceManager";
+import type { PerformanceProfile } from "../settings/Settings";
 import { JsonTransferModal, PlaylistEditorModal, TemplateEditorModal, TextPromptModal } from "./modals";
 
 type PanelSection =
@@ -10,6 +11,7 @@ type PanelSection =
   | "Quick UI"
   | "Presets"
   | "Graph"
+  | "Performance"
   | "Visual"
   | "Background"
   | "Motion"
@@ -24,6 +26,7 @@ const PANEL_SECTIONS: PanelSection[] = [
   "Quick UI",
   "Graph",
   "Tools",
+  "Performance",
   "Discovery",
   "Journey",
   "Visual",
@@ -113,6 +116,9 @@ export class ControlPanel {
         break;
       case "Graph":
         this.renderGraph(body);
+        break;
+      case "Performance":
+        this.renderPerformance(body);
         break;
       case "Visual":
         this.renderVisual(body);
@@ -299,6 +305,30 @@ export class ControlPanel {
       new TextPromptModal(this.controller.app, "Save Visual Preset", "Visual Experiment", (name) => this.controller.saveTemplateAs(name)).open();
     }));
     section.appendChild(this.actionButton("Reset Visual", () => this.controller.resetSection("display")));
+  }
+
+  private renderPerformance(parent: HTMLElement): void {
+    const config = this.controller.configuration;
+    const graph = this.controller.currentGraph;
+    const budget = this.performanceManager.budget(graph, config);
+    const section = this.section(parent, "Performance", "Choose a rendering budget for your vault and machine.");
+    section.appendChild(this.select("Profile", this.controller.performanceProfile, this.performanceOptions(), (value) =>
+      this.controller.applyPerformanceProfile(value), false
+    ));
+    section.createDiv({
+      cls: "constella-help-text",
+      text: `Current load: ${graph.nodes.length} nodes, ${graph.edges.length} edges. Particles ${Math.round(budget.particleScale * 100)}%, labels ${Math.round(budget.labelScale * 100)}%, edges ${Math.round(budget.edgeScale * 100)}%.`
+    });
+    section.appendChild(this.toggleControl("Density Mode", config.display.densityMode, (value) => this.controller.updateDisplay("densityMode", value)));
+    section.appendChild(this.toggleControl("Reduce Motion", config.motion.reduceMotion, (value) => this.controller.updateMotion("reduceMotion", value)));
+    section.appendChild(this.toggleControl("FPS Indicator", config.display.showFps, (value) => this.controller.updateDisplay("showFps", value)));
+    section.appendChild(this.toggleControl("Background Effects", config.motion.backgroundEffectsEnabled, (value) =>
+      this.controller.updateMotion("backgroundEffectsEnabled", value)
+    ));
+    section.appendChild(this.toggleControl("Particles", config.motion.particlesEnabled, (value) => this.controller.updateMotion("particlesEnabled", value)));
+    section.appendChild(this.toggleControl("Connection Pulses", config.motion.connectionPulsesEnabled, (value) =>
+      this.controller.updateMotion("connectionPulsesEnabled", value)
+    ));
   }
 
   private renderBackground(parent: HTMLElement): void {
@@ -527,7 +557,18 @@ export class ControlPanel {
     ];
   }
 
-  private select<T extends ModeId | VisualId | ColorsId | CameraId | GraphScope | PathAnimationId | PulseStyleId | BackgroundId | NodeMovementStyleId | ClickAnimationId | DrawingLineStyleId | ActiveConfiguration["graph"]["dateFilter"] | ActiveConfiguration["journey"]["deadEndBehavior"] | ActiveConfiguration["journey"]["afterJourney"]>(
+  private performanceOptions(): BuiltInOption<PerformanceProfile>[] {
+    return [
+      { id: "auto", label: "Auto" },
+      { id: "balanced", label: "Balanced" },
+      { id: "high-quality", label: "High Quality" },
+      { id: "large-vault", label: "Large Vault" },
+      { id: "low-power", label: "Low Power" },
+      { id: "custom", label: "Custom" }
+    ];
+  }
+
+  private select<T extends ModeId | VisualId | ColorsId | CameraId | GraphScope | PathAnimationId | PulseStyleId | BackgroundId | NodeMovementStyleId | ClickAnimationId | DrawingLineStyleId | PerformanceProfile | ActiveConfiguration["graph"]["dateFilter"] | ActiveConfiguration["journey"]["deadEndBehavior"] | ActiveConfiguration["journey"]["afterJourney"]>(
     label: string,
     value: T,
     options: BuiltInOption<T>[],

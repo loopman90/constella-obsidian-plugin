@@ -2,7 +2,7 @@ import { Notice, Plugin, TFile } from "obsidian";
 import { ConstellaController } from "./core/ConstellaController";
 import { ConstellaSettingsTab } from "./settings/ConstellaSettingsTab";
 import { DEFAULT_SETTINGS, normalizeSettings } from "./settings/Settings";
-import type { ConstellaSettings } from "./settings/Settings";
+import type { ConstellaSettings, PerformanceProfile } from "./settings/Settings";
 import { ConstellaView, VIEW_TYPE_CONSTELLA } from "./ui/ConstellaView";
 import { DisplayModeController } from "./display/DisplayModeController";
 import { JsonTransferModal, PlaylistEditorModal, TemplateEditorModal } from "./ui/modals";
@@ -52,6 +52,10 @@ export default class ConstellaPlugin extends Plugin {
 
   async saveConstellaSettings(): Promise<void> {
     await this.saveData(this.settings);
+  }
+
+  async applyPerformanceProfile(profile: PerformanceProfile): Promise<void> {
+    await this.requireController().applyPerformanceProfile(profile);
   }
 
   async activateView(): Promise<void> {

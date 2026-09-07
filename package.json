@@ -1,12 +1,13 @@
 {
   "name": "constella",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "description": "Explore your vault as an interactive, local-first knowledge graph.",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs --watch",
     "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-    "typecheck": "tsc -noEmit -skipLibCheck"
+    "typecheck": "tsc -noEmit -skipLibCheck",
+    "version:check": "node scripts/check-version.mjs"
   },
   "keywords": [
     "obsidian",

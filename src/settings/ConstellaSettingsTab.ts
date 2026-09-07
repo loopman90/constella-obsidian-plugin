@@ -370,8 +370,7 @@ export class ConstellaSettingsTab extends PluginSettingTab {
 
   override async setControlValue(key: string, value: unknown): Promise<void> {
     if (key === "performanceProfile") {
-      this.plugin.settings.performanceProfile = value as typeof this.plugin.settings.performanceProfile;
-      await this.plugin.saveConstellaSettings();
+      await this.plugin.applyPerformanceProfile(value as typeof this.plugin.settings.performanceProfile);
     }
     if (key === "debug" && typeof value === "boolean") {
       this.plugin.settings.debug = value;

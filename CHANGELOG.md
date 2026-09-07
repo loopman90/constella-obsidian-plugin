@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.0
+
+- Added a first-run onboarding wizard with Calm, Research, Presentation, and Large Vault starter profiles.
+- Added active performance profiles that tune particles, glow, drawing lines, motion, labels, density mode, and FPS visibility.
+- Added a dedicated Performance tab to the in-graph Control Panel.
+- Added version discipline checks so package, manifest, and Obsidian version metadata stay aligned for future releases.
+
 ## 0.5.2
 
 - Added optional Cluster Halos, Node Icons, Density Mode, and Depth Layers visual controls, all disabled by default.

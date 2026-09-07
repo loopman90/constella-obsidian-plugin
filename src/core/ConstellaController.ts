@@ -29,6 +29,7 @@ import type {
 } from "./types";
 import { GraphDataService } from "../graph/GraphDataService";
 import type { ConstellaSettings } from "../settings/Settings";
+import type { PerformanceProfile } from "../settings/Settings";
 import { PathEngine } from "../path/PathEngine";
 import { DiscoveryEngine } from "../discovery/DiscoveryEngine";
 import type { DiscoverySummary } from "../discovery/DiscoveryEngine";
@@ -138,12 +139,163 @@ export class ConstellaController {
     return this.settings.showFirstRun;
   }
 
+  get performanceProfile(): PerformanceProfile {
+    return this.settings.performanceProfile;
+  }
+
   async dismissFirstRun(): Promise<void> {
     this.settings = {
       ...this.settings,
       showFirstRun: false
     };
     await this.persist();
+  }
+
+  async applyPerformanceProfile(profile: PerformanceProfile): Promise<void> {
+    const next = this.performanceConfiguration(profile);
+    this.settings = {
+      ...this.settings,
+      performanceProfile: profile,
+      configuration: next
+    };
+    this.updateConfiguration(next);
+    await this.persist();
+  }
+
+  private performanceConfiguration(profile: PerformanceProfile): ActiveConfiguration {
+    const base = cloneConfiguration(this.configuration);
+    if (profile === "custom") {
+      return {
+        ...base,
+        template: {
+          ...base.template,
+          modified: true
+        }
+      };
+    }
+    if (profile === "high-quality") {
+      return {
+        ...base,
+        motion: {
+          ...base.motion,
+          animationSpeed: 0.65,
+          cameraSpeed: 0.45,
+          visualIntensity: 0.88,
+          particlesEnabled: true,
+          particleAmount: 160,
+          connectionPulsesEnabled: true,
+          glowEnabled: true,
+          glowStrength: 0.82,
+          backgroundEffectsEnabled: true,
+          drawingLinesEnabled: true,
+          reduceMotion: false
+        },
+        display: {
+          ...base.display,
+          showLabels: true,
+          showFps: false,
+          densityMode: false
+        },
+        template: {
+          ...base.template,
+          modified: true
+        }
+      };
+    }
+    if (profile === "large-vault") {
+      return {
+        ...base,
+        motion: {
+          ...base.motion,
+          animationSpeed: 0.38,
+          cameraSpeed: 0.28,
+          visualIntensity: 0.48,
+          particlesEnabled: false,
+          particleAmount: 24,
+          connectionPulsesEnabled: false,
+          glowEnabled: true,
+          glowStrength: 0.32,
+          backgroundEffectsEnabled: true,
+          drawingLinesEnabled: false,
+          nodeMovementStrength: 0.18,
+          nodeMovementSpeed: 0.22,
+          reduceMotion: false
+        },
+        display: {
+          ...base.display,
+          showLabels: true,
+          showFps: true,
+          edgeThickness: 0.22,
+          densityMode: true,
+          showClusterHalos: false
+        },
+        template: {
+          ...base.template,
+          modified: true
+        }
+      };
+    }
+    if (profile === "low-power") {
+      return {
+        ...base,
+        motion: {
+          ...base.motion,
+          animationSpeed: 0.2,
+          cameraSpeed: 0.16,
+          visualIntensity: 0.32,
+          particlesEnabled: false,
+          particleAmount: 0,
+          connectionPulsesEnabled: false,
+          glowEnabled: false,
+          backgroundEffectsEnabled: false,
+          drawingLinesEnabled: false,
+          nodeMovementEnabled: false,
+          reduceMotion: true
+        },
+        display: {
+          ...base.display,
+          showLabels: true,
+          showFps: true,
+          densityMode: true,
+          depthLayers: false
+        },
+        template: {
+          ...base.template,
+          modified: true
+        }
+      };
+    }
+    const balanced = profile === "balanced";
+    return {
+      ...base,
+      motion: {
+        ...base.motion,
+        animationSpeed: balanced ? 0.5 : 0.45,
+        cameraSpeed: balanced ? 0.32 : 0.3,
+        visualIntensity: balanced ? 0.62 : 0.56,
+        particlesEnabled: false,
+        particleAmount: balanced ? 70 : 48,
+        connectionPulsesEnabled: false,
+        glowEnabled: true,
+        glowStrength: balanced ? 0.58 : 0.48,
+        backgroundEffectsEnabled: true,
+        drawingLinesEnabled: false,
+        nodeMovementEnabled: true,
+        nodeMovementStrength: balanced ? 0.28 : 0.24,
+        nodeMovementSpeed: balanced ? 0.36 : 0.3,
+        reduceMotion: false
+      },
+      display: {
+        ...base.display,
+        showLabels: true,
+        showFps: false,
+        densityMode: profile === "auto" ? this.graph.nodes.length > 350 : false
+      },
+      template: {
+        ...base.template,
+        modified: true
+      }
+    };
   }
 
   refreshGraph(): void {

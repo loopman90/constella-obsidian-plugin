@@ -2,10 +2,12 @@ import { DEFAULT_CONFIGURATION } from "../core/ActiveConfiguration";
 import type { ActiveConfiguration } from "../core/types";
 import type { Playlist, StoredTemplate } from "../core/types";
 
+export type PerformanceProfile = "auto" | "high-quality" | "balanced" | "large-vault" | "low-power" | "custom";
+
 export interface ConstellaSettings {
   schemaVersion: number;
   configuration: ActiveConfiguration;
-  performanceProfile: "auto" | "high-quality" | "balanced" | "large-vault" | "low-power" | "custom";
+  performanceProfile: PerformanceProfile;
   debug: boolean;
   showFirstRun: boolean;
   templates: StoredTemplate[];
