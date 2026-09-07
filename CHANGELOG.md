@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.7.1
+
+- Fixed node glow so it remains visible across quiet visual styles, and added the Glow toggle to official Obsidian settings.
+
 ## 0.7.0
 
 - Added a marketplace kit with final plugin page text, privacy copy, screenshot guidance, review response text, and release checklist.

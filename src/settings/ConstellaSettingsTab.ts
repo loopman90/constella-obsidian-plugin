@@ -99,6 +99,15 @@ export class ConstellaSettingsTab extends PluginSettingTab {
         heading: "Visual controls",
         items: [
           {
+            name: "Glow",
+            desc: "Enable the soft light around graph nodes.",
+            control: {
+              type: "toggle" as const,
+              key: "glowEnabled",
+              defaultValue: true
+            }
+          },
+          {
             name: "Glow strength",
             desc: "Controls how strong the node glow appears in the graph.",
             control: {
@@ -409,6 +418,9 @@ export class ConstellaSettingsTab extends PluginSettingTab {
     if (key === "glowStrength") {
       return this.plugin.settings.configuration.motion.glowStrength;
     }
+    if (key === "glowEnabled") {
+      return this.plugin.settings.configuration.motion.glowEnabled;
+    }
     if (this.isDisplaySettingKey(key)) {
       return this.plugin.settings.configuration.display[key];
     }
@@ -439,6 +451,16 @@ export class ConstellaSettingsTab extends PluginSettingTab {
         motion: {
           ...this.plugin.settings.configuration.motion,
           glowStrength: Math.max(0, Math.min(1, value))
+        }
+      };
+      await this.plugin.saveConstellaSettings();
+    }
+    if (key === "glowEnabled" && typeof value === "boolean") {
+      this.plugin.settings.configuration = {
+        ...this.plugin.settings.configuration,
+        motion: {
+          ...this.plugin.settings.configuration.motion,
+          glowEnabled: value
         }
       };
       await this.plugin.saveConstellaSettings();

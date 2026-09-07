@@ -486,16 +486,21 @@ export class ConstellaGraphRenderer {
       const radius = this.nodeRadius(node) * profile.nodeMultiplier * depth.radius;
       const dimmedByHover = this.hoverNode && !hovered && !neighbor && !selected;
       const budget = this.performanceManager.budget(this.graph, this.config);
-      const glowStrength = this.config.motion.glowEnabled ? Math.max(0.12, this.config.motion.glowStrength) * Math.max(0.7, profile.glowMultiplier) * bloomFactor * budget.glowScale : 0;
-      const glowRadius = radius * (currentJourney ? 6.8 : selected || hovered ? 5.2 : 3.2) * Math.max(0.35, this.config.motion.visualIntensity) * glowStrength;
+      const glowStrength = this.config.motion.glowEnabled ? Math.max(0, Math.min(1, this.config.motion.glowStrength)) : 0;
+      const glowMultiplier = Math.max(0.45, profile.glowMultiplier);
+      const glowPower = glowStrength * glowMultiplier * bloomFactor * budget.glowScale;
+      const glowRadius = radius *
+        (currentJourney ? 7.4 : selected || hovered ? 5.8 : 3.8) *
+        Math.max(0.48, this.config.motion.visualIntensity) *
+        Math.max(0, glowPower);
 
-      if (this.config.motion.glowEnabled && glowRadius > radius && !dimmedByHover) {
+      if (glowStrength > 0 && glowRadius > radius && !dimmedByHover) {
         const glow = this.ctx.createRadialGradient(node.x, node.y, Math.max(0, radius * 0.2), node.x, node.y, glowRadius);
         glow.addColorStop(0, currentJourney || selected ? colors.nodeActive : nodeFill);
-        glow.addColorStop(0.35, currentJourney || selected ? colors.nodeActive : nodeFill);
+        glow.addColorStop(0.4, currentJourney || selected ? colors.nodeActive : nodeFill);
         glow.addColorStop(1, "transparent");
         this.ctx.fillStyle = glow;
-        const glowAlpha = 0.28 + this.config.motion.glowStrength * 0.52;
+        const glowAlpha = (0.3 + glowStrength * 0.6) * Math.max(0.52, Math.min(1.35, glowMultiplier));
         this.ctx.globalAlpha = (currentJourney ? glowAlpha : selected || hovered ? glowAlpha * 0.86 : glowAlpha * 0.48) * focusFactor * depth.alpha;
         this.ctx.beginPath();
         this.ctx.arc(node.x, node.y, glowRadius, 0, Math.PI * 2);
