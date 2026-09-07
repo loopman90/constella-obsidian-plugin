@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.2
+
+- Added optional Cluster Halos, Node Icons, Density Mode, and Depth Layers visual controls, all disabled by default.
+- Added renderer support for cluster halo overlays, note-type canvas icons, large-vault density reduction, and depth-based node emphasis.
+
 ## 0.5.1
 
 - Added eight visual styles: Timeline Map, Mind Palace, Circuit Minimal, Archive Fog, Focus Lens, Thread Weaver, Research Board, and Signal Radar.

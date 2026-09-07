@@ -289,6 +289,10 @@ export class ControlPanel {
     section.appendChild(this.slider("Color Speed", config.motion.colorSpeed, (value) => this.controller.updateMotion("colorSpeed", value)));
     section.appendChild(this.toggleControl("Glow", config.motion.glowEnabled, (value) => this.controller.updateMotion("glowEnabled", value)));
     section.appendChild(this.slider("Glow Strength", config.motion.glowStrength, (value) => this.controller.updateMotion("glowStrength", value)));
+    section.appendChild(this.toggleControl("Cluster Halos", config.display.showClusterHalos, (value) => this.controller.updateDisplay("showClusterHalos", value)));
+    section.appendChild(this.toggleControl("Node Icons", config.display.showNodeIcons, (value) => this.controller.updateDisplay("showNodeIcons", value)));
+    section.appendChild(this.toggleControl("Density Mode", config.display.densityMode, (value) => this.controller.updateDisplay("densityMode", value)));
+    section.appendChild(this.toggleControl("Depth Layers", config.display.depthLayers, (value) => this.controller.updateDisplay("depthLayers", value)));
     section.appendChild(this.slider("Node Size", config.display.nodeSize, (value) => this.controller.updateDisplay("nodeSize", value)));
     section.appendChild(this.slider("Edge Thickness", config.display.edgeThickness, (value) => this.controller.updateDisplay("edgeThickness", value)));
     section.appendChild(this.actionButton("Save Visual Preset", () => {
@@ -489,6 +493,10 @@ export class ControlPanel {
     section.appendChild(this.slider("Label Size", config.display.labelSize, (value) => this.controller.updateDisplay("labelSize", value)));
     section.appendChild(this.slider("Edge Thickness", config.display.edgeThickness, (value) => this.controller.updateDisplay("edgeThickness", value)));
     section.appendChild(this.slider("Node Size", config.display.nodeSize, (value) => this.controller.updateDisplay("nodeSize", value)));
+    section.appendChild(this.toggleControl("Cluster Halos", config.display.showClusterHalos, (value) => this.controller.updateDisplay("showClusterHalos", value)));
+    section.appendChild(this.toggleControl("Node Icons", config.display.showNodeIcons, (value) => this.controller.updateDisplay("showNodeIcons", value)));
+    section.appendChild(this.toggleControl("Density Mode", config.display.densityMode, (value) => this.controller.updateDisplay("densityMode", value)));
+    section.appendChild(this.toggleControl("Depth Layers", config.display.depthLayers, (value) => this.controller.updateDisplay("depthLayers", value)));
     section.appendChild(this.toggleControl("Legend", config.display.showLegend, (value) => this.controller.updateDisplay("showLegend", value)));
     section.appendChild(this.toggleControl("FPS Indicator", config.display.showFps, (value) => this.controller.updateDisplay("showFps", value)));
     section.appendChild(this.toggleControl("Fullscreen Intent", config.display.fullscreen, (value) => this.controller.updateDisplay("fullscreen", value)));

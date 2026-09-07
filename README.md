@@ -2,56 +2,174 @@
 
 **Your vault in motion.**
 
-Explore your vault as an interactive, local-first knowledge graph. Turn notes into nodes and links into connections, navigate manually or auto-travel, detect clusters, save visual templates and playlists, and open graphs fullscreen or in a pop-out display window - all read-only and local.
+Constella turns your Obsidian vault into an interactive, local-first knowledge graph. Notes become nodes, links become connections, and your graph can be explored manually, through auto-travel journeys, visual templates, playlists, fullscreen mode, or a pop-out display window.
 
-Constella is read-only and local. It reads vault metadata to render the graph, but it does not modify notes and does not send data anywhere.
+- GitHub: [https://github.com/loopman90/constella-obsidian-plugin](https://github.com/loopman90/constella-obsidian-plugin)
+- Releases: [https://github.com/loopman90/constella-obsidian-plugin/releases](https://github.com/loopman90/constella-obsidian-plugin/releases)
+- Website: [https://loopman90.github.io/constella-obsidian-plugin/](https://loopman90.github.io/constella-obsidian-plugin/)
+
+Constella is read-only and local. It reads vault metadata to render the graph, but it does not modify notes, does not use analytics, and does not send vault data anywhere.
 
 ![Constella preview](docs/media/constella-preview.svg)
 
-## Installation
+## Install From Obsidian
 
-### Manual Installation
+Use this route when Constella is available in the Obsidian Community Plugins browser.
 
-1. Build the plugin:
+1. Open Obsidian.
+2. Open `Settings`.
+3. Go to `Community plugins`.
+4. Turn off `Restricted mode` if Obsidian asks.
+5. Click `Browse`.
+6. Search for `Constella`.
+7. Click `Install`.
+8. Click `Enable`.
+9. Run `Constella: Open` from the Command Palette.
 
-   ```bash
-   npm install
-   npm run build
-   ```
+If the `Install` or `Add to Obsidian` button is greyed out, check the latest review status on the plugin page and confirm that the GitHub release tag exactly matches the version in `manifest.json`.
 
-2. In your Obsidian vault, create this folder:
+## Manual Install
 
-   ```text
-   .obsidian/plugins/constella
-   ```
+Use this route if you want to test a release before it appears in the Community Plugins browser.
 
-3. Copy these files into that folder:
+### 1. Download the release files
 
-   ```text
-   main.js
-   manifest.json
-   styles.css
-   ```
+1. Go to the Constella releases page:
+   [https://github.com/loopman90/constella-obsidian-plugin/releases](https://github.com/loopman90/constella-obsidian-plugin/releases)
+2. Open the newest release.
+3. Download exactly these three files:
+   - `main.js`
+   - `manifest.json`
+   - `styles.css`
 
-4. Open Obsidian.
-5. Go to `Settings` -> `Community plugins`.
-6. Turn off `Restricted mode` if needed.
-7. Click `Reload plugins`.
-8. Find `Constella` in the installed plugins list.
-9. Enable Constella.
+Do not download the source code zip for manual installation. Obsidian needs the three built plugin files above.
 
-### Development Installation
+### 2. Find your vault folder
 
-For development, you can symlink this project folder into a vault:
+Your vault is the normal folder where your notes live. Open that folder first, then open or create the hidden `.obsidian/plugins` folder inside it.
 
-```bash
-ln -s "/path/to/constella" "/path/to/your/vault/.obsidian/plugins/constella"
+The final plugin folder must be named exactly:
+
+```text
+constella
 ```
 
-Then build:
+The final result must look like this on every system:
+
+```text
+Your Vault/
+  .obsidian/
+    plugins/
+      constella/
+        main.js
+        manifest.json
+        styles.css
+```
+
+### 3. Mac install steps
+
+1. Open Finder.
+2. Open your Obsidian vault folder.
+3. Press `Command` + `Shift` + `.` to show hidden folders.
+4. Open `.obsidian`.
+5. Open `plugins`. If it does not exist, create it.
+6. Create a folder named `constella`.
+7. Copy `main.js`, `manifest.json`, and `styles.css` into that folder.
+
+Mac example:
+
+```text
+/Users/your-name/Documents/My Vault/.obsidian/plugins/constella/
+```
+
+### 4. Windows install steps
+
+1. Open File Explorer.
+2. Open your Obsidian vault folder.
+3. Click `View`.
+4. Enable `Hidden items` if `.obsidian` is not visible.
+5. Open `.obsidian`.
+6. Open `plugins`. If it does not exist, create it.
+7. Create a folder named `constella`.
+8. Copy `main.js`, `manifest.json`, and `styles.css` into that folder.
+
+Windows example:
+
+```text
+C:\Users\your-name\Documents\My Vault\.obsidian\plugins\constella\
+```
+
+### 5. Linux install steps
+
+1. Open your file manager.
+2. Open your Obsidian vault folder.
+3. Press `Ctrl` + `H` to show hidden folders if `.obsidian` is not visible.
+4. Open `.obsidian`.
+5. Open `plugins`. If it does not exist, create it.
+6. Create a folder named `constella`.
+7. Copy `main.js`, `manifest.json`, and `styles.css` into that folder.
+
+Linux example:
+
+```text
+/home/your-name/Documents/My Vault/.obsidian/plugins/constella/
+```
+
+### 6. Enable the plugin
+
+1. Restart Obsidian, or go to `Settings` -> `Community plugins` and click `Reload plugins`.
+2. Find `Constella` under installed plugins.
+3. Enable it.
+4. Open the Command Palette:
+   - Mac: `Command` + `P`
+   - Windows/Linux: `Ctrl` + `P`
+5. Run `Constella: Open`.
+
+## Manual Install Troubleshooting
+
+If Constella does not appear in Obsidian:
+
+- Make sure the folder is named `constella`.
+- Make sure the folder is inside `.obsidian/plugins/`.
+- Make sure `main.js`, `manifest.json`, and `styles.css` are directly inside the `constella` folder.
+- Make sure the files are from the same GitHub release.
+- Restart Obsidian after copying the files.
+- Check `Settings` -> `Community plugins` -> `Installed plugins`.
+
+If Constella opens a blank tab:
+
+- Update to the newest release.
+- Restart Obsidian.
+- Disable and re-enable Constella.
+- Confirm your vault contains Markdown files.
+- In Constella, use `Show All Notes`.
+- Check whether folder, tag, date, or minimum-link filters are hiding notes.
+- Turn on `Include Floating Notes` if you want notes without links to appear.
+
+If not all notes are visible:
+
+- Set Graph Scope to `Global`.
+- Set Minimum Links to `0`.
+- Clear Folder Filter and Tag Filter.
+- Set Date Filter to `All Notes`.
+- Enable `Include Floating Notes`.
+- Click `Show All Notes`.
+
+## Development Install
+
+Use this route only if you are editing the source code.
 
 ```bash
+npm install
 npm run build
+```
+
+Then copy these files into your vault plugin folder:
+
+```text
+main.js
+manifest.json
+styles.css
 ```
 
 For automatic rebuilds while developing:
@@ -68,317 +186,99 @@ You can open Constella in several ways:
 - Run `Constella: Open` from the Command Palette.
 - Click `Constella` in the status bar.
 
-On first launch, Constella shows a short onboarding panel with quick choices such as `Start Cinematic`, `Start Constellation`, `Open Playground`, and `Skip`.
+Inside the Constella view:
 
-## How It Works
-
-Constella reads Markdown files and resolved links from Obsidian's public metadata APIs. It then builds its own graph:
-
-- Each note becomes a node.
-- Each resolved link becomes an edge.
-- Recent notes, forgotten notes, hubs, and hidden gems are calculated locally.
-- Clusters are detected using a label-propagation algorithm.
-- The graph is rendered with Canvas instead of relying on private Obsidian Graph internals.
-
-Constella is read-only. Double-clicking a node opens the note, but the plugin does not automatically edit note content.
-
-## Core Concepts
-
-Constella keeps these systems separate:
-
-- **Mode** decides what Constella does, such as `Wander`, `Path Journey`, `Recent Activity`, or `Forgotten Knowledge`.
-- **Visual** decides how the graph is drawn, such as `Minimal`, `Constellation`, `Deep Space`, `Neon`, or `Soft Glow`.
-- **Colors** decides color behavior, such as `Aurora`, `Rainbow Flow`, `Deep Ocean`, `Forest`, or `Cluster Based`.
-- **Camera** decides how the view moves, such as `Static`, `Calm`, `Floating`, `Cinematic`, or `Dynamic`.
-- **Template** is a saved combination of Mode, Visual, Colors, Camera, and other settings.
-- **Playlist** is a sequence of steps that can switch modes, visuals, colors, and camera profiles over time.
-
-## Highlights
-
-- Search and focus notes directly from the Constella control panel.
-- Reset the graph to all Markdown notes with `Show All Notes`.
-- Filter the graph by folder, tag, recent notes, forgotten notes, and minimum link count.
-- Keep floating/orphan notes visible in local graph views.
+- Click a node to select it.
+- Double-click a node to open the note.
 - Hover a node to highlight its direct neighbors.
-- Pin nodes, temporarily hide nodes or clusters, expand from a selected note, and preview a path between two notes.
-- Tune background intensity, label size, node size, edge thickness, particles, pulses, selectable drawing-line animations, visual styles, and reduce-motion mode.
-- Show an optional legend for color modes such as Heatmap, Age Gradient, Cluster Neon, Focus Fade, and Signal Strength.
-- Show an optional FPS indicator for performance checks.
+- Use the Quick Bar to start journeys, switch modes, export PNG screenshots, open fullscreen, or open a pop-out display window.
 
-Templates are never overwritten automatically. If you change settings after loading a template, the current setup becomes `Modified` until you explicitly choose Save or Save As.
+## Main Features
 
-## Controls
+- Interactive Canvas knowledge graph.
+- Global, Local, and Current Note graph scopes.
+- Floating/orphan note support.
+- Search and focus note.
+- Optional search results list.
+- Folder, tag, date, and minimum-link filters.
+- Hover neighbor highlighting.
+- Pin node, hide node, hide cluster, expand from node, and path preview.
+- Auto-travel journey modes.
+- Visual styles, color schemes, camera motion, node movement, pulses, particles, and drawing-line animations.
+- Optional cluster halos, node icons, density mode, and depth layers.
+- Mini-map, graph health panel, legends, FPS indicator, and reduce-motion mode.
+- Saved visual templates and playlists.
+- PNG screenshot export.
+- Fullscreen and second-screen pop-out display.
+- JSON import/export for templates and playlists.
 
-### Quick Bar
+## Control Panel
 
-The Quick Bar appears at the bottom of the Constella view. It lets you quickly:
+The Control Panel is organized around workflow:
 
-- start, pause, and stop;
-- switch between Global, Local, and Current Note graph scopes;
-- choose Mode, Visual, Colors, and Camera;
-- adjust speed and intensity;
-- randomize the current setup;
-- save the current setup;
-- export the current graph as a PNG;
-- open fullscreen or a second-screen pop-out;
-- open the Control Panel.
+- `Quick`: common actions.
+- `Quick UI`: choose which Quick Bar controls are visible.
+- `Graph`: scope, depth, floating notes, filters, and node interaction.
+- `Tools`: mini-map, search results, graph health, saved views, and color rules.
+- `Discovery`: recent, forgotten, hub, orphan, and template filtering.
+- `Journey`: auto-travel timing and route behavior.
+- `Visual`: visual style, color scheme, glow, node size, edge thickness, cluster halos, node icons, density mode, and depth layers.
+- `Background`: background style, intensity, particles, drawing lines, and ambient effects.
+- `Motion`: camera, movement style, pulses, click effects, and reduce motion.
+- `Paths`: path animation and drawing-line behavior.
+- `Presets`: templates and playlists.
+- `Display`: labels, overlays, legend, FPS, fullscreen intent, cursor hiding, and visual display toggles.
 
-The Quick Bar can also be collapsed into a compact icon.
-
-### Control Panel
-
-The Control Panel includes sections for:
-
-- Quick
-- Quick UI
-- Graph
-- Tools
-- Discovery
-- Journey
-- Visual
-- Background
-- Motion
-- Paths
-- Templates
-- Display
-
-Most visual settings are applied live, including colors, intensity, camera behavior, node movement, glow strength, particles, connection pulses, drawing-line style, labels, background style, quick bar visibility, mini-map, search results, graph health, saved views, tag/folder color rules, and specialty visuals like Fog of Knowledge, Ink Map, Neural Bloom, Satellite View, Glass Minimal, and Academic Light.
-
-### Keyboard Controls
+## Keyboard Controls
 
 Inside the Constella view:
 
-- `Space`: start or pause
-- `Arrow Left`: previous journey node
-- `Arrow Right`: next journey node
-- `Enter`: open the selected node
-- `Escape`: stop
+- `Space`: start or pause.
+- `Arrow Left`: previous journey node.
+- `Arrow Right`: next journey node.
+- `Enter`: open the selected node.
+- `Escape`: stop or close the control panel.
 
-### Node Interaction
+## Privacy
 
-- Click a node to select it.
-- Hover a node to highlight its immediate neighbors.
-- Double-click a node to open the note.
-- Use `Pin Focused Node` to keep a selected node still while the graph moves.
-- Use `Hide Node` or `Hide Cluster` for temporary decluttering.
-- Use `Expand From Node` to show only the focused note and its direct neighbors.
-- Use `Set Path Start`, then select another node to preview a route between them.
-- Right-click a Markdown file in Obsidian and choose `Start Constella Journey from this note`.
+Constella:
 
-## Graph Scopes
+- works locally;
+- uses no telemetry;
+- uses no analytics;
+- uploads no vault data;
+- does not automatically modify notes;
+- uses no external API.
 
-Constella supports:
+Constella enumerates Markdown files in the vault because it needs file paths and link metadata to draw the graph. This is expected behavior for a local graph plugin.
 
-- `Global`: the full vault graph.
-- `Local`: the graph around the current note, with configurable depth up to 50 link steps.
-- `Current Note`: a focused graph for the active note.
+## Releases
 
-Floating notes are Markdown notes without resolved links. The `Include Floating Notes` option keeps them visible in local graph scopes and places them on an outer ring for easier scanning.
+Obsidian expects the GitHub release tag to match the `manifest.json` version exactly.
 
-## Journey Modes
+Correct:
 
-Available modes:
+```text
+0.5.1
+```
 
-- `Wander`
-- `Path Journey`
-- `Recent Activity`
-- `Forgotten Knowledge`
-- `Hub Explorer`
-- `Hidden Gems`
-- `Cluster Journey`
-- `Random Discovery`
+Incorrect:
 
-The journey engine follows real relationships in your vault and can prefer recent notes, old notes, hubs, hidden gems, or random discoveries.
+```text
+v0.5.1
+```
 
-## Templates
+Each release must include:
 
-## Visual Styles
+```text
+main.js
+manifest.json
+styles.css
+```
 
-Constella includes a broad visual-style library. Each style changes how nodes and edges are rendered, not just the color palette.
+The GitHub Actions workflow builds the plugin, uploads release assets, and creates artifact attestations for release files.
 
-Built-in visual styles:
-
-- Minimal
-- Constellation
-- Deep Space
-- Neon
-- Soft Glow
-- Clean
-- Star Chart
-- Galaxy Spiral
-- Matrix Grid
-- Blueprint Lines
-- Orbital Rings
-- City Network
-- Data Stream
-- Heatmap Cloud
-- Paper Map
-- Library Index
-- Zen Stones
-- Crystal Lattice
-- Solar Orbits
-- Terminal Blocks
-- Red Scanner
-- Ocean Bubbles
-- Prism Shards
-- Radar Sweep
-- Topographic
-- Circuit Board
-
-## Camera Motion
-
-Constella includes camera motion styles for different exploration moods and screen setups:
-
-- Static
-- Calm
-- Floating
-- Cinematic
-- Dynamic
-- Fast
-- Focus Lock
-- Slow Drift
-- Wide Orbit
-- Close Orbit
-- Breathing Zoom
-- Presenter Pan
-- Scanline
-- Radar Orbit
-- City Cruise
-- Data Chase
-- Cluster Hop
-- Edge Glide
-- Constellation Tour
-- Zen Still
-- Paper Follow
-- Matrix Rush
-- Galaxy Dive
-- Micro Wander
-- Overview Pulse
-- Second Screen Calm
-
-## Templates
-
-Constella includes built-in templates such as:
-
-- Calm
-- Cinematic
-- Constellation
-- Neon
-- Discovery
-- Minimal Dark
-- Minimal Light
-- Minimal Focus
-- Quiet Map
-- Paper Notes
-- Ink Map
-- Clean Clusters
-- Matrix Hacker
-- Orbital Drift
-- Swarm Field
-- Signal Chaos
-- Breathing Graph
-- City Lights
-- Zen Garden
-- Blueprint
-- Solar System
-- Library Night
-- Crystal
-- Terminal Amber
-- Red Alert
-- Ocean Depths
-- Paper Minimal
-- Galaxy Core
-- Heatmap
-- Age Gradient
-- Cluster Neon
-- Focus Fade
-- Signal Strength
-- Night Vision
-- Archive Dust
-- Prism Flow
-- Constellation White
-- Infrared
-
-Templates can be:
-
-- applied;
-- saved;
-- saved as a new template;
-- duplicated;
-- edited;
-- deleted if they are custom templates.
-
-Built-in templates are protected. They cannot be deleted or overwritten directly.
-
-## Playlists
-
-A playlist is made of multiple steps. Each step can define:
-
-- Mode
-- Visual
-- Colors
-- Camera
-- Duration
-- Transition
-
-The built-in `Evening Flow` playlist demonstrates this system. You can create a playlist from the current setup and edit existing playlists in the playlist editor.
-
-## Import and Export
-
-Constella can export and import templates and playlists as JSON. It can also export the current graph view as a PNG image from the Quick Bar or Command Palette.
-
-Relevant commands:
-
-- `Constella: Export Templates and Playlists`
-- `Constella: Import Templates and Playlists`
-- `Constella: Export Graph as PNG`
-
-The exported JSON contains Constella settings only. It does not include note content.
-
-## Screensaver and Display Mode
-
-Constella includes commands for:
-
-- fullscreen screensaver;
-- display mode;
-- hiding Obsidian UI;
-- opening a pop-out window for second-screen use.
-
-Use `Constella: Open Display Window` to open Constella in an Obsidian pop-out window. You can then move that window to another monitor.
-
-Constella uses Obsidian's official pop-out window workflow instead of controlling Electron windows directly. This is safer for community plugin compatibility.
-
-## Command Palette
-
-Useful commands:
-
-- `Constella: Open`
-- `Constella: Start`
-- `Constella: Pause`
-- `Constella: Stop`
-- `Constella: Toggle`
-- `Constella: Open Controls`
-- `Constella: Open Playground`
-- `Constella: Open Templates`
-- `Constella: Edit Active Template`
-- `Constella: Edit Playlist`
-- `Constella: Start Path Journey`
-- `Constella: Start Wander`
-- `Constella: Start Playlist`
-- `Constella: Start Screensaver`
-- `Constella: Start Display Mode`
-- `Constella: Open Display Window`
-- `Constella: Randomize`
-- `Constella: Save Current Setup`
-- `Constella: Focus Current Note`
-- `Constella: Toggle Fullscreen`
-- `Constella: Export Graph as PNG`
-- `Constella: Export Templates and Playlists`
-- `Constella: Import Templates and Playlists`
-
-## Development
-
-Project structure:
+## Project Structure
 
 ```text
 src/
@@ -393,60 +293,18 @@ src/
   performance/
   settings/
   ui/
+docs/
+  index.html
+  media/
 ```
 
-Useful scripts:
+## Build Checks
+
+Useful commands:
 
 ```bash
-npm install
-npm run build
-npm run dev
 npm run typecheck
-```
-
-The build creates `main.js`, which Obsidian loads together with `manifest.json` and `styles.css`.
-
-## Releasing
-
-Constella versions should be bumped in `manifest.json`, `package.json`, `package-lock.json`, and `versions.json`.
-
-Obsidian expects the GitHub release tag to match the manifest version exactly, without a leading `v`. For example, release tag `0.2.0` matches manifest version `0.2.0`.
-
-The GitHub Actions workflow builds the plugin and uploads these release assets for version tags:
-
-```text
-main.js
-manifest.json
-styles.css
+npm run build
 ```
 
 See [CHANGELOG.md](CHANGELOG.md) for release notes.
-
-## Privacy
-
-Constella:
-
-- works locally;
-- uses no telemetry;
-- uses no analytics;
-- uploads no vault data;
-- does not automatically modify notes;
-- uses no external API.
-
-## Current Limitations
-
-- The renderer is Canvas-based. This is intentional for stability and low dependency weight.
-- Native Obsidian Graph internals are not used. A graph adapter boundary exists for future experiments.
-- Display mode uses Obsidian's official pop-out window workflow instead of private Electron window control.
-- Import/export currently works through a JSON dialog. A file picker flow can be added later.
-- Full gallery-style manager views for templates, playlists, and palettes are still future polish.
-
-## Status
-
-The plugin builds successfully with:
-
-```bash
-npm run build
-```
-
-The current implementation includes the graph view, search, filters, hover highlighting, pin/hide/expand/path-preview interactions, journeys, templates, playlists, discovery, clustering, visual effects, import/export, screensaver/display commands, and read-only vault behavior.

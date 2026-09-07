@@ -326,6 +326,10 @@ export interface ActiveConfiguration {
     showLabels: boolean;
     showLegend: boolean;
     showFps: boolean;
+    showClusterHalos: boolean;
+    showNodeIcons: boolean;
+    densityMode: boolean;
+    depthLayers: boolean;
     labelSize: number;
     edgeThickness: number;
     nodeSize: number;

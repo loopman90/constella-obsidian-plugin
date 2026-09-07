@@ -266,6 +266,7 @@ export class ConstellaGraphRenderer {
     this.ctx.save();
     this.ctx.translate(width / 2 + this.viewport.x, height / 2 + this.viewport.y);
     this.ctx.scale(this.viewport.scale, this.viewport.scale);
+    this.drawClusterHalos();
     this.drawEdges();
     this.drawPathPreview();
     this.drawNodes();
@@ -441,7 +442,7 @@ export class ConstellaGraphRenderer {
       const drawTarget = this.pointOnEdge(source, target, lineProgress);
       const edgeColor = this.edgeColor(edge, selected || hovered, activeJourneyEdge, colors.edge, colors.edgeActive);
       this.ctx.strokeStyle = edgeColor;
-      this.ctx.globalAlpha = this.edgeAlpha(edge, selected || hovered, activeJourneyEdge) * Math.max(0.24, lineProgress);
+      this.ctx.globalAlpha = this.edgeAlpha(edge, selected || hovered, activeJourneyEdge) * this.densityEdgeFactor() * Math.max(0.24, lineProgress);
       const thickness = 0.7 + this.config.display.edgeThickness * 1.8;
       this.ctx.lineWidth = (activeJourneyEdge ? 2.4 : selected || hovered ? 1.8 : this.edgeWidth(edge)) * thickness * profile.edgeMultiplier / this.viewport.scale;
       this.drawDrawingLine(source, target, drawTarget, edge.id, edgeColor, profile.edgeMode, lineProgress);
@@ -473,7 +474,8 @@ export class ConstellaGraphRenderer {
       const dynamicColor = this.dynamicNodeColor(node, index, recent);
       const fill = clusterColor ?? (hueShift === null ? (recent ? colors.nodeRecent : colors.node) : `hsl(${hueShift}, 86%, 64%)`);
       const nodeFill = dynamicColor ?? fill;
-      const radius = this.nodeRadius(node) * profile.nodeMultiplier;
+      const depth = this.nodeDepthFactor(node);
+      const radius = this.nodeRadius(node) * profile.nodeMultiplier * depth.radius;
       const dimmedByHover = this.hoverNode && !hovered && !neighbor && !selected;
       const glowStrength = this.config.motion.glowEnabled ? Math.max(0.12, this.config.motion.glowStrength) * Math.max(0.7, profile.glowMultiplier) * bloomFactor : 0;
       const glowRadius = radius * (currentJourney ? 6.8 : selected || hovered ? 5.2 : 3.2) * Math.max(0.35, this.config.motion.visualIntensity) * glowStrength;
@@ -485,17 +487,21 @@ export class ConstellaGraphRenderer {
         glow.addColorStop(1, "transparent");
         this.ctx.fillStyle = glow;
         const glowAlpha = 0.28 + this.config.motion.glowStrength * 0.52;
-        this.ctx.globalAlpha = (currentJourney ? glowAlpha : selected || hovered ? glowAlpha * 0.86 : glowAlpha * 0.48) * focusFactor;
+        this.ctx.globalAlpha = (currentJourney ? glowAlpha : selected || hovered ? glowAlpha * 0.86 : glowAlpha * 0.48) * focusFactor * depth.alpha;
         this.ctx.beginPath();
         this.ctx.arc(node.x, node.y, glowRadius, 0, Math.PI * 2);
         this.ctx.fill();
       }
 
-      this.ctx.globalAlpha = (dimmedByHover ? 0.22 : 1) * focusFactor;
+      this.ctx.globalAlpha = (dimmedByHover ? 0.22 : 1) * focusFactor * depth.alpha;
       this.ctx.fillStyle = currentJourney || selected ? colors.nodeActive : visitedJourney ? colors.nodeVisited : nodeFill;
       this.drawVisualNode(node, currentJourney ? radius + 3 : selected || hovered ? radius + 2 : radius, profile.nodeShape, colors.edgeActive);
 
-      if (this.config.display.showLabels && (selected || this.viewport.scale > profile.labelThreshold)) {
+      if (this.config.display.showNodeIcons) {
+        this.drawNodeIcon(node, currentJourney ? radius + 3 : selected || hovered ? radius + 2 : radius, colors);
+      }
+
+      if (this.shouldDrawLabel(node, selected, hovered, profile.labelThreshold)) {
         this.drawLabel(node, colors.label, selected || hovered);
       }
     });
@@ -831,6 +837,144 @@ export class ConstellaGraphRenderer {
     this.ctx.restore();
   }
 
+  private drawClusterHalos(): void {
+    if (!this.config.display.showClusterHalos || this.graph.nodes.length === 0) {
+      return;
+    }
+
+    const clusters = new Map<number, { x: number; y: number; count: number; radius: number }>();
+    this.graph.nodes.forEach((node) => {
+      const cluster = clusters.get(node.clusterId) ?? { x: 0, y: 0, count: 0, radius: 0 };
+      cluster.x += node.x;
+      cluster.y += node.y;
+      cluster.count += 1;
+      clusters.set(node.clusterId, cluster);
+    });
+
+    clusters.forEach((cluster, clusterId) => {
+      cluster.x /= cluster.count;
+      cluster.y /= cluster.count;
+      let maxDistance = 0;
+      this.graph.nodes.forEach((node) => {
+        if (node.clusterId === clusterId) {
+          maxDistance = Math.max(maxDistance, Math.hypot(node.x - cluster.x, node.y - cluster.y));
+        }
+      });
+      cluster.radius = Math.max(80, maxDistance + 70);
+    });
+
+    this.ctx.save();
+    clusters.forEach((cluster, clusterId) => {
+      if (cluster.count < 2) {
+        return;
+      }
+      const color = this.clusterColor(clusterId);
+      const gradient = this.ctx.createRadialGradient(cluster.x, cluster.y, 0, cluster.x, cluster.y, cluster.radius);
+      gradient.addColorStop(0, this.withAlpha(color, 0.11));
+      gradient.addColorStop(0.68, this.withAlpha(color, 0.045));
+      gradient.addColorStop(1, "transparent");
+      this.ctx.fillStyle = gradient;
+      this.ctx.globalAlpha = Math.min(0.85, 0.35 + this.config.motion.visualIntensity * 0.5);
+      this.ctx.beginPath();
+      this.ctx.arc(cluster.x, cluster.y, cluster.radius, 0, Math.PI * 2);
+      this.ctx.fill();
+      this.ctx.globalAlpha = 0.13;
+      this.ctx.strokeStyle = color;
+      this.ctx.lineWidth = Math.max(1, 1.4 / this.viewport.scale);
+      this.ctx.beginPath();
+      this.ctx.arc(cluster.x, cluster.y, cluster.radius * 0.72, 0, Math.PI * 2);
+      this.ctx.stroke();
+    });
+    this.ctx.restore();
+  }
+
+  private drawNodeIcon(node: GraphNode, radius: number, colors: ReturnType<ConstellaGraphRenderer["getPalette"]>): void {
+    const icon = this.nodeIconKind(node);
+    if (!icon) {
+      return;
+    }
+
+    const size = Math.max(5.5, radius * 0.58);
+    const x = node.x + radius * 0.78;
+    const y = node.y - radius * 0.78;
+    this.ctx.save();
+    this.ctx.globalAlpha = 0.9;
+    this.ctx.strokeStyle = colors.label;
+    this.ctx.fillStyle = colors.edgeActive;
+    this.ctx.lineWidth = Math.max(1, 1.15 / this.viewport.scale);
+    this.ctx.beginPath();
+    this.ctx.arc(x, y, size, 0, Math.PI * 2);
+    this.ctx.fill();
+    this.ctx.globalAlpha = 0.82;
+    this.ctx.stroke();
+    this.ctx.strokeStyle = colors.backgroundA;
+    this.ctx.fillStyle = colors.backgroundA;
+    this.ctx.globalAlpha = 0.86;
+    switch (icon) {
+      case "pinned":
+        this.ctx.beginPath();
+        this.ctx.moveTo(x, y - size * 0.55);
+        this.ctx.lineTo(x + size * 0.42, y - size * 0.08);
+        this.ctx.lineTo(x + size * 0.08, y + size * 0.1);
+        this.ctx.lineTo(x + size * 0.28, y + size * 0.58);
+        this.ctx.moveTo(x + size * 0.08, y + size * 0.1);
+        this.ctx.lineTo(x - size * 0.42, y + size * 0.52);
+        this.ctx.stroke();
+        break;
+      case "daily":
+        this.ctx.strokeRect(x - size * 0.48, y - size * 0.35, size * 0.96, size * 0.8);
+        this.ctx.beginPath();
+        this.ctx.moveTo(x - size * 0.48, y - size * 0.1);
+        this.ctx.lineTo(x + size * 0.48, y - size * 0.1);
+        this.ctx.stroke();
+        break;
+      case "project":
+        this.ctx.beginPath();
+        this.ctx.moveTo(x - size * 0.48, y + size * 0.34);
+        this.ctx.lineTo(x - size * 0.34, y - size * 0.28);
+        this.ctx.lineTo(x + size * 0.34, y - size * 0.28);
+        this.ctx.lineTo(x + size * 0.48, y + size * 0.34);
+        this.ctx.closePath();
+        this.ctx.stroke();
+        break;
+      case "hub":
+        for (let index = 0; index < 3; index += 1) {
+          const angle = index * ((Math.PI * 2) / 3) - Math.PI / 2;
+          this.ctx.beginPath();
+          this.ctx.arc(x + Math.cos(angle) * size * 0.42, y + Math.sin(angle) * size * 0.42, size * 0.17, 0, Math.PI * 2);
+          this.ctx.fill();
+        }
+        break;
+      case "orphan":
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, size * 0.36, 0, Math.PI * 2);
+        this.ctx.stroke();
+        break;
+    }
+    this.ctx.restore();
+  }
+
+  private nodeIconKind(node: GraphNode): "pinned" | "daily" | "project" | "hub" | "orphan" | null {
+    if (this.config.interaction.pinnedNodeIds.includes(node.id)) {
+      return "pinned";
+    }
+    if (node.connectionCount === 0) {
+      return "orphan";
+    }
+    const path = node.path.toLowerCase();
+    const tags = this.tagsForNode(node);
+    if (/(\d{4}-\d{2}-\d{2}|\d{4}\.\d{2}\.\d{2}|\d{4}_\d{2}_\d{2})/.test(node.file.basename) || path.includes("daily") || path.includes("journal")) {
+      return "daily";
+    }
+    if (tags.some((tag) => tag === "project" || tag.startsWith("project/")) || path.includes("project")) {
+      return "project";
+    }
+    if (node.connectionCount >= 8 || node.connectionCount >= Math.max(5, node.clusterSize * 0.22)) {
+      return "hub";
+    }
+    return null;
+  }
+
   private drawPolygon(sides: number, radius: number): void {
     this.ctx.beginPath();
     for (let index = 0; index < sides; index += 1) {
@@ -968,6 +1112,27 @@ export class ConstellaGraphRenderer {
     this.ctx.globalAlpha = selected ? 1 : 0.72;
     this.ctx.fillText(node.title, node.x, node.y + this.nodeRadius(node) + 5, 180);
     this.ctx.globalAlpha = 1;
+  }
+
+  private shouldDrawLabel(node: GraphNode, selected: boolean, hovered: boolean, labelThreshold: number): boolean {
+    if (!this.config.display.showLabels) {
+      return false;
+    }
+    if (selected || hovered) {
+      return true;
+    }
+    if (!this.config.display.densityMode) {
+      return this.viewport.scale > labelThreshold;
+    }
+    const nodeCount = this.graph.nodes.length;
+    const densityPenalty = nodeCount > 650 ? 0.48 : nodeCount > 350 ? 0.32 : nodeCount > 180 ? 0.18 : 0.08;
+    if (this.viewport.scale <= labelThreshold + densityPenalty) {
+      return false;
+    }
+    if (nodeCount > 350) {
+      return node.connectionCount >= 4 || node.lastModified > Date.now() - 1000 * 60 * 60 * 24 * 21;
+    }
+    return true;
   }
 
   private drawPathAnimation(source: GraphNode, target: GraphNode, color: string, activeJourneyEdge: boolean): void {
@@ -2331,6 +2496,36 @@ export class ConstellaGraphRenderer {
 
   private nodeRadius(node: GraphNode): number {
     return node.radius * (0.65 + this.config.display.nodeSize * 1.2);
+  }
+
+  private nodeDepthFactor(node: GraphNode): { radius: number; alpha: number } {
+    if (!this.config.display.depthLayers) {
+      return { radius: 1, alpha: 1 };
+    }
+    const connectionDepth = Math.min(1, node.connectionCount / 12);
+    const ageDays = Math.max(0, (Date.now() - node.lastModified) / 86400000);
+    const freshness = Math.max(0, 1 - ageDays / 365);
+    return {
+      radius: 0.78 + connectionDepth * 0.3 + freshness * 0.12,
+      alpha: 0.5 + connectionDepth * 0.32 + freshness * 0.18
+    };
+  }
+
+  private densityEdgeFactor(): number {
+    if (!this.config.display.densityMode) {
+      return 1;
+    }
+    const nodeCount = this.graph.nodes.length;
+    if (nodeCount <= 160) {
+      return 0.9;
+    }
+    if (nodeCount <= 350) {
+      return 0.74;
+    }
+    if (nodeCount <= 700) {
+      return 0.58;
+    }
+    return 0.42;
   }
 
   private updateHover(node: GraphNode | null): void {

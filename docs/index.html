@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Constella for Obsidian is a local-first interactive knowledge graph with visual styles, journeys, templates, playlists, PNG export, fullscreen, and pop-out display.">
+    <title>Constella for Obsidian</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #050816;
+        --panel: rgba(12, 18, 32, 0.78);
+        --panel-strong: rgba(16, 24, 42, 0.95);
+        --text: #eef6ff;
+        --muted: #a8b6c7;
+        --line: rgba(148, 163, 184, 0.24);
+        --aqua: #71d7d1;
+        --gold: #facc15;
+        --pink: #f0abfc;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at 18% 12%, rgba(113, 215, 209, 0.2), transparent 28rem),
+          radial-gradient(circle at 82% 22%, rgba(240, 171, 252, 0.15), transparent 24rem),
+          linear-gradient(145deg, #050816 0%, #08111f 48%, #101827 100%);
+        color: var(--text);
+      }
+
+      a {
+        color: var(--aqua);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      .shell {
+        width: min(1120px, calc(100% - 32px));
+        margin: 0 auto;
+      }
+
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 3;
+        border-bottom: 1px solid var(--line);
+        background: rgba(5, 8, 22, 0.82);
+        backdrop-filter: blur(18px);
+      }
+
+      nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 64px;
+        gap: 16px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 760;
+        letter-spacing: 0;
+      }
+
+      .mark {
+        width: 34px;
+        height: 34px;
+        border: 1px solid rgba(113, 215, 209, 0.5);
+        border-radius: 8px;
+        background:
+          radial-gradient(circle at 36% 35%, var(--aqua), transparent 4px),
+          radial-gradient(circle at 68% 62%, var(--gold), transparent 3px),
+          linear-gradient(145deg, rgba(113, 215, 209, 0.22), rgba(15, 23, 42, 0.88));
+        box-shadow: 0 0 22px rgba(113, 215, 209, 0.18);
+      }
+
+      .links {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 38px;
+        padding: 0 14px;
+        border: 1px solid rgba(113, 215, 209, 0.35);
+        border-radius: 8px;
+        background: rgba(113, 215, 209, 0.1);
+        color: var(--text);
+        font-weight: 680;
+      }
+
+      .button.primary {
+        background: var(--aqua);
+        color: #041414;
+        border-color: var(--aqua);
+      }
+
+      main {
+        padding: 54px 0 72px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(320px, 0.85fr);
+        gap: 34px;
+        align-items: center;
+      }
+
+      h1 {
+        margin: 0;
+        max-width: 780px;
+        font-size: clamp(3rem, 8vw, 6.7rem);
+        line-height: 0.92;
+        letter-spacing: 0;
+      }
+
+      .lead {
+        max-width: 680px;
+        margin: 24px 0 0;
+        color: var(--muted);
+        font-size: 1.15rem;
+        line-height: 1.7;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 28px;
+      }
+
+      .preview {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        overflow: hidden;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
+      }
+
+      .preview img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      section {
+        padding: 54px 0 0;
+      }
+
+      h2 {
+        margin: 0 0 18px;
+        font-size: 2rem;
+        letter-spacing: 0;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .card {
+        min-height: 132px;
+        padding: 18px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+      }
+
+      .card h3 {
+        margin: 0 0 9px;
+        font-size: 1rem;
+        letter-spacing: 0;
+      }
+
+      .card p,
+      li {
+        color: var(--muted);
+        line-height: 1.58;
+      }
+
+      .install {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(300px, 0.9fr);
+        gap: 18px;
+      }
+
+      .steps {
+        margin: 0;
+        padding-left: 22px;
+      }
+
+      code,
+      pre {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      }
+
+      pre {
+        overflow: auto;
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel-strong);
+        color: #d9fffb;
+      }
+
+      .badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .badge {
+        padding: 8px 10px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.035);
+      }
+
+      footer {
+        padding: 36px 0;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+      }
+
+      @media (max-width: 860px) {
+        .hero,
+        .install,
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        nav {
+          align-items: flex-start;
+          flex-direction: column;
+          padding: 14px 0;
+        }
+
+        h1 {
+          font-size: 3.2rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <nav class="shell" aria-label="Main navigation">
+        <div class="brand">
+          <span class="mark" aria-hidden="true"></span>
+          <span>Constella for Obsidian</span>
+        </div>
+        <div class="links">
+          <a href="#install">Install</a>
+          <a href="#features">Features</a>
+          <a href="https://github.com/loopman90/constella-obsidian-plugin">GitHub</a>
+          <a class="button" href="https://github.com/loopman90/constella-obsidian-plugin/releases">Releases</a>
+        </div>
+      </nav>
+    </header>
+
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <h1>Your vault in motion.</h1>
+          <p class="lead">
+            Explore Obsidian as an interactive, local-first knowledge graph with cinematic visuals,
+            auto-travel journeys, templates, playlists, fullscreen display, and PNG export.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="https://github.com/loopman90/constella-obsidian-plugin/releases">Download latest release</a>
+            <a class="button" href="https://github.com/loopman90/constella-obsidian-plugin">View on GitHub</a>
+          </div>
+        </div>
+        <div class="preview">
+          <img src="media/constella-preview.svg" alt="Constella graph preview">
+        </div>
+      </section>
+
+      <section id="features">
+        <h2>What It Does</h2>
+        <div class="grid">
+          <article class="card">
+            <h3>Interactive graph</h3>
+            <p>Turn notes into nodes, links into edges, and explore your vault with hover, search, pin, hide, expand, and path preview controls.</p>
+          </article>
+          <article class="card">
+            <h3>Visual system</h3>
+            <p>Switch between visual styles, color schemes, camera motion, drawing-line animations, node icons, cluster halos, and depth layers.</p>
+          </article>
+          <article class="card">
+            <h3>Local-first privacy</h3>
+            <p>Constella reads Obsidian metadata locally. It does not upload notes, use analytics, call external APIs, or edit note content.</p>
+          </article>
+          <article class="card">
+            <h3>Journeys</h3>
+            <p>Auto-travel through recent notes, forgotten notes, hubs, clusters, orphan notes, writing paths, daily reflection, and deep archive views.</p>
+          </article>
+          <article class="card">
+            <h3>Presentation tools</h3>
+            <p>Open fullscreen, launch a pop-out display window for another screen, and export the current graph as a PNG screenshot.</p>
+          </article>
+          <article class="card">
+            <h3>Graph tools</h3>
+            <p>Use the mini-map, search results list, graph health panel, saved views, tag/folder color rules, legend, and FPS indicator.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="install">
+        <h2>Install</h2>
+        <div class="install">
+          <div class="card">
+            <h3>Community plugin install</h3>
+            <ol class="steps">
+              <li>Open Obsidian.</li>
+              <li>Go to Settings, then Community plugins.</li>
+              <li>Turn off Restricted mode if Obsidian asks.</li>
+              <li>Click Browse and search for Constella.</li>
+              <li>Click Install, then Enable.</li>
+              <li>Run Constella: Open from the Command Palette.</li>
+            </ol>
+          </div>
+          <div class="card">
+            <h3>Manual release install</h3>
+            <ol class="steps">
+              <li>Download main.js, manifest.json, and styles.css from the latest release.</li>
+              <li>Create Your Vault/.obsidian/plugins/constella/.</li>
+              <li>Copy the three files into that folder.</li>
+              <li>Restart Obsidian or reload plugins.</li>
+              <li>Enable Constella in Community plugins.</li>
+            </ol>
+          </div>
+        </div>
+        <pre>Your Vault/
+  .obsidian/
+    plugins/
+      constella/
+        main.js
+        manifest.json
+        styles.css</pre>
+      </section>
+
+      <section>
+        <h2>Platform Paths</h2>
+        <div class="grid">
+          <article class="card">
+            <h3>Mac</h3>
+            <p>Press Command + Shift + . in Finder to show hidden folders, then open .obsidian/plugins/constella inside your vault.</p>
+          </article>
+          <article class="card">
+            <h3>Windows</h3>
+            <p>Enable Hidden items in File Explorer, then open .obsidian\plugins\constella inside your vault.</p>
+          </article>
+          <article class="card">
+            <h3>Linux</h3>
+            <p>Press Ctrl + H in your file manager to show hidden folders, then open .obsidian/plugins/constella inside your vault.</p>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Visual Styles</h2>
+        <div class="badges">
+          <span class="badge">Constellation</span>
+          <span class="badge">Timeline Map</span>
+          <span class="badge">Mind Palace</span>
+          <span class="badge">Circuit Minimal</span>
+          <span class="badge">Archive Fog</span>
+          <span class="badge">Focus Lens</span>
+          <span class="badge">Thread Weaver</span>
+          <span class="badge">Research Board</span>
+          <span class="badge">Signal Radar</span>
+          <span class="badge">Matrix Hacker</span>
+          <span class="badge">Star Map</span>
+          <span class="badge">Aqua Mint</span>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="shell">
+        Constella for Obsidian is open source and local-first. Source, releases, and documentation are available on
+        <a href="https://github.com/loopman90/constella-obsidian-plugin">GitHub</a>.
+      </div>
+    </footer>
+  </body>
+</html>

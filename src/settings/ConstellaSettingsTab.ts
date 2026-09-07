@@ -12,6 +12,15 @@ const TOOL_SETTING_KEYS = [
 
 type ToolSettingKey = typeof TOOL_SETTING_KEYS[number];
 
+const DISPLAY_SETTING_KEYS = [
+  "showClusterHalos",
+  "showNodeIcons",
+  "densityMode",
+  "depthLayers"
+] as const;
+
+type DisplaySettingKey = typeof DISPLAY_SETTING_KEYS[number];
+
 const QUICK_UI_SETTING_KEYS = [
   "showPlayback",
   "showGraphScope",
@@ -94,6 +103,42 @@ export class ConstellaSettingsTab extends PluginSettingTab {
               min: 0,
               max: 1,
               step: 0.01
+            }
+          },
+          {
+            name: "Cluster halos",
+            desc: "Show soft colored halos around clusters.",
+            control: {
+              type: "toggle" as const,
+              key: "showClusterHalos",
+              defaultValue: false
+            }
+          },
+          {
+            name: "Node icons",
+            desc: "Show small icons for daily notes, projects, hubs, orphans, and pinned notes.",
+            control: {
+              type: "toggle" as const,
+              key: "showNodeIcons",
+              defaultValue: false
+            }
+          },
+          {
+            name: "Density mode",
+            desc: "Automatically reduces labels and edge intensity in large vaults.",
+            control: {
+              type: "toggle" as const,
+              key: "densityMode",
+              defaultValue: false
+            }
+          },
+          {
+            name: "Depth layers",
+            desc: "Emphasize hubs and recent notes while pushing older or weaker notes visually back.",
+            control: {
+              type: "toggle" as const,
+              key: "depthLayers",
+              defaultValue: false
             }
           }
         ]
@@ -311,6 +356,9 @@ export class ConstellaSettingsTab extends PluginSettingTab {
     if (key === "glowStrength") {
       return this.plugin.settings.configuration.motion.glowStrength;
     }
+    if (this.isDisplaySettingKey(key)) {
+      return this.plugin.settings.configuration.display[key];
+    }
     if (this.isToolSettingKey(key)) {
       return this.plugin.settings.configuration.tools[key];
     }
@@ -343,6 +391,16 @@ export class ConstellaSettingsTab extends PluginSettingTab {
       };
       await this.plugin.saveConstellaSettings();
     }
+    if (this.isDisplaySettingKey(key) && typeof value === "boolean") {
+      this.plugin.settings.configuration = {
+        ...this.plugin.settings.configuration,
+        display: {
+          ...this.plugin.settings.configuration.display,
+          [key]: value
+        }
+      };
+      await this.plugin.saveConstellaSettings();
+    }
     if (this.isToolSettingKey(key) && this.isValidToolSettingValue(key, value)) {
       this.plugin.settings.configuration = {
         ...this.plugin.settings.configuration,
@@ -367,6 +425,10 @@ export class ConstellaSettingsTab extends PluginSettingTab {
 
   private isToolSettingKey(key: string): key is ToolSettingKey {
     return TOOL_SETTING_KEYS.some((toolKey) => toolKey === key);
+  }
+
+  private isDisplaySettingKey(key: string): key is DisplaySettingKey {
+    return DISPLAY_SETTING_KEYS.some((displayKey) => displayKey === key);
   }
 
   private isValidToolSettingValue(key: ToolSettingKey, value: unknown): boolean {

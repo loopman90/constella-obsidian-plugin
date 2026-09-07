@@ -70,6 +70,10 @@ export const DEFAULT_CONFIGURATION: ActiveConfiguration = {
     showLabels: true,
     showLegend: true,
     showFps: false,
+    showClusterHalos: false,
+    showNodeIcons: false,
+    densityMode: false,
+    depthLayers: false,
     labelSize: 0.48,
     edgeThickness: 0.32,
     nodeSize: 0.45
