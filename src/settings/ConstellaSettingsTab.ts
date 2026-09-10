@@ -66,11 +66,11 @@ export class ConstellaSettingsTab extends PluginSettingTab {
               defaultValue: "auto",
               options: {
                 auto: "Auto",
-                "high-quality": "High Quality",
                 balanced: "Balanced",
+                custom: "Custom",
+                "high-quality": "High Quality",
                 "large-vault": "Large Vault",
-                "low-power": "Low Power",
-                custom: "Custom"
+                "low-power": "Low Power"
               }
             }
           },
@@ -85,7 +85,7 @@ export class ConstellaSettingsTab extends PluginSettingTab {
           },
           {
             name: "First-run experience",
-            desc: "Reserved for the onboarding flow in a later phase.",
+            desc: "Show the starter profile chooser when opening the graph.",
             control: {
               type: "toggle" as const,
               key: "showFirstRun",
@@ -109,6 +109,7 @@ export class ConstellaSettingsTab extends PluginSettingTab {
           },
           {
             name: "Glow strength",
+            visible: () => this.plugin.settings.configuration.motion.glowEnabled,
             desc: "Controls how strong the node glow appears in the graph.",
             control: {
               type: "slider" as const,
@@ -184,6 +185,7 @@ export class ConstellaSettingsTab extends PluginSettingTab {
           },
           {
             name: "Manual camera pause seconds",
+            visible: () => this.plugin.settings.configuration.display.pauseCameraAfterManualNavigation,
             desc: "How long automatic camera movement pauses after trackpad zooming or dragging.",
             control: {
               type: "slider" as const,
@@ -501,6 +503,7 @@ export class ConstellaSettingsTab extends PluginSettingTab {
       };
       await this.plugin.saveConstellaSettings();
     }
+    this.refreshDomState();
   }
 
   private isToolSettingKey(key: string): key is ToolSettingKey {

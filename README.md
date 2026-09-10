@@ -302,6 +302,23 @@ docs/
   media/
 ```
 
+## Control Panel Layout
+
+The in-graph settings follow this order: Graph, Appearance, Animation, Camera,
+Interaction, Quick UI, and Performance. Graph contains source filters, tools,
+discovery, and presets. Tools uses separate Search, Health, and Saved Views tabs;
+their visibility preferences remain available above the tabs.
+
+The quick bar groups navigation, appearance, and actions. The More controls menu
+contains additional options and automatically includes appearance selectors in
+narrow windows. Quick UI settings still control which items are available.
+
+Sliders have a numeric value and a reset icon that restores that individual
+control's default. Controls for disabled effects are hidden until enabled.
+The bottom status line shows visible notes versus all Markdown notes in the
+vault, active filters, graph scope, and playback or camera-lock state. Close the
+settings panel with its close button or Escape.
+
 ## Build Checks
 
 Useful commands:

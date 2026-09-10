@@ -2606,7 +2606,7 @@ export class ConstellaGraphRenderer {
 
     const boxWidth = 178;
     const x = 14;
-    const y = Math.max(14, height - 20 - entries.length * 18);
+    const y = Math.max(14, height - 128 - entries.length * 18);
     this.ctx.save();
     this.ctx.fillStyle = this.withAlpha(colors.backgroundA, 0.72);
     this.ctx.strokeStyle = this.withAlpha(colors.edge, 0.22);
@@ -2850,7 +2850,8 @@ export class ConstellaGraphRenderer {
     const mapWidth = 158;
     const mapHeight = 112;
     const x = Math.max(14, width - mapWidth - 14);
-    const y = height - mapHeight - 20;
+    const legendSpace = width < 400 && this.config.display.showLegend ? this.legendEntries(colors).length * 18 + 24 : 0;
+    const y = Math.max(14, height - mapHeight - 128 - legendSpace);
     const bounds = this.graphBounds();
     const scale = Math.min((mapWidth - 20) / Math.max(1, bounds.width), (mapHeight - 20) / Math.max(1, bounds.height));
     const centerX = x + mapWidth / 2;

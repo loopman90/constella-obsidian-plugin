@@ -48,6 +48,18 @@ export class ConstellaView extends ItemView {
       const stage = container.createDiv({ cls: "constella-stage" });
       const canvasHost = stage.createDiv({ cls: "constella-canvas-host" });
       const overlays = stage.createDiv({ cls: "constella-overlays" });
+      const status = overlays.createDiv({ cls: "constella-view-status" });
+      const updateStatus = (): void => {
+        const { graph, interaction, display } = this.controller.configuration;
+        const count = [graph.folderFilter.trim(), graph.tagFilter.trim(), graph.dateFilter !== "all", graph.minimumConnections > 0,
+          !graph.includeFloatingNotes, interaction.hiddenNodeIds.length > 0, interaction.hiddenClusterIds.length > 0, interaction.expandFromNodeId !== null].filter(Boolean).length;
+        status.textContent = `${this.controller.currentGraph.nodes.length.toLocaleString()} / ${this.app.vault.getMarkdownFiles().length.toLocaleString()} notes · ${count} filters active · ${graph.scope} · ${display.viewportLock ? "Camera locked" : this.controller.playbackState}`;
+        status.toggleClass("has-filters", count > 0);
+      };
+      this.unsubscribers.push(this.controller.events.on("configuration", updateStatus));
+      this.unsubscribers.push(this.controller.events.on("graph", updateStatus));
+      this.unsubscribers.push(this.controller.events.on("playback", updateStatus));
+      updateStatus();
 
       this.controlPanel = new ControlPanel(overlays, this.controller);
       this.controlPanel.hide();
@@ -81,7 +93,7 @@ export class ConstellaView extends ItemView {
       if (this.controller.showFirstRun) {
         this.renderFirstRun(overlays);
       }
-      this.registerDomEvent(document, "keydown", this.onKeyDown);
+      this.registerDomEvent(container.ownerDocument, "keydown", this.onKeyDown);
     } catch (error) {
       console.error("Constella could not open.", error);
       new Notice("Constella could not open. Check the developer console for details.");
@@ -128,7 +140,7 @@ export class ConstellaView extends ItemView {
       this.controlPanel.hide();
       return;
     }
-    if (event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement || event.target instanceof HTMLTextAreaElement) {
+    if ((event.target as HTMLElement | null)?.closest("input, select, textarea, [contenteditable=true]")) {
       return;
     }
     if (event.key === " ") {
@@ -155,7 +167,7 @@ export class ConstellaView extends ItemView {
 
   private shouldHandleKeyEvent(event: KeyboardEvent): boolean {
     const target = event.target;
-    if (target instanceof Node && this.containerEl.contains(target)) {
+    if (target && this.containerEl.contains(target as Node)) {
       return true;
     }
     return this.app.workspace.getActiveViewOfType(ConstellaView) === this;

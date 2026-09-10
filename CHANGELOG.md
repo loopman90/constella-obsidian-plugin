@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.8.0
+
+- Grouped quick controls into navigation, appearance, actions, and a compact overflow menu.
+- Organized settings around seven workflow groups with separate search, health, and saved-view tabs.
+- Added editable slider values and per-control resets; hide controls for disabled effects.
+- Added visible playback/fullscreen/lock states and a note-count/filter status line.
+- Improved narrow-window layouts, panel spacing, keyboard handling in pop-outs, and input focus retention.
+
 ## 0.7.1
 
 - Fixed node glow so it remains visible across quiet visual styles, and added the Glow toggle to official Obsidian settings.

@@ -1,3 +1,6 @@
+import { setIcon } from "obsidian";
+import { DEFAULT_CONFIGURATION } from "../core/ActiveConfiguration";
+import { sliderControl } from "./SliderControl";
 import type { ConstellaController } from "../core/ConstellaController";
 import type { Unsubscribe } from "../core/EventBus";
 import { BACKGROUNDS, CAMERAS, CLICK_ANIMATIONS, COLORS, DRAWING_LINE_STYLES, MODES, NODE_MOVEMENT_STYLES, PATH_ANIMATIONS, PULSE_STYLES, VISUALS } from "../core/types";
@@ -37,11 +40,22 @@ const PANEL_SECTIONS: PanelSection[] = [
   "Display"
 ];
 
+const PANEL_GROUPS = {
+  Graph: ["Graph", "Tools", "Discovery", "Presets"],
+  Appearance: ["Visual", "Background", "Display"],
+  Animation: ["Motion", "Paths"],
+  Camera: ["Quick"],
+  Interaction: ["Journey"],
+  "Quick UI": ["Quick UI"],
+  Performance: ["Performance"]
+} satisfies Record<string, PanelSection[]>;
+
 export class ControlPanel {
   private readonly rootEl: HTMLElement;
   private readonly unsubscribers: Unsubscribe[] = [];
   private readonly performanceManager = new PerformanceManager();
-  private activeSection: PanelSection = "Quick";
+  private activeSection: PanelSection = "Graph";
+  private toolTab = "Search";
   private searchQuery = "";
 
   constructor(containerEl: HTMLElement, private readonly controller: ConstellaController) {
@@ -73,13 +87,18 @@ export class ControlPanel {
   }
 
   render(): void {
+    const scrollTop = this.rootEl.scrollTop;
+    const focused = this.rootEl.ownerDocument.activeElement;
+    const focusLabel = focused && this.rootEl.contains(focused) ? focused.getAttribute("aria-label") : null;
     const config = this.controller.configuration;
     const graph = this.controller.currentGraph;
     this.rootEl.empty();
 
     const header = this.rootEl.createDiv({ cls: "constella-panel-header" });
-    header.createDiv({ cls: "constella-panel-title", text: "Constella" });
-    header.createDiv({ cls: "constella-panel-subtitle", text: "Settings" });
+    header.createDiv({ cls: "constella-panel-title", text: "Settings" });
+    const close = header.createEl("button", { cls: "clickable-icon constella-panel-close", attr: { "aria-label": "Close settings", title: "Close settings" } });
+    setIcon(close, "x");
+    close.addEventListener("click", () => this.hide());
 
     const stats = this.rootEl.createDiv({ cls: "constella-stats" });
     stats.createDiv({ text: `${graph.nodes.length} nodes` });
@@ -92,21 +111,31 @@ export class ControlPanel {
     }
 
     const tabs = this.rootEl.createDiv({ cls: "constella-panel-tabs" });
-    PANEL_SECTIONS.forEach((section) => {
+    const activeGroup = Object.entries(PANEL_GROUPS).find(([, sections]) => (sections as PanelSection[]).includes(this.activeSection))!;
+    const groups = this.rootEl.createDiv({ cls: "constella-panel-tabs" });
+    tabs.before(groups);
+    Object.entries(PANEL_GROUPS).forEach(([name, sections]) => {
+      const button = groups.createEl("button", { text: name, cls: name === activeGroup[0] ? "is-active" : "", attr: { "aria-pressed": String(name === activeGroup[0]) } });
+      button.addEventListener("click", () => { this.activeSection = sections[0]; this.rootEl.scrollTop = 0; this.render(); });
+    });
+    activeGroup[1].filter((section) => PANEL_SECTIONS.includes(section)).forEach((section) => {
       const button = tabs.createEl("button", {
         cls: section === this.activeSection ? "is-active" : "",
-        text: section
+        text: section === "Quick" ? "Camera" : section,
+        attr: { "aria-pressed": String(section === this.activeSection) }
       });
       button.addEventListener("click", () => {
         this.activeSection = section;
+        this.rootEl.scrollTop = 0;
         this.render();
       });
     });
 
+    if (activeGroup[1].length === 1) tabs.remove();
     const body = this.rootEl.createDiv({ cls: "constella-panel-body" });
     switch (this.activeSection) {
       case "Quick":
-        this.renderQuick(body);
+        this.renderCamera(body);
         break;
       case "Quick UI":
         this.renderQuickUi(body);
@@ -136,6 +165,7 @@ export class ControlPanel {
         this.renderTools(body);
         break;
       case "Journey":
+        this.renderInteraction(body);
         this.renderJourney(body);
         break;
       case "Discovery":
@@ -145,6 +175,43 @@ export class ControlPanel {
         this.renderDisplay(body);
         break;
     }
+    this.applyDependencies(body);
+    this.rootEl.scrollTop = scrollTop;
+    if (focusLabel) {
+      Array.from(this.rootEl.querySelectorAll<HTMLElement>("[aria-label]")).find((element) => element.getAttribute("aria-label") === focusLabel)?.focus({ preventScroll: true });
+    }
+  }
+
+  private renderCamera(parent: HTMLElement): void {
+    const { display, motion, camera } = this.controller.configuration;
+    parent.appendChild(this.select("Camera", camera, CAMERAS, (value) => this.controller.updateCamera(value)));
+    parent.appendChild(this.slider("Camera Speed", motion.cameraSpeed, (value) => this.controller.updateMotion("cameraSpeed", value)));
+    parent.appendChild(this.toggleControl("View Lock", display.viewportLock, (value) => this.controller.updateDisplay("viewportLock", value)));
+    parent.appendChild(this.toggleControl("Preserve Viewport On Refresh", display.preserveViewportOnRefresh, (value) => this.controller.updateDisplay("preserveViewportOnRefresh", value)));
+    parent.appendChild(this.toggleControl("Pause Camera After Manual Navigation", display.pauseCameraAfterManualNavigation, (value) => this.controller.updateDisplay("pauseCameraAfterManualNavigation", value)));
+    parent.appendChild(this.numberControl("Manual Camera Pause Seconds", display.manualCameraPauseSeconds, 0, 60, (value) => this.controller.updateDisplay("manualCameraPauseSeconds", value)));
+  }
+
+  private applyDependencies(body: HTMLElement): void {
+    const { motion, display, graph } = this.controller.configuration;
+    const conditions: Record<string, boolean> = {
+      "Glow Strength": motion.glowEnabled,
+      "Label Size": display.showLabels,
+      "Particle Amount": motion.particlesEnabled,
+      "Particle Speed": motion.particlesEnabled,
+      "Drawing Line Style": motion.drawingLinesEnabled,
+      "Drawing Line Speed": motion.drawingLinesEnabled,
+      "Pulse Amount": motion.connectionPulsesEnabled,
+      "Pulse Style": motion.connectionPulsesEnabled,
+      "Movement Style": motion.nodeMovementEnabled,
+      "Movement Speed": motion.nodeMovementEnabled,
+      "Movement Strength": motion.nodeMovementEnabled,
+      "Manual Camera Pause Seconds": display.pauseCameraAfterManualNavigation,
+      "Local Depth": graph.scope !== "global"
+    };
+    body.querySelectorAll<HTMLElement>(".constella-panel-control").forEach((row) => {
+      if (conditions[row.firstElementChild?.textContent ?? ""] === false) row.remove();
+    });
   }
 
   private renderQuick(parent: HTMLElement): void {
@@ -268,6 +335,11 @@ export class ControlPanel {
       this.controller.updateGraphOption("minimumConnections", value)
     ));
 
+    section.appendChild(this.actionButton("Reset Graph", () => this.controller.resetSection("graph")));
+  }
+
+  private renderInteraction(parent: HTMLElement): void {
+    const config = this.controller.configuration;
     const interaction = this.section(parent, "Interaction", "Pin, hide, expand, and preview paths from the focused node.");
     interaction.appendChild(this.buttonGroup([
       { label: "Pin Focused Node", onClick: () => this.controller.togglePinnedSelected() },
@@ -284,13 +356,13 @@ export class ControlPanel {
       text: `${config.interaction.pinnedNodeIds.length} pinned, ${config.interaction.hiddenNodeIds.length} hidden, ${config.interaction.hiddenClusterIds.length} hidden clusters`
     });
     interaction.appendChild(this.actionButton("Show All Notes", () => this.controller.showAllNotes()));
-    section.appendChild(this.actionButton("Reset Graph", () => this.controller.resetSection("graph")));
   }
 
   private renderVisual(parent: HTMLElement): void {
     const config = this.controller.configuration;
     const section = this.section(parent, "Visual Style", "Shape, color, glow, and rendering intensity.");
     section.appendChild(this.select("Visual Style", config.visual, VISUALS, (value) => this.controller.updateVisual(value)));
+    section.appendChild(this.slider("Visual Intensity", config.motion.visualIntensity, (value) => this.controller.updateMotion("visualIntensity", value)));
     section.appendChild(this.select("Color Scheme", config.colors, COLORS, (value) => this.controller.updateColors(value)));
     section.appendChild(this.slider("Color Intensity", config.motion.colorIntensity, (value) => this.controller.updateMotion("colorIntensity", value)));
     section.appendChild(this.slider("Color Speed", config.motion.colorSpeed, (value) => this.controller.updateMotion("colorSpeed", value)));
@@ -433,12 +505,19 @@ export class ControlPanel {
       this.controller.updateTools("enableColorRules", value)
     ));
 
-    if (config.tools.showSearchResults) {
+    const toolTabs = parent.createDiv({ cls: "constella-panel-tabs" });
+    const available = ["Search", ...(config.tools.showGraphHealth ? ["Health"] : []), ...(config.tools.enableSavedViews ? ["Saved Views"] : [])];
+    if (!available.includes(this.toolTab)) this.toolTab = "Search";
+    available.forEach((name) => {
+      const button = toolTabs.createEl("button", { text: name, cls: this.toolTab === name ? "is-active" : "", attr: { "aria-pressed": String(this.toolTab === name) } });
+      button.addEventListener("click", () => { this.toolTab = name; this.render(); });
+    });
+    if (this.toolTab === "Search") {
       const search = this.section(parent, "Search Results", "Find several matching notes before choosing one.");
       search.appendChild(this.searchControl());
     }
 
-    if (config.tools.showGraphHealth) {
+    if (config.tools.showGraphHealth && this.toolTab === "Health") {
       const health = this.controller.graphHealthSummary;
       const panel = this.section(parent, "Graph Health", "Spot disconnected, forgotten, weak, and highly connected notes.");
       panel.appendChild(this.metricRow("Visible Notes", health.totalNotes));
@@ -450,12 +529,12 @@ export class ControlPanel {
       panel.appendChild(this.nodeList("Weak Links", health.weakNotes));
     }
 
-    if (config.tools.enableSavedViews) {
+    if (config.tools.enableSavedViews && this.toolTab === "Saved Views") {
       const views = this.section(parent, "Saved Views", "Save and reuse complete graph setups.");
       views.appendChild(this.actionButton("Save Current View", () => {
         new TextPromptModal(this.controller.app, "Save View", "Research View", (name) => this.controller.saveTemplateAs(name)).open();
       }));
-      this.controller.templates.slice(0, 8).forEach((template) => {
+      this.controller.templates.forEach((template) => {
         views.appendChild(this.savedViewRow(template.name, () => this.controller.loadTemplate(template.id)));
       });
     }
@@ -471,6 +550,7 @@ export class ControlPanel {
   private renderJourney(parent: HTMLElement): void {
     const config = this.controller.configuration;
     const section = this.section(parent, "Journey", "Let Constella travel through related notes.");
+    section.appendChild(this.select("Mode", config.mode, MODES, (value) => this.controller.updateMode(value)));
     section.appendChild(this.numberControl("Minimum Nodes", config.journey.minNodes, 1, 100, (value) => this.controller.updateJourney("minNodes", value)));
     section.appendChild(this.numberControl("Maximum Nodes", config.journey.maxNodes, 1, 200, (value) => this.controller.updateJourney("maxNodes", value)));
     section.appendChild(this.numberControl("Node Pause", config.journey.nodePauseSeconds, 0.5, 60, (value) =>
@@ -598,7 +678,8 @@ export class ControlPanel {
     const row = createDiv({ cls: "constella-panel-control" });
     row.createSpan({ text: label });
     const select = row.createEl("select");
-    const orderedOptions = sortOptions ? [...options].sort((a, b) => a.label.localeCompare(b.label)) : options;
+    const orderedOptions = [...options].sort((a, b) => a.label.localeCompare(b.label));
+    select.setAttribute("aria-label", label);
     orderedOptions.forEach((option) => select.createEl("option", { text: option.label, value: option.id }));
     select.value = value;
     select.addEventListener("change", () => void onChange(select.value as T));
@@ -615,7 +696,8 @@ export class ControlPanel {
       }
     });
     input.value = value;
-    input.addEventListener("input", () => void onChange(input.value));
+    input.setAttribute("aria-label", label);
+    input.addEventListener("change", () => void onChange(input.value));
     return row;
   }
 
@@ -671,25 +753,22 @@ export class ControlPanel {
   }
 
   private slider(label: string, value: number, onChange: (value: number) => void | Promise<void>): HTMLElement {
-    const row = createDiv({ cls: "constella-panel-control" });
-    row.createSpan({ text: label });
-    const input = row.createEl("input", {
-      type: "range",
-      attr: {
-        min: "0",
-        max: "1",
-        step: "0.01"
-      }
-    });
-    input.value = String(value);
-    input.addEventListener("input", () => void onChange(Number(input.value)));
-    return row;
+    const defaults: Record<string, number> = {
+      "Background Intensity": DEFAULT_CONFIGURATION.background.intensity,
+      "Movement Strength": DEFAULT_CONFIGURATION.motion.nodeMovementStrength,
+      "Movement Speed": DEFAULT_CONFIGURATION.motion.nodeMovementSpeed
+    };
+    const key = label.replace(/ (\w)/g, (_, letter: string) => letter.toUpperCase()).replace(/^./, (letter) => letter.toLowerCase());
+    const values: Record<string, unknown> = { ...DEFAULT_CONFIGURATION.motion, ...DEFAULT_CONFIGURATION.display };
+    const fallback = values[key];
+    return sliderControl(label, value, defaults[label] ?? (typeof fallback === "number" ? fallback : 0.5), onChange);
   }
 
   private toggleControl(label: string, value: boolean, onChange: (value: boolean) => void | Promise<void>): HTMLElement {
     const row = createDiv({ cls: "constella-panel-control" });
     row.createSpan({ text: label });
     const input = row.createEl("input", { type: "checkbox" });
+    input.setAttribute("aria-label", label);
     input.checked = value;
     input.addEventListener("change", () => void onChange(input.checked));
     return row;

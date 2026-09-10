@@ -15,6 +15,7 @@
 }
 
 .constella-stage {
+  container-type: inline-size;
   position: absolute;
   inset: 0;
   width: 100%;
@@ -54,7 +55,7 @@
   pointer-events: auto;
   position: absolute;
   left: 50%;
-  bottom: 18px;
+  bottom: 40px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -67,12 +68,12 @@
   background: color-mix(in srgb, var(--background-primary) 82%, transparent);
   box-shadow: 0 12px 34px rgba(0, 0, 0, 0.24);
   backdrop-filter: blur(14px);
-  overflow-x: auto;
+  overflow: visible;
 }
 
 .constella-quick-bar.is-collapsed {
   left: 18px;
-  bottom: 18px;
+  bottom: 40px;
   transform: none;
 }
 
@@ -91,10 +92,9 @@
 }
 
 .constella-icon-button.is-active {
-  border-color: rgba(113, 215, 209, 0.82);
-  background: rgba(113, 215, 209, 0.18);
-  color: #e8fffb;
-  box-shadow: 0 0 18px rgba(113, 215, 209, 0.26);
+  border: 1px solid var(--interactive-accent);
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
 }
 
 .constella-select-control,
@@ -129,8 +129,8 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  width: min(360px, calc(100% - 28px));
-  max-height: calc(100% - 96px);
+  width: min(440px, calc(100% - 28px));
+  max-height: calc(100% - 128px);
   padding: 14px;
   border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
@@ -145,6 +145,8 @@
 }
 
 .constella-panel-header {
+  position: relative;
+  padding-right: 32px;
   display: grid;
   gap: 2px;
 }
@@ -443,7 +445,7 @@
   color: var(--text-accent);
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
@@ -497,8 +499,42 @@
   font-size: 12px;
 }
 
-.modal .setting-item {
-  border-top: 0;
+.constella-quick-group { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.constella-quick-group + .constella-quick-group { border-left: 1px solid var(--background-modifier-border); padding-left: 8px; }
+.constella-quick-more summary { cursor: pointer; list-style: none; }
+.constella-quick-more summary::-webkit-details-marker { display: none; }
+.constella-quick-menu { position: absolute; right: 0; bottom: calc(100% + 8px); width: min(340px, calc(100cqw - 28px)); max-height: min(440px, calc(100cqh - 140px)); overflow: auto; padding: 12px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 8px; box-shadow: var(--shadow-s); }
+.constella-quick-menu > .constella-panel-control { grid-column: 1 / -1; }
+.constella-quick-menu { left: 50%; right: auto; transform: translateX(-50%); }
+.constella-quick-menu .constella-select-control { min-width: 0; }
+.constella-quick-menu select { width: 100%; max-width: 100%; }
+.constella-panel-close { position: absolute; right: 0; top: 0; }
+.constella-panel-control > *, .constella-panel-body, .constella-panel-section { min-width: 0; }
+.constella-panel-control input, .constella-panel-control select { min-width: 0; max-width: 100%; }
+.constella-panel-control > span { overflow-wrap: anywhere; }
+.constella-slider-inputs { display: grid; grid-template-columns: minmax(36px, 1fr) 64px 30px; align-items: center; gap: 5px; }
+.constella-slider-inputs input[type=number] { width: 64px; padding: 4px; }
+.constella-view-status { position: absolute; bottom: 7px; left: 14px; right: 14px; color: var(--text-muted); background: var(--background-primary); font-size: 11px; line-height: 1.4; width: fit-content; max-width: calc(100% - 28px); padding: 2px 6px; border-radius: 4px; }
+.constella-view-status.has-filters { border-left: 3px solid var(--interactive-accent); }
+.constella-overlays:has(.constella-control-panel:not(.is-hidden)) .constella-node-info { display: none; }
+.constella-overlays:has(.constella-quick-more[open]) .constella-control-panel { visibility: hidden; }
+.constella-panel-tabs button { flex-basis: 96px; white-space: nowrap; }
+.constella-stats { display: flex; flex-wrap: wrap; gap: 12px; }
+.constella-stats div { min-height: 0; padding: 0; border: 0; background: none; }
+.constella-first-run { max-height: calc(100% - 28px); overflow: auto; }
+
+@container (max-width: 540px) {
+  .constella-control-panel { left: 10px; right: 10px; width: auto; padding: 12px; }
+  .constella-panel-control { grid-template-columns: minmax(0, 1fr); gap: 5px; }
+  .constella-panel-control:has(input[type=checkbox]) { grid-template-columns: minmax(0, 1fr) 30px; }
+  .constella-quick-bar { gap: 4px; padding: 5px; max-width: calc(100% - 16px); }
+  .constella-quick-group { gap: 2px; }
+  .constella-quick-group + .constella-quick-group { padding-left: 4px; }
+  .constella-quick-group .constella-select-control { min-width: 60px; }
+  .constella-quick-group select { width: 70px; }
+  .constella-icon-button { width: 28px; height: 30px; }
+  .constella-node-info { display: none; }
+  .constella-first-run-actions { grid-template-columns: minmax(0, 1fr); }
 }
 
 @media (max-width: 720px) {

@@ -1,4 +1,6 @@
 import { setIcon } from "obsidian";
+import { sliderControl } from "./SliderControl";
+import { DEFAULT_CONFIGURATION } from "../core/ActiveConfiguration";
 import type { ConstellaController } from "../core/ConstellaController";
 import type { Unsubscribe } from "../core/EventBus";
 import { CAMERAS, COLORS, MODES, VISUALS } from "../core/types";
@@ -15,15 +17,25 @@ export class QuickBar {
   private readonly rootEl: HTMLElement;
   private readonly unsubscribers: Unsubscribe[] = [];
   private collapsed = false;
+  private moreOpen = false;
+  private compact = false;
+  private readonly resizeObserver: ResizeObserver;
 
   constructor(containerEl: HTMLElement, private readonly controller: ConstellaController, private readonly actions: QuickBarActions) {
     this.rootEl = containerEl.createDiv({ cls: "constella-quick-bar" });
+    this.compact = containerEl.clientWidth < 850;
+    this.resizeObserver = new ResizeObserver(() => {
+      const compact = containerEl.clientWidth < 850;
+      if (compact !== this.compact) { this.compact = compact; this.render(); }
+    });
+    this.resizeObserver.observe(containerEl);
     this.render();
     this.unsubscribers.push(controller.events.on("configuration", () => this.render()));
     this.unsubscribers.push(controller.events.on("playback", () => this.render()));
   }
 
   destroy(): void {
+    this.resizeObserver.disconnect();
     this.unsubscribers.forEach((unsubscribe) => unsubscribe());
     this.rootEl.remove();
   }
@@ -109,12 +121,52 @@ export class QuickBar {
         this.render();
       }));
     }
+    this.groupControls();
+  }
+
+  private groupControls(): void {
+    const controls = Array.from(this.rootEl.children);
+    const navigation = this.rootEl.createDiv({ cls: "constella-quick-group", attr: { role: "group", "aria-label": "Navigation" } });
+    const appearance = this.rootEl.createDiv({ cls: "constella-quick-group constella-quick-appearance", attr: { role: "group", "aria-label": "Appearance" } });
+    const actions = this.rootEl.createDiv({ cls: "constella-quick-group", attr: { role: "group", "aria-label": "Actions" } });
+    const more = this.rootEl.createEl("details", { cls: "constella-quick-more" });
+    more.open = this.moreOpen;
+    const summary = more.createEl("summary", { cls: "constella-icon-button", attr: { title: "More controls", "aria-label": "More controls" } });
+    setIcon(summary, "ellipsis");
+    const menu = more.createDiv({ cls: "constella-quick-menu" });
+    more.addEventListener("toggle", () => { this.moreOpen = more.open; });
+    more.addEventListener("keydown", (event) => { if (event.key === "Escape") { event.stopPropagation(); more.open = false; summary.focus(); } });
+    controls.forEach((control) => {
+      const label = control.getAttribute("aria-label") ?? control.firstElementChild?.textContent ?? "";
+      const group = (["Start", "Pause", "Stop", "Lock view", "Unlock view"].includes(label) || (label === "Graph" && !this.compact)) ? navigation
+        : ["Visual", "Colors"].includes(label) && !this.compact ? appearance
+        : ["Open control panel", "Toggle fullscreen display mode", "Collapse quick bar"].includes(label) ? actions : menu;
+      group.appendChild(control);
+      const active = (label === "Start" && this.controller.playbackState === "playing")
+        || (label === "Pause" && this.controller.playbackState === "paused")
+        || (label === "Stop" && this.controller.playbackState === "idle")
+        || label === "Unlock view"
+        || (label === "Toggle fullscreen display mode" && this.controller.configuration.display.fullscreen);
+      if (control.tagName === "BUTTON") {
+        control.classList.toggle("is-active", active);
+        control.setAttribute("aria-pressed", String(active));
+      }
+    });
+    [navigation, appearance, actions].forEach((group) => { if (!group.children.length) group.remove(); });
+    if (!menu.children.length) more.remove();
   }
 
   private iconButton(icon: string, label: string, onClick: () => void | Promise<void>): HTMLButtonElement {
     const button = createEl("button", { cls: "clickable-icon constella-icon-button", attr: { "aria-label": label, title: label } });
     setIcon(button, icon);
-    button.addEventListener("click", () => void onClick());
+    button.addEventListener("click", () => {
+      if (label === "Open control panel") {
+        this.moreOpen = false;
+        const more = this.rootEl.querySelector("details");
+        if (more) more.open = false;
+      }
+      void onClick();
+    });
     return button;
   }
 
@@ -128,7 +180,8 @@ export class QuickBar {
     const wrapper = createDiv({ cls: "constella-select-control" });
     wrapper.createSpan({ cls: "constella-control-label", text: label });
     const select = wrapper.createEl("select");
-    const orderedOptions = sortOptions ? [...options].sort((a, b) => a.label.localeCompare(b.label)) : options;
+    const orderedOptions = [...options].sort((a, b) => a.label.localeCompare(b.label));
+    select.setAttribute("aria-label", label);
     orderedOptions.forEach((option) => {
       select.createEl("option", { text: option.label, value: option.id });
     });
@@ -138,18 +191,6 @@ export class QuickBar {
   }
 
   private slider(label: string, value: number, onChange: (value: number) => void | Promise<void>): HTMLElement {
-    const wrapper = createDiv({ cls: "constella-slider-control" });
-    wrapper.createSpan({ cls: "constella-control-label", text: label });
-    const input = wrapper.createEl("input", {
-      type: "range",
-      attr: {
-        min: "0",
-        max: "1",
-        step: "0.01"
-      }
-    });
-    input.value = String(value);
-    input.addEventListener("input", () => void onChange(Number(input.value)));
-    return wrapper;
+    return sliderControl(label, value, label === "Speed" ? DEFAULT_CONFIGURATION.motion.animationSpeed : DEFAULT_CONFIGURATION.motion.visualIntensity, onChange);
   }
 }
