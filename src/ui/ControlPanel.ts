@@ -60,26 +60,31 @@ export class ControlPanel {
 
   constructor(containerEl: HTMLElement, private readonly controller: ConstellaController) {
     this.rootEl = containerEl.createDiv({ cls: "constella-control-panel" });
+    containerEl.addClass("constella-panel-open");
     this.render();
     this.unsubscribers.push(controller.events.on("configuration", () => this.render()));
     this.unsubscribers.push(controller.events.on("graph", () => this.render()));
   }
 
   destroy(): void {
+    this.rootEl.parentElement?.removeClass("constella-panel-open");
     this.unsubscribers.forEach((unsubscribe) => unsubscribe());
     this.rootEl.remove();
   }
 
   show(): void {
     this.rootEl.removeClass("is-hidden");
+    this.rootEl.parentElement?.addClass("constella-panel-open");
   }
 
   hide(): void {
     this.rootEl.addClass("is-hidden");
+    this.rootEl.parentElement?.removeClass("constella-panel-open");
   }
 
   toggle(): void {
-    this.rootEl.toggleClass("is-hidden", !this.rootEl.hasClass("is-hidden"));
+    if (this.isVisible()) this.hide();
+    else this.show();
   }
 
   isVisible(): boolean {
@@ -765,7 +770,7 @@ export class ControlPanel {
   }
 
   private toggleControl(label: string, value: boolean, onChange: (value: boolean) => void | Promise<void>): HTMLElement {
-    const row = createDiv({ cls: "constella-panel-control" });
+    const row = createDiv({ cls: "constella-panel-control constella-toggle-control" });
     row.createSpan({ text: label });
     const input = row.createEl("input", { type: "checkbox" });
     input.setAttribute("aria-label", label);

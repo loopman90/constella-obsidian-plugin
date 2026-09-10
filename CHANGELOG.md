@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.8.1
+
+- Replaced relational CSS selectors with explicit panel, menu, and toggle state classes to avoid broad selector invalidation.
+
 ## 0.8.0
 
 - Grouped quick controls into navigation, appearance, actions, and a compact overflow menu.

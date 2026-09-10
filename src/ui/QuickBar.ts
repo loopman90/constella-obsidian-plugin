@@ -35,12 +35,14 @@ export class QuickBar {
   }
 
   destroy(): void {
+    this.rootEl.parentElement?.removeClass("constella-more-open");
     this.resizeObserver.disconnect();
     this.unsubscribers.forEach((unsubscribe) => unsubscribe());
     this.rootEl.remove();
   }
 
   render(): void {
+    this.rootEl.parentElement?.removeClass("constella-more-open");
     this.rootEl.empty();
     this.rootEl.toggleClass("is-collapsed", this.collapsed);
 
@@ -134,7 +136,11 @@ export class QuickBar {
     const summary = more.createEl("summary", { cls: "constella-icon-button", attr: { title: "More controls", "aria-label": "More controls" } });
     setIcon(summary, "ellipsis");
     const menu = more.createDiv({ cls: "constella-quick-menu" });
-    more.addEventListener("toggle", () => { this.moreOpen = more.open; });
+    more.addEventListener("toggle", () => {
+      if (!this.rootEl.contains(more)) return;
+      this.moreOpen = more.open;
+      this.rootEl.parentElement?.toggleClass("constella-more-open", more.open);
+    });
     more.addEventListener("keydown", (event) => { if (event.key === "Escape") { event.stopPropagation(); more.open = false; summary.focus(); } });
     controls.forEach((control) => {
       const label = control.getAttribute("aria-label") ?? control.firstElementChild?.textContent ?? "";
@@ -154,6 +160,7 @@ export class QuickBar {
     });
     [navigation, appearance, actions].forEach((group) => { if (!group.children.length) group.remove(); });
     if (!menu.children.length) more.remove();
+    this.rootEl.parentElement?.toggleClass("constella-more-open", this.rootEl.contains(more) && more.open);
   }
 
   private iconButton(icon: string, label: string, onClick: () => void | Promise<void>): HTMLButtonElement {
