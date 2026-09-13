@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## 0.9.0
+
+- Added configurable interactive node dragging, connected-node movement, auto-pin, pan/zoom switches, double-click behavior, and node context menus.
+- Added an interactive graph hand button and camera pause policies, with saved preferences and owner-window pointer handling.
+- Added settings search and consolidated duplicated controls into their primary sections.
+- Added a local text note preview with loading, empty, missing-note, and retry states.
+- Added per-window back/forward history that restores note selection and camera position.
+- Made the note-count status clickable with sequential filter exclusion counts and a show-all action.
+- Added keyboard selection of search results and focus restoration when closing settings.
+- Added graph loading/error/empty states and retry actions.
+- Added automated history, filter, large-vault, and refresh-recovery tests. Native Obsidian integration checks remain pending.
+
 ## 0.8.1
 
 - Replaced relational CSS selectors with explicit panel, menu, and toggle state classes to avoid broad selector invalidation.

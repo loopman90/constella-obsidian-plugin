@@ -339,6 +339,7 @@ export interface ActiveConfiguration {
     nodeSize: number;
   };
   quickUi: {
+    showGraphInteraction: boolean;
     showPlayback: boolean;
     showGraphScope: boolean;
     showMode: boolean;
@@ -370,6 +371,18 @@ export interface ActiveConfiguration {
     hiddenClusterIds: number[];
     expandFromNodeId: string | null;
     pathPreviewStartId: string | null;
+  };
+  graphInteraction: {
+    enabled: boolean;
+    dragNodes: boolean;
+    moveNeighbors: boolean;
+    neighborStrength: number;
+    pinAfterDrag: boolean;
+    pan: boolean;
+    zoom: boolean;
+    doubleClickOpen: boolean;
+    contextMenu: boolean;
+    cameraPause: "during" | "temporary" | "until-play";
   };
   template: {
     activeTemplateId: string;

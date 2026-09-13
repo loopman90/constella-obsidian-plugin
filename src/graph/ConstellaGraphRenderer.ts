@@ -3,6 +3,8 @@ import type { ActiveConfiguration, ClickAnimationId, GraphData, GraphNode, Viewp
 import { PerformanceManager } from "../performance/PerformanceManager";
 
 interface RendererOptions {
+  onNodeDragged?: (node: GraphNode) => void;
+  onNodeContextMenu?: (node: GraphNode, event: MouseEvent) => void;
   onNodeSelected: (node: GraphNode | null) => void;
   onNodeOpened: (node: GraphNode) => void;
 }
@@ -69,6 +71,11 @@ export class ConstellaGraphRenderer {
   private fpsStartedAt = performance.now();
   private hasCenteredGraph = false;
   private cameraPausedUntil = 0;
+  private draggedNode: GraphNode | null = null;
+  private pointerId: number | null = null;
+  private pointerStart = { x: 0, y: 0 };
+  private suppressDoubleClickUntil = 0;
+  private get ownerWindow(): Window { return this.canvas.ownerDocument.defaultView ?? window; }
 
   constructor(
     private readonly app: App,
@@ -89,6 +96,13 @@ export class ConstellaGraphRenderer {
   }
 
   setGraph(graph: GraphData): void {
+    this.cancelPointer();
+    for (const node of graph.nodes) {
+      const previous = this.nodeById.get(node.id);
+      if (previous && this.config.interaction.pinnedNodeIds.includes(node.id)) {
+        node.x = previous.x; node.y = previous.y;
+      }
+    }
     const previousSelectedId = this.selectedNode?.id ?? null;
     this.graph = graph;
     this.nodeById = new Map(graph.nodes.map((node) => [node.id, node]));
@@ -104,11 +118,28 @@ export class ConstellaGraphRenderer {
   }
 
   setConfiguration(config: ActiveConfiguration): void {
+    if (this.config.graphInteraction !== config.graphInteraction) this.cancelPointer();
+    if (this.config.graphInteraction.enabled !== config.graphInteraction.enabled || this.config.graphInteraction.cameraPause !== config.graphInteraction.cameraPause) this.cameraPausedUntil = 0;
     this.config = config;
   }
 
+  resumeCamera(): void { this.cameraPausedUntil = 0; }
+
   setSelectedNode(node: GraphNode | null): void {
     this.selectedNode = node;
+  }
+
+  getViewport(): Viewport { return { ...this.viewport }; }
+
+  restoreViewport(viewport: Viewport): void {
+    this.viewport = { ...viewport };
+    this.cameraPausedUntil = Infinity;
+  }
+
+  focusNode(node: GraphNode): void {
+    if (this.pointer.dragging) return;
+    this.restoreViewport({ ...this.viewport, x: -node.x * this.viewport.scale, y: -node.y * this.viewport.scale });
+    this.cameraPausedUntil = performance.now() + Math.max(8, this.config.display.manualCameraPauseSeconds) * 1000;
   }
 
   setJourney(path: string[], currentIndex: number): void {
@@ -135,31 +166,40 @@ export class ConstellaGraphRenderer {
       return;
     }
     this.lastFrame = performance.now();
-    this.animationFrame = window.requestAnimationFrame(this.render);
+    this.animationFrame = this.ownerWindow.requestAnimationFrame(this.render);
   }
 
   stop(): void {
     if (this.animationFrame !== null) {
-      window.cancelAnimationFrame(this.animationFrame);
+      this.ownerWindow.cancelAnimationFrame(this.animationFrame);
       this.animationFrame = null;
     }
   }
 
   destroy(): void {
+    this.cancelPointer();
+    this.canvas.removeEventListener("pointercancel", this.cancelPointer);
+    this.canvas.removeEventListener("lostpointercapture", this.cancelPointer);
+    this.canvas.removeEventListener("contextmenu", this.onContextMenu);
+    this.ownerWindow.removeEventListener("blur", this.cancelPointer);
     this.stop();
     this.resizeObserver?.disconnect();
     this.canvas.removeEventListener("pointerdown", this.onPointerDown);
-    window.removeEventListener("pointermove", this.onPointerMove);
-    window.removeEventListener("pointerup", this.onPointerUp);
+    this.ownerWindow.removeEventListener("pointermove", this.onPointerMove);
+    this.ownerWindow.removeEventListener("pointerup", this.onPointerUp);
     this.canvas.removeEventListener("wheel", this.onWheel);
     this.canvas.removeEventListener("dblclick", this.onDoubleClick);
     this.canvas.remove();
   }
 
   private bindEvents(): void {
+    this.canvas.addEventListener("pointercancel", this.cancelPointer);
+    this.canvas.addEventListener("lostpointercapture", this.cancelPointer);
+    this.canvas.addEventListener("contextmenu", this.onContextMenu);
+    this.ownerWindow.addEventListener("blur", this.cancelPointer);
     this.canvas.addEventListener("pointerdown", this.onPointerDown);
-    window.addEventListener("pointermove", this.onPointerMove);
-    window.addEventListener("pointerup", this.onPointerUp);
+    this.ownerWindow.addEventListener("pointermove", this.onPointerMove);
+    this.ownerWindow.addEventListener("pointerup", this.onPointerUp);
     this.canvas.addEventListener("wheel", this.onWheel, { passive: false });
     this.canvas.addEventListener("dblclick", this.onDoubleClick);
     this.resizeObserver = new ResizeObserver(() => this.resize());
@@ -177,7 +217,7 @@ export class ConstellaGraphRenderer {
     }
     this.followCamera(dt * motionScale);
     this.draw();
-    this.animationFrame = window.requestAnimationFrame(this.render);
+    this.animationFrame = this.ownerWindow.requestAnimationFrame(this.render);
   };
 
   private step(dt: number): void {
@@ -190,7 +230,7 @@ export class ConstellaGraphRenderer {
     const speed = 0.25 + this.config.motion.nodeMovementSpeed * 3.5 + this.config.motion.animationSpeed;
     const pinned = new Set(this.config.interaction.pinnedNodeIds);
     this.graph.nodes.forEach((node, index) => {
-      if (pinned.has(node.id)) {
+      if (pinned.has(node.id) || node === this.draggedNode) {
         node.vx = 0;
         node.vy = 0;
         return;
@@ -266,8 +306,8 @@ export class ConstellaGraphRenderer {
   }
 
   private draw(): void {
-    const width = this.canvas.width / window.devicePixelRatio;
-    const height = this.canvas.height / window.devicePixelRatio;
+    const width = this.canvas.width / this.ownerWindow.devicePixelRatio;
+    const height = this.canvas.height / this.ownerWindow.devicePixelRatio;
     this.ctx.clearRect(0, 0, width, height);
     this.drawBackground(width, height);
 
@@ -3057,7 +3097,7 @@ export class ConstellaGraphRenderer {
   }
 
   private resize(): void {
-    const ratio = window.devicePixelRatio || 1;
+    const ratio = this.ownerWindow.devicePixelRatio || 1;
     const width = Math.max(1, this.containerEl.clientWidth);
     const height = Math.max(1, this.containerEl.clientHeight);
     this.canvas.width = Math.floor(width * ratio);
@@ -3070,6 +3110,11 @@ export class ConstellaGraphRenderer {
   }
 
   private readonly onPointerDown = (event: PointerEvent): void => {
+    if (event.button !== 0 || this.pointerId !== null) return;
+    this.pointerId = event.pointerId;
+    this.pointerStart = { x: event.clientX, y: event.clientY };
+    const node = this.nodeAt(event.clientX, event.clientY);
+    this.draggedNode = this.config.graphInteraction.enabled && this.config.graphInteraction.dragNodes ? node : null;
     this.pointer = { dragging: true, lastX: event.clientX, lastY: event.clientY, moved: false };
     this.canvas.setPointerCapture(event.pointerId);
   };
@@ -3080,13 +3125,38 @@ export class ConstellaGraphRenderer {
       return;
     }
 
+    if (event.pointerId !== this.pointerId) return;
+    if (!this.pointer.moved && Math.hypot(event.clientX - this.pointerStart.x, event.clientY - this.pointerStart.y) < 5) return;
+
     const dx = event.clientX - this.pointer.lastX;
     const dy = event.clientY - this.pointer.lastY;
     this.pointer.lastX = event.clientX;
     this.pointer.lastY = event.clientY;
-    this.pointer.moved = this.pointer.moved || Math.abs(dx) + Math.abs(dy) > 3;
-    this.viewport.x += dx;
-    this.viewport.y += dy;
+    this.pointer.moved = true;
+    if (this.draggedNode) {
+      const worldDx = dx / this.viewport.scale;
+      const worldDy = dy / this.viewport.scale;
+      this.draggedNode.x += worldDx;
+      this.draggedNode.y += worldDy;
+      this.draggedNode.vx = this.draggedNode.vy = 0;
+      if (this.config.graphInteraction.moveNeighbors) {
+        const neighbors = new Set<string>();
+        for (const edge of this.graph.edges) {
+          if (edge.source === this.draggedNode.id) neighbors.add(edge.target);
+          if (edge.target === this.draggedNode.id) neighbors.add(edge.source);
+        }
+        const strength = Math.max(0, Math.min(1, this.config.graphInteraction.neighborStrength));
+        for (const id of neighbors) {
+          const neighbor = this.nodeById.get(id);
+          if (!neighbor || neighbor === this.draggedNode || this.config.interaction.pinnedNodeIds.includes(id)) continue;
+          neighbor.x += worldDx * strength; neighbor.y += worldDy * strength;
+        }
+      }
+    } else if (!this.config.graphInteraction.enabled || this.config.graphInteraction.pan) {
+      this.viewport.x += dx;
+      this.viewport.y += dy;
+    }
+    this.canvas.addClass("is-dragging");
     if (this.pointer.moved) {
       this.pauseCameraAfterManualNavigation();
     }
@@ -3094,25 +3164,32 @@ export class ConstellaGraphRenderer {
   };
 
   private readonly onPointerUp = (event: PointerEvent): void => {
-    if (!this.pointer.dragging) {
+    if (!this.pointer.dragging || event.pointerId !== this.pointerId) {
       return;
     }
 
-    this.pointer.dragging = false;
-    this.canvas.releasePointerCapture(event.pointerId);
+    const dragged = this.draggedNode;
+    const moved = this.pointer.moved;
+    this.cancelPointer();
+    if (moved) {
+      this.suppressDoubleClickUntil = performance.now() + 400;
+      if (dragged && this.config.graphInteraction.pinAfterDrag) this.options.onNodeDragged?.(dragged);
+    }
 
-    if (!this.pointer.moved) {
+    if (!moved) {
       const node = this.nodeAt(event.clientX, event.clientY);
       this.selectedNode = node;
       this.options.onNodeSelected(node);
       this.updateHover(node);
       if (node) {
+        if (this.config.graphInteraction.enabled) this.pauseCameraAfterManualNavigation();
         this.addClickEffect(node);
       }
     }
   };
 
   private readonly onWheel = (event: WheelEvent): void => {
+    if (this.config.graphInteraction.enabled && !this.config.graphInteraction.zoom) return;
     event.preventDefault();
     this.pauseCameraAfterManualNavigation();
     const rect = this.canvas.getBoundingClientRect();
@@ -3132,6 +3209,11 @@ export class ConstellaGraphRenderer {
   };
 
   private pauseCameraAfterManualNavigation(): void {
+    if (this.config.graphInteraction.enabled) {
+      const mode = this.config.graphInteraction.cameraPause;
+      this.cameraPausedUntil = mode === "until-play" ? Infinity : performance.now() + (mode === "during" ? 150 : Math.max(0, this.config.display.manualCameraPauseSeconds) * 1000);
+      return;
+    }
     if (!this.config.display.pauseCameraAfterManualNavigation) {
       return;
     }
@@ -3139,11 +3221,30 @@ export class ConstellaGraphRenderer {
   }
 
   private readonly onDoubleClick = (event: MouseEvent): void => {
+    if (performance.now() < this.suppressDoubleClickUntil || (this.config.graphInteraction.enabled && !this.config.graphInteraction.doubleClickOpen)) return;
     const node = this.nodeAt(event.clientX, event.clientY);
     if (node) {
       this.addClickEffect(node);
       this.options.onNodeOpened(node);
     }
+  };
+
+  private cancelPointer = (): void => {
+    const id = this.pointerId;
+    this.pointerId = null;
+    this.pointer.dragging = false;
+    this.draggedNode = null;
+    this.canvas.removeClass("is-dragging");
+    if (id !== null && this.canvas.hasPointerCapture(id)) this.canvas.releasePointerCapture(id);
+  };
+
+  private readonly onContextMenu = (event: MouseEvent): void => {
+    if (!this.config.graphInteraction.enabled || !this.config.graphInteraction.contextMenu) return;
+    const node = this.nodeAt(event.clientX, event.clientY);
+    if (!node) return;
+    event.preventDefault();
+    this.options.onNodeContextMenu?.(node, event);
+    this.pauseCameraAfterManualNavigation();
   };
 
   private addClickEffect(node: GraphNode): void {

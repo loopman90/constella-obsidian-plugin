@@ -58,6 +58,14 @@ export default class ConstellaPlugin extends Plugin {
     await this.requireController().applyPerformanceProfile(profile);
   }
 
+  async setInteractiveGraph(enabled: boolean): Promise<void> {
+    await this.requireController().updateGraphInteraction("enabled", enabled);
+  }
+
+  async setInteractionButtonVisible(visible: boolean): Promise<void> {
+    await this.requireController().updateQuickUi("showGraphInteraction", visible);
+  }
+
   async activateView(): Promise<void> {
     const existing = this.app.workspace.getLeavesOfType(VIEW_TYPE_CONSTELLA)[0];
     if (existing) {

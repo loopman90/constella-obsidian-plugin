@@ -304,6 +304,28 @@ docs/
 
 ## Control Panel Layout
 
+### Interactive Graph
+
+Enable or disable **Interactive Graph** in Settings > Interaction > Graph
+interaction, or with the hand button in the quick bar. The new interaction is
+enabled by default. Turning it off restores the previous graph navigation.
+The same main switch is available in Obsidian's plugin settings.
+
+Click selects without recentering; double-click opens a note. Drag a node to
+move it, or drag empty space to pan. Dragging starts after five pixels and never
+opens the note. Connected nodes can follow with adjustable strength; pinned
+neighbors stay fixed. You can also enable automatic pinning after a drag.
+Pins retain their coordinates through refreshes in the open window; coordinates
+are not saved across an Obsidian restart.
+
+Controls include node dragging, connected-node movement, automatic pinning,
+background panning, scroll/trackpad zoom, double-click opening, and the node
+context menu. Right-click offers Open, Preview, Focus, Pin/Unpin, and Hide.
+Camera pause can last during interaction, for a configured number of seconds,
+or until Play. Camera speed and View Lock remain in the Camera section.
+Quick UI > Interactive Graph Button controls visibility of the hand button.
+Interaction preferences are saved and restored on restart.
+
 The in-graph settings follow this order: Graph, Appearance, Animation, Camera,
 Interaction, Quick UI, and Performance. Graph contains source filters, tools,
 discovery, and presets. Tools uses separate Search, Health, and Saved Views tabs;
@@ -320,6 +342,22 @@ vault, active filters, graph scope, and playback or camera-lock state. Close the
 settings panel with its close button or Escape.
 
 ## Build Checks
+
+The navigation toolbar provides Back, Forward, and Note preview. History is local
+to each graph window and restores camera position and zoom; notes removed from
+the current view are reported rather than silently changing filters. Preview
+shows up to 16,000 characters of local note text, without loading remote images.
+
+Search settings across sections from the panel's search field. In Graph > Tools,
+type a note query, use Up/Down to choose a match, and press Enter to select it.
+Typing alone does not move the camera. The result list can still be disabled.
+Click the bottom note-count status to inspect filter exclusion counts in order
+and restore all notes. A loading failure offers Retry; an empty filtered graph
+also offers Show all notes.
+
+Run `npm test` for navigation history, filter accounting, 10,000-note coverage,
+and graph load recovery. Native integration checks are tracked in
+[TESTING.md](TESTING.md).
 
 Useful commands:
 

@@ -83,6 +83,7 @@ export const DEFAULT_CONFIGURATION: ActiveConfiguration = {
     nodeSize: 0.45
   },
   quickUi: {
+    showGraphInteraction: true,
     showPlayback: true,
     showGraphScope: true,
     showMode: true,
@@ -115,6 +116,18 @@ export const DEFAULT_CONFIGURATION: ActiveConfiguration = {
     expandFromNodeId: null,
     pathPreviewStartId: null
   },
+  graphInteraction: {
+    enabled: true,
+    dragNodes: true,
+    moveNeighbors: true,
+    neighborStrength: 0.25,
+    pinAfterDrag: false,
+    pan: true,
+    zoom: true,
+    doubleClickOpen: true,
+    contextMenu: true,
+    cameraPause: "until-play"
+  },
   template: {
     activeTemplateId: "builtin-constellation",
     modified: false
@@ -132,6 +145,7 @@ export function cloneConfiguration(config: ActiveConfiguration): ActiveConfigura
     discovery: { ...config.discovery },
     display: { ...config.display },
     quickUi: { ...config.quickUi },
+    graphInteraction: { ...DEFAULT_CONFIGURATION.graphInteraction, ...config.graphInteraction },
     tools: { ...config.tools },
     interaction: {
       pinnedNodeIds: [...config.interaction.pinnedNodeIds],

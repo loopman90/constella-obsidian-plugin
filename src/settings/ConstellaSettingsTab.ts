@@ -26,6 +26,7 @@ const DISPLAY_SETTING_KEYS = [
 type DisplaySettingKey = typeof DISPLAY_SETTING_KEYS[number];
 
 const QUICK_UI_SETTING_KEYS = [
+  "showGraphInteraction",
   "showPlayback",
   "showGraphScope",
   "showMode",
@@ -53,6 +54,14 @@ export class ConstellaSettingsTab extends PluginSettingTab {
 
   override getSettingDefinitions() {
     return [
+      {
+        type: "group" as const,
+        heading: "Graph interaction",
+        items: [
+          { name: "Interactive graph", desc: "Enable direct node dragging and configurable navigation. Fine-tune behavior in the graph's Interaction tab.", control: { type: "toggle" as const, key: "graphInteractionEnabled", defaultValue: true } },
+          { name: "Interactive graph quick button", control: { type: "toggle" as const, key: "showGraphInteraction", defaultValue: true } }
+        ]
+      },
       {
         type: "group" as const,
         heading: "Core preferences",
@@ -414,6 +423,7 @@ export class ConstellaSettingsTab extends PluginSettingTab {
   }
 
   override getControlValue(key: string): unknown {
+    if (key === "graphInteractionEnabled") return this.plugin.settings.configuration.graphInteraction.enabled;
     if (key === "performanceProfile" || key === "debug" || key === "showFirstRun") {
       return this.plugin.settings[key];
     }
@@ -436,6 +446,16 @@ export class ConstellaSettingsTab extends PluginSettingTab {
   }
 
   override async setControlValue(key: string, value: unknown): Promise<void> {
+    if (key === "graphInteractionEnabled" && typeof value === "boolean") {
+      await this.plugin.setInteractiveGraph(value);
+      this.refreshDomState();
+      return;
+    }
+    if (key === "showGraphInteraction" && typeof value === "boolean") {
+      await this.plugin.setInteractionButtonVisible(value);
+      this.refreshDomState();
+      return;
+    }
     if (key === "performanceProfile") {
       await this.plugin.applyPerformanceProfile(value as typeof this.plugin.settings.performanceProfile);
     }

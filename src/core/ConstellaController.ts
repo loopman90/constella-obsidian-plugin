@@ -37,6 +37,7 @@ import { TemplateManager } from "../templates/TemplateManager";
 import { PlaylistManager } from "../playlists/PlaylistManager";
 
 interface ConstellaEvents {
+  graphStatus: "loading" | "ready" | "error";
   configuration: ActiveConfiguration;
   graph: GraphData;
   playback: PlaybackState;
@@ -57,6 +58,9 @@ export interface GraphHealthSummary {
 }
 
 export class ConstellaController {
+  isJourneySelection = false;
+  graphStatus: "loading" | "ready" | "error" = "loading";
+  get filterReport() { return this.graphDataService.filterReport; }
   readonly events = new EventBus<ConstellaEvents>();
   private readonly graphDataService: GraphDataService;
   private readonly pathEngine = new PathEngine();
@@ -299,8 +303,19 @@ export class ConstellaController {
   }
 
   refreshGraph(): void {
-    this.graph = this.graphDataService.getGraph(this.configuration);
+    this.graphStatus = "loading";
+    this.events.emit("graphStatus", this.graphStatus);
+    try {
+      this.graph = this.graphDataService.getGraph(this.configuration);
+    } catch (error) {
+      console.error("Constella graph refresh failed", error);
+      this.graphStatus = "error";
+      this.events.emit("graphStatus", this.graphStatus);
+      return;
+    }
     this.events.emit("graph", this.graph);
+    this.graphStatus = "ready";
+    this.events.emit("graphStatus", this.graphStatus);
   }
 
   async startJourneyFromPath(path: string): Promise<void> {
@@ -522,6 +537,23 @@ export class ConstellaController {
     await this.persist();
   }
 
+  async updateGraphInteraction<TKey extends keyof ActiveConfiguration["graphInteraction"]>(key: TKey, value: ActiveConfiguration["graphInteraction"][TKey]): Promise<void> {
+    const config = cloneConfiguration(this.configuration);
+    config.graphInteraction[key] = value;
+    config.template.modified = true;
+    this.updateConfiguration(config);
+    await this.persist();
+  }
+
+  async pinDraggedNode(node: GraphNode): Promise<void> {
+    if (this.configuration.interaction.pinnedNodeIds.includes(node.id)) return;
+    const config = cloneConfiguration(this.configuration);
+    config.interaction.pinnedNodeIds.push(node.id);
+    config.template.modified = true;
+    this.updateConfiguration(config);
+    await this.persist();
+  }
+
   async updateTools<TKey extends keyof ActiveConfiguration["tools"]>(
     key: TKey,
     value: ActiveConfiguration["tools"][TKey]
@@ -555,7 +587,7 @@ export class ConstellaController {
         modified: true
       }
     });
-    this.refreshGraph();
+    if (key !== "pinnedNodeIds") this.refreshGraph();
     await this.persist();
   }
 
@@ -1099,7 +1131,8 @@ export class ConstellaController {
     }
     const node = this.graph.nodes.find((item) => item.id === this.journey?.path[this.journey.currentIndex]) ?? null;
     this.selectedNode = node;
-    this.events.emit("selectedNode", node);
+    this.isJourneySelection = true;
+    try { this.events.emit("selectedNode", node); } finally { this.isJourneySelection = false; }
     this.events.emit("journey", this.journey);
   }
 

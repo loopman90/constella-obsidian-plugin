@@ -72,6 +72,10 @@ export function normalizeSettings(data: unknown): ConstellaSettings {
         ...DEFAULT_SETTINGS.configuration.quickUi,
         ...(maybe.configuration?.quickUi ?? {})
       },
+      graphInteraction: {
+        ...DEFAULT_SETTINGS.configuration.graphInteraction,
+        ...(maybe.configuration?.graphInteraction ?? {})
+      },
       tools: {
         ...DEFAULT_SETTINGS.configuration.tools,
         ...(maybe.configuration?.tools ?? {})

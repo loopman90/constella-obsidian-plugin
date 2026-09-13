@@ -57,6 +57,9 @@ export class QuickBar {
     }
 
     const quickUi = this.controller.configuration.quickUi;
+    if (quickUi.showGraphInteraction) {
+      this.rootEl.appendChild(this.iconButton("hand", "Interactive graph", () => this.controller.updateGraphInteraction("enabled", !this.controller.configuration.graphInteraction.enabled)));
+    }
     if (quickUi.showPlayback) {
       this.rootEl.appendChild(this.iconButton("play", "Start", () => this.controller.play()));
       this.rootEl.appendChild(this.iconButton("pause", "Pause", () => this.controller.pause()));
@@ -144,11 +147,12 @@ export class QuickBar {
     more.addEventListener("keydown", (event) => { if (event.key === "Escape") { event.stopPropagation(); more.open = false; summary.focus(); } });
     controls.forEach((control) => {
       const label = control.getAttribute("aria-label") ?? control.firstElementChild?.textContent ?? "";
-      const group = (["Start", "Pause", "Stop", "Lock view", "Unlock view"].includes(label) || (label === "Graph" && !this.compact)) ? navigation
+      const group = (["Start", "Pause", "Stop", "Lock view", "Unlock view", "Interactive graph"].includes(label) || (label === "Graph" && !this.compact)) ? navigation
         : ["Visual", "Colors"].includes(label) && !this.compact ? appearance
         : ["Open control panel", "Toggle fullscreen display mode", "Collapse quick bar"].includes(label) ? actions : menu;
       group.appendChild(control);
       const active = (label === "Start" && this.controller.playbackState === "playing")
+        || (label === "Interactive graph" && this.controller.configuration.graphInteraction.enabled)
         || (label === "Pause" && this.controller.playbackState === "paused")
         || (label === "Stop" && this.controller.playbackState === "idle")
         || label === "Unlock view"

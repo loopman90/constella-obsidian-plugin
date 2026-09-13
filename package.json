@@ -1,9 +1,10 @@
 {
   "name": "constella",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "description": "Explore your vault as an interactive, local-first knowledge graph.",
   "main": "main.js",
   "scripts": {
+    "test": "node --test scripts/test-navigation.mjs",
     "dev": "node esbuild.config.mjs --watch",
     "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
     "typecheck": "tsc -noEmit -skipLibCheck",

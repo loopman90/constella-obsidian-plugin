@@ -57,6 +57,8 @@ export class ControlPanel {
   private activeSection: PanelSection = "Graph";
   private toolTab = "Search";
   private searchQuery = "";
+  private settingsQuery = "";
+  private returnFocus: HTMLElement | null = null;
 
   constructor(containerEl: HTMLElement, private readonly controller: ConstellaController) {
     this.rootEl = containerEl.createDiv({ cls: "constella-control-panel" });
@@ -73,13 +75,17 @@ export class ControlPanel {
   }
 
   show(): void {
+    if (!this.isVisible()) this.returnFocus = this.rootEl.ownerDocument.activeElement as HTMLElement | null;
     this.rootEl.removeClass("is-hidden");
     this.rootEl.parentElement?.addClass("constella-panel-open");
+    this.rootEl.querySelector<HTMLInputElement>('[aria-label="Search settings"]')?.focus();
   }
 
   hide(): void {
     this.rootEl.addClass("is-hidden");
     this.rootEl.parentElement?.removeClass("constella-panel-open");
+    if (this.returnFocus?.isConnected) this.returnFocus.focus({ preventScroll: true });
+    else this.rootEl.parentElement?.querySelector<HTMLElement>('[aria-label="Open control panel"]')?.focus({ preventScroll: true });
   }
 
   toggle(): void {
@@ -89,6 +95,13 @@ export class ControlPanel {
 
   isVisible(): boolean {
     return !this.rootEl.hasClass("is-hidden");
+  }
+
+  showFilters(): void {
+    this.activeSection = "Graph";
+    this.settingsQuery = "";
+    this.render();
+    this.show();
   }
 
   render(): void {
@@ -104,6 +117,16 @@ export class ControlPanel {
     const close = header.createEl("button", { cls: "clickable-icon constella-panel-close", attr: { "aria-label": "Close settings", title: "Close settings" } });
     setIcon(close, "x");
     close.addEventListener("click", () => this.hide());
+    const settingsSearch = this.rootEl.createEl("input", { type: "search", attr: { "aria-label": "Search settings", placeholder: "Search settings" } });
+    settingsSearch.value = this.settingsQuery;
+    settingsSearch.addEventListener("input", () => {
+      const position = settingsSearch.selectionStart;
+      this.settingsQuery = settingsSearch.value;
+      this.render();
+      const next = this.rootEl.querySelector<HTMLInputElement>('[aria-label="Search settings"]');
+      next?.focus();
+      if (position !== null) next?.setSelectionRange(position, position);
+    });
 
     const stats = this.rootEl.createDiv({ cls: "constella-stats" });
     stats.createDiv({ text: `${graph.nodes.length} nodes` });
@@ -138,7 +161,35 @@ export class ControlPanel {
 
     if (activeGroup[1].length === 1) tabs.remove();
     const body = this.rootEl.createDiv({ cls: "constella-panel-body" });
-    switch (this.activeSection) {
+    if (this.settingsQuery.trim()) {
+      groups.remove(); tabs.remove();
+      const query = this.settingsQuery.trim().toLowerCase();
+      for (const section of PANEL_SECTIONS) {
+        const result = body.createDiv({ cls: "constella-panel-section" });
+        this.renderSection(result, section);
+        const rows = Array.from(result.querySelectorAll<HTMLElement>(".constella-panel-control"))
+          .filter((row) => row.firstElementChild?.textContent?.toLowerCase().includes(query));
+        result.empty();
+        if (!rows.length) { result.remove(); continue; }
+        result.createDiv({ cls: "constella-mini-list-title", text: section === "Quick" ? "Camera" : section });
+        rows.forEach((row) => result.appendChild(row));
+      }
+      if (!body.children.length) {
+        body.createDiv({ text: "No matching settings." });
+        body.appendChild(this.actionButton("Clear search", () => { this.settingsQuery = ""; this.render(); }));
+      }
+    } else {
+      this.renderSection(body, this.activeSection);
+      this.applyDependencies(body);
+    }
+    this.rootEl.scrollTop = scrollTop;
+    if (focusLabel) {
+      Array.from(this.rootEl.querySelectorAll<HTMLElement>("[aria-label]")).find((element) => element.getAttribute("aria-label") === focusLabel)?.focus({ preventScroll: true });
+    }
+  }
+
+  private renderSection(body: HTMLElement, section: PanelSection): void {
+    switch (section) {
       case "Quick":
         this.renderCamera(body);
         break;
@@ -180,11 +231,6 @@ export class ControlPanel {
         this.renderDisplay(body);
         break;
     }
-    this.applyDependencies(body);
-    this.rootEl.scrollTop = scrollTop;
-    if (focusLabel) {
-      Array.from(this.rootEl.querySelectorAll<HTMLElement>("[aria-label]")).find((element) => element.getAttribute("aria-label") === focusLabel)?.focus({ preventScroll: true });
-    }
   }
 
   private renderCamera(parent: HTMLElement): void {
@@ -193,8 +239,10 @@ export class ControlPanel {
     parent.appendChild(this.slider("Camera Speed", motion.cameraSpeed, (value) => this.controller.updateMotion("cameraSpeed", value)));
     parent.appendChild(this.toggleControl("View Lock", display.viewportLock, (value) => this.controller.updateDisplay("viewportLock", value)));
     parent.appendChild(this.toggleControl("Preserve Viewport On Refresh", display.preserveViewportOnRefresh, (value) => this.controller.updateDisplay("preserveViewportOnRefresh", value)));
-    parent.appendChild(this.toggleControl("Pause Camera After Manual Navigation", display.pauseCameraAfterManualNavigation, (value) => this.controller.updateDisplay("pauseCameraAfterManualNavigation", value)));
-    parent.appendChild(this.numberControl("Manual Camera Pause Seconds", display.manualCameraPauseSeconds, 0, 60, (value) => this.controller.updateDisplay("manualCameraPauseSeconds", value)));
+    if (!this.controller.configuration.graphInteraction.enabled) {
+      parent.appendChild(this.toggleControl("Pause Camera After Manual Navigation", display.pauseCameraAfterManualNavigation, (value) => this.controller.updateDisplay("pauseCameraAfterManualNavigation", value)));
+      parent.appendChild(this.numberControl("Manual Camera Pause Seconds", display.manualCameraPauseSeconds, 0, 60, (value) => this.controller.updateDisplay("manualCameraPauseSeconds", value)));
+    }
   }
 
   private applyDependencies(body: HTMLElement): void {
@@ -219,42 +267,10 @@ export class ControlPanel {
     });
   }
 
-  private renderQuick(parent: HTMLElement): void {
-    const config = this.controller.configuration;
-    const playback = this.section(parent, "Playback", "Start, pause, or stop the living graph.");
-    playback.appendChild(this.buttonGroup([
-      { label: "Start", onClick: () => this.controller.play() },
-      { label: "Pause", onClick: () => this.controller.pause() },
-      { label: "Stop", onClick: () => this.controller.stop() }
-    ]));
-
-    const search = this.section(parent, "Search", "Focus a note node by title or path.");
-    search.appendChild(this.searchControl());
-    const current = this.controller.currentNode;
-    search.createDiv({ cls: "constella-help-text", text: current ? `Focused: ${current.title}` : "No note focused" });
-    search.appendChild(this.actionButton("Show All Notes", () => this.controller.showAllNotes()));
-
-    const setup = this.section(parent, "Quick Setup", "The most-used controls in one place.");
-    setup.appendChild(this.select("Graph", config.graph.scope, this.graphScopeOptions(), (value) => this.controller.updateGraphScope(value), false));
-    setup.appendChild(this.select("Mode", config.mode, MODES, (value) => this.controller.updateMode(value)));
-    setup.appendChild(this.select("Visual", config.visual, VISUALS, (value) => this.controller.updateVisual(value)));
-    setup.appendChild(this.select("Colors", config.colors, COLORS, (value) => this.controller.updateColors(value)));
-    setup.appendChild(this.select("Background", config.background.style, BACKGROUNDS, (value) => this.controller.updateBackground(value)));
-    setup.appendChild(this.select("Camera", config.camera, CAMERAS, (value) => this.controller.updateCamera(value)));
-    setup.appendChild(this.select("Click Animation", config.motion.clickAnimation, CLICK_ANIMATIONS, (value) =>
-      this.controller.updateMotion("clickAnimation", value)
-    ));
-    setup.appendChild(this.slider("Animation Speed", config.motion.animationSpeed, (value) => this.controller.updateMotion("animationSpeed", value)));
-    setup.appendChild(this.slider("Visual Intensity", config.motion.visualIntensity, (value) => this.controller.updateMotion("visualIntensity", value)));
-    setup.appendChild(this.buttonGroup([
-      { label: "Random Motion", onClick: () => this.controller.randomizeSafe() },
-      { label: "Save Preset", onClick: () => this.controller.saveTemplate() }
-    ]));
-  }
-
   private renderQuickUi(parent: HTMLElement): void {
     const config = this.controller.configuration.quickUi;
     const section = this.section(parent, "Quick UI", "Choose which controls appear in the compact quick bar.");
+    section.appendChild(this.toggleControl("Interactive Graph Button", config.showGraphInteraction, (value) => this.controller.updateQuickUi("showGraphInteraction", value)));
     section.appendChild(this.toggleControl("Playback Buttons", config.showPlayback, (value) => this.controller.updateQuickUi("showPlayback", value)));
     section.appendChild(this.toggleControl("Graph Scope", config.showGraphScope, (value) => this.controller.updateQuickUi("showGraphScope", value)));
     section.appendChild(this.toggleControl("Mode Dropdown", config.showMode, (value) => this.controller.updateQuickUi("showMode", value)));
@@ -320,6 +336,12 @@ export class ControlPanel {
 
   private renderGraph(parent: HTMLElement): void {
     const config = this.controller.configuration;
+    const report = this.section(parent, "Visible Notes");
+    report.createDiv({ text: `${this.controller.currentGraph.nodes.length} / ${this.controller.app.vault.getMarkdownFiles().length} notes visible` });
+    report.createDiv({ cls: "constella-help-text", text: "Excluded counts follow the filter order below; each note is counted once." });
+    this.controller.filterReport.forEach((step) => report.appendChild(this.metricRow(step.label, step.excluded)));
+    if (!this.controller.filterReport.length) report.createDiv({ text: "No active filters." });
+    report.appendChild(this.actionButton("Show All Notes", () => this.controller.showAllNotes()));
     const section = this.section(parent, "Graph Source", "Choose how much of your vault Constella should draw.");
     section.appendChild(this.select("Graph Scope", config.graph.scope, this.graphScopeOptions(), (value) => this.controller.updateGraphScope(value), false));
     section.appendChild(this.numberControl("Local Depth", config.graph.localDepth, 1, 50, (value) => this.controller.updateLocalDepth(value)));
@@ -345,6 +367,26 @@ export class ControlPanel {
 
   private renderInteraction(parent: HTMLElement): void {
     const config = this.controller.configuration;
+    const preferences = config.graphInteraction;
+    const controls = this.section(parent, "Graph interaction");
+    controls.appendChild(this.toggleControl("Interactive Graph", preferences.enabled, (value) => this.controller.updateGraphInteraction("enabled", value)));
+    if (preferences.enabled) {
+      const toggles = [
+        ["Drag Nodes", "dragNodes"], ["Move Connected Nodes", "moveNeighbors"],
+        ["Pin After Drag", "pinAfterDrag"], ["Drag Background", "pan"],
+        ["Scroll / Trackpad Zoom", "zoom"], ["Double-click Opens Note", "doubleClickOpen"],
+        ["Node Context Menu", "contextMenu"]
+      ] as const;
+      for (const [label, key] of toggles) {
+        if ((key === "moveNeighbors" || key === "pinAfterDrag") && !preferences.dragNodes) continue;
+        controls.appendChild(this.toggleControl(label, preferences[key], (value) => this.controller.updateGraphInteraction(key, value)));
+      }
+      if (preferences.dragNodes && preferences.moveNeighbors) controls.appendChild(sliderControl("Neighbor Movement Strength", preferences.neighborStrength, DEFAULT_CONFIGURATION.graphInteraction.neighborStrength, (value) => this.controller.updateGraphInteraction("neighborStrength", value)));
+      controls.appendChild(this.select("Camera Pause", preferences.cameraPause, [
+        { id: "during", label: "During Interaction" }, { id: "temporary", label: "Temporary" }, { id: "until-play", label: "Until Play" }
+      ], (value) => this.controller.updateGraphInteraction("cameraPause", value)));
+      if (preferences.cameraPause === "temporary") controls.appendChild(this.numberControl("Camera Pause Seconds", config.display.manualCameraPauseSeconds, 0, 60, (value) => this.controller.updateDisplay("manualCameraPauseSeconds", value)));
+    }
     const interaction = this.section(parent, "Interaction", "Pin, hide, expand, and preview paths from the focused node.");
     interaction.appendChild(this.buttonGroup([
       { label: "Pin Focused Node", onClick: () => this.controller.togglePinnedSelected() },
@@ -375,7 +417,6 @@ export class ControlPanel {
     section.appendChild(this.slider("Glow Strength", config.motion.glowStrength, (value) => this.controller.updateMotion("glowStrength", value)));
     section.appendChild(this.toggleControl("Cluster Halos", config.display.showClusterHalos, (value) => this.controller.updateDisplay("showClusterHalos", value)));
     section.appendChild(this.toggleControl("Node Icons", config.display.showNodeIcons, (value) => this.controller.updateDisplay("showNodeIcons", value)));
-    section.appendChild(this.toggleControl("Density Mode", config.display.densityMode, (value) => this.controller.updateDisplay("densityMode", value)));
     section.appendChild(this.toggleControl("Depth Layers", config.display.depthLayers, (value) => this.controller.updateDisplay("depthLayers", value)));
     section.appendChild(this.slider("Node Size", config.display.nodeSize, (value) => this.controller.updateDisplay("nodeSize", value)));
     section.appendChild(this.slider("Edge Thickness", config.display.edgeThickness, (value) => this.controller.updateDisplay("edgeThickness", value)));
@@ -399,23 +440,7 @@ export class ControlPanel {
     });
     section.appendChild(this.toggleControl("Density Mode", config.display.densityMode, (value) => this.controller.updateDisplay("densityMode", value)));
     section.appendChild(this.toggleControl("Reduce Motion", config.motion.reduceMotion, (value) => this.controller.updateMotion("reduceMotion", value)));
-    section.appendChild(this.toggleControl("Preserve Viewport On Refresh", config.display.preserveViewportOnRefresh, (value) =>
-      this.controller.updateDisplay("preserveViewportOnRefresh", value)
-    ));
-    section.appendChild(this.toggleControl("Pause Camera After Manual Navigation", config.display.pauseCameraAfterManualNavigation, (value) =>
-      this.controller.updateDisplay("pauseCameraAfterManualNavigation", value)
-    ));
-    section.appendChild(this.numberControl("Manual Camera Pause Seconds", config.display.manualCameraPauseSeconds, 0, 60, (value) =>
-      this.controller.updateDisplay("manualCameraPauseSeconds", value)
-    ));
     section.appendChild(this.toggleControl("FPS Indicator", config.display.showFps, (value) => this.controller.updateDisplay("showFps", value)));
-    section.appendChild(this.toggleControl("Background Effects", config.motion.backgroundEffectsEnabled, (value) =>
-      this.controller.updateMotion("backgroundEffectsEnabled", value)
-    ));
-    section.appendChild(this.toggleControl("Particles", config.motion.particlesEnabled, (value) => this.controller.updateMotion("particlesEnabled", value)));
-    section.appendChild(this.toggleControl("Connection Pulses", config.motion.connectionPulsesEnabled, (value) =>
-      this.controller.updateMotion("connectionPulsesEnabled", value)
-    ));
   }
 
   private renderBackground(parent: HTMLElement): void {
@@ -431,15 +456,6 @@ export class ControlPanel {
       this.controller.updateMotion("particleAmount", value)
     ));
     section.appendChild(this.slider("Particle Speed", config.motion.particleSpeed, (value) => this.controller.updateMotion("particleSpeed", value)));
-    section.appendChild(this.toggleControl("Drawing Lines", config.motion.drawingLinesEnabled, (value) =>
-      this.controller.updateMotion("drawingLinesEnabled", value)
-    ));
-    section.appendChild(this.select("Drawing Line Style", config.motion.drawingLineStyle, DRAWING_LINE_STYLES, (value) =>
-      this.controller.updateMotion("drawingLineStyle", value)
-    ));
-    section.appendChild(this.slider("Drawing Line Speed", config.motion.drawingLineSpeed, (value) =>
-      this.controller.updateMotion("drawingLineSpeed", value)
-    ));
     section.appendChild(this.actionButton("Reset Background", () => this.controller.resetSection("background")));
   }
 
@@ -464,8 +480,6 @@ export class ControlPanel {
     section.appendChild(this.slider("Animation Speed", config.motion.animationSpeed, (value) =>
       this.controller.updateMotion("animationSpeed", value)
     ));
-    section.appendChild(this.slider("Camera Speed", config.motion.cameraSpeed, (value) => this.controller.updateMotion("cameraSpeed", value)));
-    section.appendChild(this.toggleControl("Reduce Motion", config.motion.reduceMotion, (value) => this.controller.updateMotion("reduceMotion", value)));
     section.appendChild(this.actionButton("Randomize Motion", () => this.controller.randomizeSafe()));
     section.appendChild(this.actionButton("Reset Motion", () => this.controller.resetSection("motion")));
   }
@@ -616,24 +630,7 @@ export class ControlPanel {
     ));
     section.appendChild(this.toggleControl("Labels", config.display.showLabels, (value) => this.controller.updateDisplay("showLabels", value)));
     section.appendChild(this.slider("Label Size", config.display.labelSize, (value) => this.controller.updateDisplay("labelSize", value)));
-    section.appendChild(this.slider("Edge Thickness", config.display.edgeThickness, (value) => this.controller.updateDisplay("edgeThickness", value)));
-    section.appendChild(this.slider("Node Size", config.display.nodeSize, (value) => this.controller.updateDisplay("nodeSize", value)));
-    section.appendChild(this.toggleControl("Cluster Halos", config.display.showClusterHalos, (value) => this.controller.updateDisplay("showClusterHalos", value)));
-    section.appendChild(this.toggleControl("Node Icons", config.display.showNodeIcons, (value) => this.controller.updateDisplay("showNodeIcons", value)));
-    section.appendChild(this.toggleControl("Density Mode", config.display.densityMode, (value) => this.controller.updateDisplay("densityMode", value)));
-    section.appendChild(this.toggleControl("Depth Layers", config.display.depthLayers, (value) => this.controller.updateDisplay("depthLayers", value)));
-    section.appendChild(this.toggleControl("View Lock", config.display.viewportLock, (value) => this.controller.updateDisplay("viewportLock", value)));
-    section.appendChild(this.toggleControl("Preserve Viewport On Refresh", config.display.preserveViewportOnRefresh, (value) =>
-      this.controller.updateDisplay("preserveViewportOnRefresh", value)
-    ));
-    section.appendChild(this.toggleControl("Pause Camera After Manual Navigation", config.display.pauseCameraAfterManualNavigation, (value) =>
-      this.controller.updateDisplay("pauseCameraAfterManualNavigation", value)
-    ));
-    section.appendChild(this.numberControl("Manual Camera Pause Seconds", config.display.manualCameraPauseSeconds, 0, 60, (value) =>
-      this.controller.updateDisplay("manualCameraPauseSeconds", value)
-    ));
     section.appendChild(this.toggleControl("Legend", config.display.showLegend, (value) => this.controller.updateDisplay("showLegend", value)));
-    section.appendChild(this.toggleControl("FPS Indicator", config.display.showFps, (value) => this.controller.updateDisplay("showFps", value)));
     section.appendChild(this.toggleControl("Fullscreen Intent", config.display.fullscreen, (value) => this.controller.updateDisplay("fullscreen", value)));
     section.appendChild(this.numberControl("Hide Cursor After", config.display.autoHideCursorSeconds, 0, 60, (value) =>
       this.controller.updateDisplay("autoHideCursorSeconds", value)
@@ -673,7 +670,7 @@ export class ControlPanel {
     ];
   }
 
-  private select<T extends ModeId | VisualId | ColorsId | CameraId | GraphScope | PathAnimationId | PulseStyleId | BackgroundId | NodeMovementStyleId | ClickAnimationId | DrawingLineStyleId | PerformanceProfile | ActiveConfiguration["graph"]["dateFilter"] | ActiveConfiguration["journey"]["deadEndBehavior"] | ActiveConfiguration["journey"]["afterJourney"]>(
+  private select<T extends ModeId | VisualId | ColorsId | CameraId | GraphScope | PathAnimationId | PulseStyleId | BackgroundId | NodeMovementStyleId | ClickAnimationId | DrawingLineStyleId | PerformanceProfile | ActiveConfiguration["graph"]["dateFilter"] | ActiveConfiguration["journey"]["deadEndBehavior"] | ActiveConfiguration["journey"]["afterJourney"] | ActiveConfiguration["graphInteraction"]["cameraPause"]>(
     label: string,
     value: T,
     options: BuiltInOption<T>[],
@@ -730,28 +727,48 @@ export class ControlPanel {
       }
     });
     input.value = this.searchQuery;
+    input.setAttribute("aria-label", "Find note");
+    let activeIndex = 0;
+    let matches: GraphNode[] = [];
     const results = box.createDiv({ cls: "constella-search-results" });
     const renderResults = (): void => {
       results.empty();
-      if (!this.controller.configuration.tools.showSearchResults) {
-        return;
-      }
-      const matches = this.controller.searchNodes(this.searchQuery, 8);
+      matches = this.controller.searchNodes(this.searchQuery, 8);
       if (this.searchQuery.trim() && matches.length === 0) {
         results.createDiv({ cls: "constella-help-text", text: "No matching notes" });
+        results.appendChild(this.actionButton("Show All Notes", () => this.controller.showAllNotes()));
       }
-      matches.forEach((node) => {
+      if (!this.controller.configuration.tools.showSearchResults) return;
+      matches.forEach((node, index) => {
         const button = results.createEl("button", {
           cls: "constella-search-result",
           text: `${node.title} (${node.connectionCount})`
         });
         button.addEventListener("click", () => this.controller.selectNode(node));
+        button.toggleClass("is-active", index === activeIndex);
+        button.addEventListener("keydown", (event) => {
+          if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+          event.preventDefault(); event.stopPropagation();
+          activeIndex = Math.max(0, Math.min(matches.length - 1, index + (event.key === "ArrowDown" ? 1 : -1)));
+          renderResults();
+          results.querySelectorAll<HTMLButtonElement>(".constella-search-result")[activeIndex]?.focus();
+        });
       });
     };
     input.addEventListener("input", () => {
       this.searchQuery = input.value;
-      this.controller.focusNodeByQuery(input.value);
+      activeIndex = 0;
       renderResults();
+    });
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        event.preventDefault(); event.stopPropagation();
+        activeIndex = Math.max(0, Math.min(matches.length - 1, activeIndex + (event.key === "ArrowDown" ? 1 : -1)));
+        renderResults();
+      } else if (event.key === "Enter") {
+        event.preventDefault(); event.stopPropagation();
+        if (matches[activeIndex]) this.controller.selectNode(matches[activeIndex]);
+      }
     });
     renderResults();
     return box;

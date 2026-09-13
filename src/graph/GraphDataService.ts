@@ -4,6 +4,7 @@ import type { ActiveConfiguration, GraphData, GraphEdge, GraphNode } from "../co
 import { ClusterEngine } from "../discovery/ClusterEngine";
 
 export class GraphDataService {
+  filterReport: { label: string; excluded: number }[] = [];
   private readonly clusterEngine = new ClusterEngine();
 
   constructor(private readonly app: App) {}
@@ -23,11 +24,26 @@ export class GraphDataService {
 
     const depth = scope === "current" ? 0 : Math.max(1, Math.min(50, Math.round(localDepth ?? 4)));
     graph = this.clusterEngine.assignClusters(this.filterAroundFile(global, activeFile, depth, config.graph.includeFloatingNotes ?? true));
+    this.filterReport.push({ label: `${scope} scope (depth ${depth})`, excluded: global.nodes.length - graph.nodes.length });
     return this.applyInteractionFilters(graph, config);
   }
 
   getGlobalGraph(config: ActiveConfiguration): GraphData {
-    const files = this.app.vault.getMarkdownFiles().filter((file) => this.includeFile(file, config));
+    this.filterReport = [];
+    let files = this.app.vault.getMarkdownFiles();
+    const filters: [string, boolean, (file: TFile) => boolean][] = [
+      ["Exclude templates", config.discovery.excludeTemplates, (file) => !/(^|\/)templates?\//i.test(file.path)],
+      ["Exclude daily notes", config.discovery.excludeDailyNotes, (file) => !/(^|\/)(daily|journal|log)s?\//i.test(file.path)],
+      ["Folder filter", Boolean(config.graph.folderFilter.trim()), (file) => this.matchesFolderFilter(file, config.graph.folderFilter)],
+      ["Tag filter", Boolean(config.graph.tagFilter.trim()), (file) => this.matchesTagFilter(file, config.graph.tagFilter)],
+      ["Date filter", config.graph.dateFilter !== "all", (file) => this.matchesDateFilter(file, config)]
+    ];
+    for (const [label, enabled, predicate] of filters) {
+      if (!enabled) continue;
+      const before = files.length;
+      files = files.filter(predicate);
+      this.filterReport.push({ label, excluded: before - files.length });
+    }
     const fileByPath = new Map(files.map((file) => [file.path, file]));
     const connectionCounts = new Map<string, number>();
     const edgeMap = new Map<string, GraphEdge>();
@@ -55,6 +71,7 @@ export class GraphDataService {
       .map((file, index) => this.createNode(file, index, files.length, connectionCounts.get(file.path) ?? 0))
       .filter((node) => node.connectionCount >= minimumConnections);
     const nodeIds = new Set(nodes.map((node) => node.id));
+    if (minimumConnections > 0) this.filterReport.push({ label: `Minimum links: ${minimumConnections}`, excluded: files.length - nodes.length });
     return {
       nodes,
       edges: Array.from(edgeMap.values()).filter((edge) => nodeIds.has(edge.source) && nodeIds.has(edge.target))
@@ -82,25 +99,6 @@ export class GraphDataService {
       clusterId: 0,
       clusterSize: 1
     };
-  }
-
-  private includeFile(file: TFile, config: ActiveConfiguration): boolean {
-    if (config.discovery.excludeTemplates && /(^|\/)templates?\//i.test(file.path)) {
-      return false;
-    }
-    if (config.discovery.excludeDailyNotes && /(^|\/)(daily|journal|log)s?\//i.test(file.path)) {
-      return false;
-    }
-    if (!this.matchesFolderFilter(file, config.graph.folderFilter)) {
-      return false;
-    }
-    if (!this.matchesTagFilter(file, config.graph.tagFilter)) {
-      return false;
-    }
-    if (!this.matchesDateFilter(file, config)) {
-      return false;
-    }
-    return true;
   }
 
   private matchesFolderFilter(file: TFile, filter: string | undefined): boolean {
@@ -217,6 +215,9 @@ export class GraphDataService {
     graph.nodes
       .filter((node) => interaction.hiddenClusterIds.includes(node.clusterId))
       .forEach((node) => included.delete(node.id));
+    if (interaction.hiddenNodeIds.length || interaction.hiddenClusterIds.length) {
+      this.filterReport.push({ label: "Hidden notes and clusters", excluded: graph.nodes.length - included.size });
+    }
 
     if (interaction.expandFromNodeId && included.has(interaction.expandFromNodeId)) {
       const expanded = new Set<string>([interaction.expandFromNodeId]);
@@ -228,6 +229,7 @@ export class GraphDataService {
           expanded.add(edge.source);
         }
       });
+      this.filterReport.push({ label: "Expand from note", excluded: included.size - expanded.size });
       included = expanded;
     }
 
