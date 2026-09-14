@@ -31,6 +31,7 @@ const QUICK_UI_SETTING_KEYS = [
   "showBack",
   "showForward",
   "showNotePreview",
+  "showDrawingLines",
   "showPlayback",
   "showGraphScope",
   "showMode",
@@ -289,6 +290,15 @@ export class ConstellaSettingsTab extends PluginSettingTab {
         type: "group" as const,
         heading: "Quick UI",
         items: [
+          {
+            name: "Quick UI drawing lines",
+            desc: "Show the drawing-lines toggle in the compact quick bar.",
+            control: {
+              type: "toggle" as const,
+              key: "showDrawingLines",
+              defaultValue: true
+            }
+          },
           {
             name: "Quick UI playback buttons",
             desc: "Show Start, Pause, and Stop in the compact quick bar.",

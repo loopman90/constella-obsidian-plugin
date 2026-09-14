@@ -87,6 +87,14 @@ export class QuickBar {
     if (quickUi.showGraphInteraction) {
       this.rootEl.appendChild(this.iconButton("hand", "Interactive graph", () => this.controller.updateGraphInteraction("enabled", !this.controller.configuration.graphInteraction.enabled)));
     }
+    if (quickUi.showDrawingLines) {
+      const enabled = this.controller.configuration.motion.drawingLinesEnabled;
+      const button = this.iconButton("git-branch", enabled ? "Disable drawing lines" : "Enable drawing lines", () =>
+        this.controller.updateMotion("drawingLinesEnabled", !enabled)
+      );
+      button.toggleClass("is-active", enabled);
+      this.rootEl.appendChild(button);
+    }
     if (quickUi.showPlayback) {
       this.rootEl.appendChild(this.iconButton("play", "Start", () => this.controller.play()));
       this.rootEl.appendChild(this.iconButton("pause", "Pause", () => this.controller.pause()));
@@ -159,8 +167,10 @@ export class QuickBar {
   private groupControls(): void {
     const controls = Array.from(this.rootEl.children);
     const navigation = this.rootEl.createDiv({ cls: "constella-quick-group", attr: { role: "group", "aria-label": "Navigation" } });
+    const interaction = this.rootEl.createDiv({ cls: "constella-quick-group", attr: { role: "group", "aria-label": "Interaction" } });
+    const playback = this.rootEl.createDiv({ cls: "constella-quick-group", attr: { role: "group", "aria-label": "Playback" } });
     const appearance = this.rootEl.createDiv({ cls: "constella-quick-group constella-quick-appearance", attr: { role: "group", "aria-label": "Appearance" } });
-    const actions = this.rootEl.createDiv({ cls: "constella-quick-group", attr: { role: "group", "aria-label": "Actions" } });
+    const windowActions = this.rootEl.createDiv({ cls: "constella-quick-group", attr: { role: "group", "aria-label": "Window" } });
     const more = this.rootEl.createEl("details", { cls: "constella-quick-more" });
     more.open = this.moreOpen;
     const summary = more.createEl("summary", { cls: "constella-icon-button", attr: { title: "More controls", "aria-label": "More controls" } });
@@ -174,13 +184,17 @@ export class QuickBar {
     more.addEventListener("keydown", (event) => { if (event.key === "Escape") { event.stopPropagation(); more.open = false; summary.focus(); } });
     controls.forEach((control) => {
       const label = control.getAttribute("aria-label") ?? control.firstElementChild?.textContent ?? "";
-      const group = (["Back", "Forward", "Note preview", "Start", "Pause", "Stop", "Lock view", "Unlock view", "Interactive graph"].includes(label) || (label === "Graph" && !this.compact)) ? navigation
-        : ["Visual", "Colors"].includes(label) && !this.compact ? appearance
-        : ["Open control panel", "Toggle fullscreen display mode", "Collapse quick bar"].includes(label) ? actions : menu;
+      const group = ["Back", "Forward", "Note preview"].includes(label) ? navigation
+        : ["Interactive graph", "Enable drawing lines", "Disable drawing lines", "Lock view", "Unlock view"].includes(label) ? interaction
+        : ["Start", "Pause", "Stop"].includes(label) ? playback
+        : ["Graph", "Visual", "Colors"].includes(label) && !this.compact ? appearance
+        : ["Toggle fullscreen display mode", "Open second-screen pop-out display", "Open control panel", "Collapse quick bar"].includes(label) ? windowActions
+        : menu;
       group.appendChild(control);
       const active = (label === "Start" && this.controller.playbackState === "playing")
         || (label === "Interactive graph" && this.controller.configuration.graphInteraction.enabled)
         || (label === "Note preview" && this.actions.previewOpen())
+        || label === "Disable drawing lines"
         || (label === "Pause" && this.controller.playbackState === "paused")
         || (label === "Stop" && this.controller.playbackState === "idle")
         || label === "Unlock view"
@@ -190,7 +204,7 @@ export class QuickBar {
         control.setAttribute("aria-pressed", String(active));
       }
     });
-    [navigation, appearance, actions].forEach((group) => { if (!group.children.length) group.remove(); });
+    [navigation, interaction, playback, appearance, windowActions].forEach((group) => { if (!group.children.length) group.remove(); });
     if (!menu.children.length) more.remove();
     this.rootEl.parentElement?.toggleClass("constella-more-open", this.rootEl.contains(more) && more.open);
   }

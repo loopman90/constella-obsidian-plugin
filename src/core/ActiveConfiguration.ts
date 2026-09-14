@@ -88,6 +88,7 @@ export const DEFAULT_CONFIGURATION: ActiveConfiguration = {
     showBack: true,
     showForward: true,
     showNotePreview: true,
+    showDrawingLines: true,
     showPlayback: true,
     showGraphScope: true,
     showMode: true,

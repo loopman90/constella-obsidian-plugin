@@ -275,6 +275,7 @@ export class ControlPanel {
     section.appendChild(this.toggleControl("Back Button", config.showBack, (value) => this.controller.updateQuickUi("showBack", value)));
     section.appendChild(this.toggleControl("Forward Button", config.showForward, (value) => this.controller.updateQuickUi("showForward", value)));
     section.appendChild(this.toggleControl("Note Preview Button", config.showNotePreview, (value) => this.controller.updateQuickUi("showNotePreview", value)));
+    section.appendChild(this.toggleControl("Drawing Lines Button", config.showDrawingLines, (value) => this.controller.updateQuickUi("showDrawingLines", value)));
     section.appendChild(this.toggleControl("Playback Buttons", config.showPlayback, (value) => this.controller.updateQuickUi("showPlayback", value)));
     section.appendChild(this.toggleControl("Graph Scope", config.showGraphScope, (value) => this.controller.updateQuickUi("showGraphScope", value)));
     section.appendChild(this.toggleControl("Mode Dropdown", config.showMode, (value) => this.controller.updateQuickUi("showMode", value)));

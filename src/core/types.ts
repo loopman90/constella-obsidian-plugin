@@ -344,6 +344,7 @@ export interface ActiveConfiguration {
     showBack: boolean;
     showForward: boolean;
     showNotePreview: boolean;
+    showDrawingLines: boolean;
     showPlayback: boolean;
     showGraphScope: boolean;
     showMode: boolean;

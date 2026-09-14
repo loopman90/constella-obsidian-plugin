@@ -219,15 +219,15 @@ Inside the Constella view:
 The Control Panel is organized around workflow:
 
 - `Quick`: common actions.
-- `Quick UI`: choose which Quick Bar controls are visible, including View Lock.
+- `Quick UI`: choose which Quick Bar controls are visible, including View Lock and the Drawing Lines toggle.
 - `Graph`: scope, depth, floating notes, filters, and node interaction.
 - `Tools`: mini-map, search results, graph health, saved views, and color rules.
 - `Discovery`: recent, forgotten, hub, orphan, and template filtering.
 - `Journey`: auto-travel timing and route behavior.
 - `Visual`: visual style, color scheme, glow, node size, edge thickness, cluster halos, node icons, density mode, and depth layers.
-- `Background`: background style, intensity, particles, drawing lines, and ambient effects.
+- `Background`: background style, intensity, particles, and ambient effects.
 - `Motion`: camera, movement style, pulses, click effects, and reduce motion.
-- `Paths`: path animation and drawing-line behavior.
+- `Paths`: path animation, pulses, and drawing-line behavior, including 11 selectable drawing-line styles.
 - `Presets`: templates and playlists.
 - `Display`: labels, overlays, View Lock, viewport preservation, camera pause after manual navigation, legend, FPS, fullscreen intent, cursor hiding, and visual display toggles.
 

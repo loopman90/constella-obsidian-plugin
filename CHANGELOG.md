@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.9.2
+
+- Added a Quick Bar Drawing Lines toggle, with a separate Quick UI visibility setting; detailed styles and speed remain in Animation > Paths.
+- Reordered the Quick Bar into navigation, interaction, playback, appearance, window actions, and a compact overflow menu.
+
 ## 0.9.1
 
 - Moved Back, Forward, and Note Preview into the Quick Bar and added separate visibility settings for each control.
