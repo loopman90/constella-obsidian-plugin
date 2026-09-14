@@ -326,6 +326,7 @@ export interface ActiveConfiguration {
     showLabels: boolean;
     showLegend: boolean;
     showFps: boolean;
+    showGraphStatus: boolean;
     showClusterHalos: boolean;
     showNodeIcons: boolean;
     densityMode: boolean;
@@ -340,6 +341,9 @@ export interface ActiveConfiguration {
   };
   quickUi: {
     showGraphInteraction: boolean;
+    showBack: boolean;
+    showForward: boolean;
+    showNotePreview: boolean;
     showPlayback: boolean;
     showGraphScope: boolean;
     showMode: boolean;

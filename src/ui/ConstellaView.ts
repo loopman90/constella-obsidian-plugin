@@ -1,4 +1,4 @@
-import { ItemView, Menu, Notice, WorkspaceLeaf, setIcon } from "obsidian";
+import { ItemView, Menu, Notice, WorkspaceLeaf } from "obsidian";
 import { NotePreview } from "./NotePreview";
 import { NavigationHistory } from "./NavigationHistory";
 import type { ConstellaController } from "../core/ConstellaController";
@@ -63,6 +63,7 @@ export class ConstellaView extends ItemView {
         const count = this.controller.filterReport.length;
         status.textContent = `${this.controller.currentGraph.nodes.length.toLocaleString()} / ${this.app.vault.getMarkdownFiles().length.toLocaleString()} notes · ${count} filters active · ${graph.scope} · ${display.viewportLock ? "Camera locked" : this.controller.playbackState}`;
         status.toggleClass("has-filters", count > 0);
+        status.toggleClass("is-hidden", !display.showGraphStatus);
       };
       this.unsubscribers.push(this.controller.events.on("configuration", updateStatus));
       this.unsubscribers.push(this.controller.events.on("graph", updateStatus));
@@ -71,22 +72,7 @@ export class ConstellaView extends ItemView {
 
       this.controlPanel = new ControlPanel(overlays, this.controller);
       this.controlPanel.hide();
-      this.preview = new NotePreview(overlays, this.controller, () => previewButton.focus());
-      const navigation = overlays.createDiv({ cls: "constella-navigation", attr: { role: "group", "aria-label": "Graph navigation" } });
-      const navButton = (icon: string, label: string, action: () => void): HTMLButtonElement => {
-        const button = navigation.createEl("button", { cls: "clickable-icon constella-icon-button", attr: { "aria-label": label, title: label } });
-        setIcon(button, icon);
-        button.addEventListener("click", action);
-        return button;
-      };
-      const back = navButton("arrow-left", "Back", () => this.navigate(-1));
-      const forward = navButton("arrow-right", "Forward", () => this.navigate(1));
-      const previewButton = navButton("panel-right", "Note preview", () => {
-        if (this.preview?.isVisible) this.preview.hide();
-        else { this.controlPanel?.hide(); void this.preview?.show(this.controller.currentNode); }
-      });
-      this.updateNavigation = () => { back.disabled = !this.history.canBack; forward.disabled = !this.history.canForward; };
-      this.updateNavigation();
+      this.preview = new NotePreview(overlays, this.controller, () => { this.quickBar?.refresh(); this.quickBar?.focus("Note preview"); });
       const state = overlays.createDiv({ cls: "constella-graph-state", attr: { role: "status" } });
       const updateState = (): void => {
         state.empty();
@@ -108,11 +94,19 @@ export class ConstellaView extends ItemView {
       this.nodeInfo = new NodeInfoOverlay(overlays);
       this.nodeInfo.setVisible(this.controller.configuration.display.showNodeInfoOverlay, this.controller.currentNode);
       this.quickBar = new QuickBar(overlays, this.controller, {
+        navigateBack: () => this.navigate(-1),
+        navigateForward: () => this.navigate(1),
+        togglePreview: () => this.togglePreview(),
+        canNavigateBack: () => this.history.canBack,
+        canNavigateForward: () => this.history.canForward,
+        previewOpen: () => this.preview?.isVisible ?? false,
         togglePanel: () => { this.preview?.hide(); this.controlPanel?.toggle(); },
         toggleFullscreen: this.actions.toggleFullscreen,
         openSecondScreen: this.actions.openSecondScreen,
         exportPng: this.actions.exportPng
       });
+      this.updateNavigation = () => this.quickBar?.refresh();
+      this.updateNavigation();
 
       this.renderer = new ConstellaGraphRenderer(this.app, canvasHost, this.controller.configuration, {
         onNodeSelected: (node: GraphNode | null) => this.selectFromCanvas(node),
@@ -121,7 +115,7 @@ export class ConstellaView extends ItemView {
           this.selectFromCanvas(node);
           const menu = new Menu();
           menu.addItem((item) => item.setTitle("Open note").setIcon("file-text").onClick(() => { void this.controller.openNode(node); }));
-          menu.addItem((item) => item.setTitle("Preview").setIcon("panel-right").onClick(() => { this.controlPanel?.hide(); void this.preview?.show(node); }));
+          menu.addItem((item) => item.setTitle("Preview").setIcon("panel-right").onClick(() => { this.controlPanel?.hide(); void this.preview?.show(node); this.quickBar?.refresh(); }));
           menu.addItem((item) => item.setTitle("Focus").setIcon("focus").onClick(() => this.renderer?.focusNode(node)));
           menu.addItem((item) => item.setTitle(this.controller.configuration.interaction.pinnedNodeIds.includes(node.id) ? "Unpin" : "Pin").setIcon("pin").onClick(() => {
             this.selectFromCanvas(node); void this.controller.togglePinnedSelected();
@@ -218,7 +212,8 @@ export class ConstellaView extends ItemView {
     if (event.defaultPrevented) return;
     if (event.key === "Escape" && this.preview?.isVisible) {
       event.preventDefault(); this.preview.hide();
-      this.contentEl.querySelector<HTMLElement>('[aria-label="Note preview"]')?.focus();
+      this.quickBar?.focus("Note preview");
+      this.quickBar?.refresh();
       return;
     }
     if (event.key === "Escape" && this.controlPanel?.isVisible()) {
@@ -272,6 +267,15 @@ export class ConstellaView extends ItemView {
       this.renderer.restoreViewport(entry.viewport);
     } finally { this.restoring = false; }
     this.updateNavigation();
+  }
+
+  private togglePreview(): void {
+    if (this.preview?.isVisible) this.preview.hide();
+    else {
+      this.controlPanel?.hide();
+      void this.preview?.show(this.controller.currentNode);
+    }
+    this.quickBar?.refresh();
   }
 
   private selectFromCanvas(node: GraphNode | null): void {

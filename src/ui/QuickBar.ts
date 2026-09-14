@@ -7,6 +7,12 @@ import { CAMERAS, COLORS, MODES, VISUALS } from "../core/types";
 import type { BuiltInOption, CameraId, ColorsId, GraphScope, ModeId, VisualId } from "../core/types";
 
 interface QuickBarActions {
+  navigateBack: () => void;
+  navigateForward: () => void;
+  togglePreview: () => void;
+  canNavigateBack: () => boolean;
+  canNavigateForward: () => boolean;
+  previewOpen: () => boolean;
   togglePanel: () => void;
   toggleFullscreen: () => void | Promise<void>;
   openSecondScreen: () => void | Promise<void>;
@@ -41,6 +47,12 @@ export class QuickBar {
     this.rootEl.remove();
   }
 
+  refresh(): void { this.render(); }
+
+  focus(label: string): void {
+    this.rootEl.querySelector<HTMLElement>(`[aria-label="${label}"]`)?.focus();
+  }
+
   render(): void {
     this.rootEl.parentElement?.removeClass("constella-more-open");
     this.rootEl.empty();
@@ -57,6 +69,21 @@ export class QuickBar {
     }
 
     const quickUi = this.controller.configuration.quickUi;
+    if (quickUi.showBack) {
+      const button = this.iconButton("arrow-left", "Back", this.actions.navigateBack);
+      button.disabled = !this.actions.canNavigateBack();
+      this.rootEl.appendChild(button);
+    }
+    if (quickUi.showForward) {
+      const button = this.iconButton("arrow-right", "Forward", this.actions.navigateForward);
+      button.disabled = !this.actions.canNavigateForward();
+      this.rootEl.appendChild(button);
+    }
+    if (quickUi.showNotePreview) {
+      const button = this.iconButton("panel-right", "Note preview", this.actions.togglePreview);
+      button.toggleClass("is-active", this.actions.previewOpen());
+      this.rootEl.appendChild(button);
+    }
     if (quickUi.showGraphInteraction) {
       this.rootEl.appendChild(this.iconButton("hand", "Interactive graph", () => this.controller.updateGraphInteraction("enabled", !this.controller.configuration.graphInteraction.enabled)));
     }
@@ -147,12 +174,13 @@ export class QuickBar {
     more.addEventListener("keydown", (event) => { if (event.key === "Escape") { event.stopPropagation(); more.open = false; summary.focus(); } });
     controls.forEach((control) => {
       const label = control.getAttribute("aria-label") ?? control.firstElementChild?.textContent ?? "";
-      const group = (["Start", "Pause", "Stop", "Lock view", "Unlock view", "Interactive graph"].includes(label) || (label === "Graph" && !this.compact)) ? navigation
+      const group = (["Back", "Forward", "Note preview", "Start", "Pause", "Stop", "Lock view", "Unlock view", "Interactive graph"].includes(label) || (label === "Graph" && !this.compact)) ? navigation
         : ["Visual", "Colors"].includes(label) && !this.compact ? appearance
         : ["Open control panel", "Toggle fullscreen display mode", "Collapse quick bar"].includes(label) ? actions : menu;
       group.appendChild(control);
       const active = (label === "Start" && this.controller.playbackState === "playing")
         || (label === "Interactive graph" && this.controller.configuration.graphInteraction.enabled)
+        || (label === "Note preview" && this.actions.previewOpen())
         || (label === "Pause" && this.controller.playbackState === "paused")
         || (label === "Stop" && this.controller.playbackState === "idle")
         || label === "Unlock view"

@@ -323,11 +323,11 @@ background panning, scroll/trackpad zoom, double-click opening, and the node
 context menu. Right-click offers Open, Preview, Focus, Pin/Unpin, and Hide.
 Camera pause can last during interaction, for a configured number of seconds,
 or until Play. Camera speed and View Lock remain in the Camera section.
-Quick UI > Interactive Graph Button controls visibility of the hand button.
+Quick UI controls the hand, Back, Forward, and Note Preview buttons separately.
 Interaction preferences are saved and restored on restart.
 
-The in-graph settings follow this order: Graph, Appearance, Animation, Camera,
-Interaction, Quick UI, and Performance. Graph contains source filters, tools,
+The in-graph settings follow this order: Graph, Visual, Background, Animation,
+Camera, Interaction, Quick UI, and Performance. Graph contains source filters, tools,
 discovery, and presets. Tools uses separate Search, Health, and Saved Views tabs;
 their visibility preferences remain available above the tabs.
 
@@ -340,10 +340,11 @@ control's default. Controls for disabled effects are hidden until enabled.
 The bottom status line shows visible notes versus all Markdown notes in the
 vault, active filters, graph scope, and playback or camera-lock state. Close the
 settings panel with its close button or Escape.
+You can hide this line with Graph Status Bar in Visual > Display.
 
 ## Build Checks
 
-The navigation toolbar provides Back, Forward, and Note preview. History is local
+The Quick Bar provides Back, Forward, and Note Preview. History is local
 to each graph window and restores camera position and zoom; notes removed from
 the current view are reported rather than silently changing filters. Preview
 shows up to 16,000 characters of local note text, without loading remote images.

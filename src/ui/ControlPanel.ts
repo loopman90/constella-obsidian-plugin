@@ -42,7 +42,8 @@ const PANEL_SECTIONS: PanelSection[] = [
 
 const PANEL_GROUPS = {
   Graph: ["Graph", "Tools", "Discovery", "Presets"],
-  Appearance: ["Visual", "Background", "Display"],
+  Visual: ["Visual", "Display"],
+  Background: ["Background"],
   Animation: ["Motion", "Paths"],
   Camera: ["Quick"],
   Interaction: ["Journey"],
@@ -271,6 +272,9 @@ export class ControlPanel {
     const config = this.controller.configuration.quickUi;
     const section = this.section(parent, "Quick UI", "Choose which controls appear in the compact quick bar.");
     section.appendChild(this.toggleControl("Interactive Graph Button", config.showGraphInteraction, (value) => this.controller.updateQuickUi("showGraphInteraction", value)));
+    section.appendChild(this.toggleControl("Back Button", config.showBack, (value) => this.controller.updateQuickUi("showBack", value)));
+    section.appendChild(this.toggleControl("Forward Button", config.showForward, (value) => this.controller.updateQuickUi("showForward", value)));
+    section.appendChild(this.toggleControl("Note Preview Button", config.showNotePreview, (value) => this.controller.updateQuickUi("showNotePreview", value)));
     section.appendChild(this.toggleControl("Playback Buttons", config.showPlayback, (value) => this.controller.updateQuickUi("showPlayback", value)));
     section.appendChild(this.toggleControl("Graph Scope", config.showGraphScope, (value) => this.controller.updateQuickUi("showGraphScope", value)));
     section.appendChild(this.toggleControl("Mode Dropdown", config.showMode, (value) => this.controller.updateQuickUi("showMode", value)));
@@ -629,6 +633,7 @@ export class ControlPanel {
       this.controller.updateDisplay("showNodeInfoOverlay", value)
     ));
     section.appendChild(this.toggleControl("Labels", config.display.showLabels, (value) => this.controller.updateDisplay("showLabels", value)));
+    section.appendChild(this.toggleControl("Graph Status Bar", config.display.showGraphStatus, (value) => this.controller.updateDisplay("showGraphStatus", value)));
     section.appendChild(this.slider("Label Size", config.display.labelSize, (value) => this.controller.updateDisplay("labelSize", value)));
     section.appendChild(this.toggleControl("Legend", config.display.showLegend, (value) => this.controller.updateDisplay("showLegend", value)));
     section.appendChild(this.toggleControl("Fullscreen Intent", config.display.fullscreen, (value) => this.controller.updateDisplay("fullscreen", value)));

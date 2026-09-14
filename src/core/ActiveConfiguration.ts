@@ -70,6 +70,7 @@ export const DEFAULT_CONFIGURATION: ActiveConfiguration = {
     showLabels: true,
     showLegend: true,
     showFps: false,
+    showGraphStatus: true,
     showClusterHalos: false,
     showNodeIcons: false,
     densityMode: false,
@@ -84,6 +85,9 @@ export const DEFAULT_CONFIGURATION: ActiveConfiguration = {
   },
   quickUi: {
     showGraphInteraction: true,
+    showBack: true,
+    showForward: true,
+    showNotePreview: true,
     showPlayback: true,
     showGraphScope: true,
     showMode: true,

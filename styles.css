@@ -518,8 +518,7 @@
 .constella-view-status { position: absolute; bottom: 7px; left: 14px; right: 14px; color: var(--text-muted); background: var(--background-primary); font-size: 11px; line-height: 1.4; width: fit-content; max-width: calc(100% - 28px); padding: 2px 6px; border-radius: 4px; }
 .constella-view-status.has-filters { border-left: 3px solid var(--interactive-accent); }
 .constella-view-status { pointer-events: auto; height: auto; white-space: normal; text-align: left; }
-.constella-navigation { position: absolute; top: 14px; left: 14px; display: flex; gap: 6px; pointer-events: auto; background: var(--background-primary); padding: 4px; border-radius: 6px; }
-.constella-node-info { top: 62px; }
+.constella-view-status.is-hidden { display: none; }
 .constella-preview-content { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; font-size: 13px; }
 .constella-preview .constella-panel-title { overflow-wrap: anywhere; }
 .constella-graph-state { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(360px, calc(100% - 28px)); padding: 16px; display: flex; flex-wrap: wrap; gap: 10px; background: var(--background-primary); pointer-events: auto; }
@@ -530,7 +529,6 @@
 .constella-preview { z-index: 2; }
 .constella-control-panel { z-index: 2; }
 .constella-preview-open .constella-node-info { display: none; }
-.constella-navigation { z-index: 3; }
 .constella-overlays.constella-panel-open .constella-node-info { display: none; }
 .constella-overlays.constella-more-open .constella-control-panel { visibility: hidden; }
 .constella-panel-tabs button { flex-basis: 96px; white-space: nowrap; }
@@ -539,7 +537,6 @@
 .constella-first-run { max-height: calc(100% - 28px); overflow: auto; }
 
 @container (max-width: 540px) {
-  .constella-panel-open .constella-navigation, .constella-preview-open .constella-navigation { visibility: hidden; }
   .constella-control-panel { left: 10px; right: 10px; width: auto; padding: 12px; }
   .constella-panel-control { grid-template-columns: minmax(0, 1fr); gap: 5px; }
   .constella-panel-control.constella-toggle-control { grid-template-columns: minmax(0, 1fr) 30px; }

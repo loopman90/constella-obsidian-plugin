@@ -13,6 +13,7 @@ const TOOL_SETTING_KEYS = [
 type ToolSettingKey = typeof TOOL_SETTING_KEYS[number];
 
 const DISPLAY_SETTING_KEYS = [
+  "showGraphStatus",
   "showClusterHalos",
   "showNodeIcons",
   "densityMode",
@@ -27,6 +28,9 @@ type DisplaySettingKey = typeof DISPLAY_SETTING_KEYS[number];
 
 const QUICK_UI_SETTING_KEYS = [
   "showGraphInteraction",
+  "showBack",
+  "showForward",
+  "showNotePreview",
   "showPlayback",
   "showGraphScope",
   "showMode",
@@ -59,7 +63,10 @@ export class ConstellaSettingsTab extends PluginSettingTab {
         heading: "Graph interaction",
         items: [
           { name: "Interactive graph", desc: "Enable direct node dragging and configurable navigation. Fine-tune behavior in the graph's Interaction tab.", control: { type: "toggle" as const, key: "graphInteractionEnabled", defaultValue: true } },
-          { name: "Interactive graph quick button", control: { type: "toggle" as const, key: "showGraphInteraction", defaultValue: true } }
+          { name: "Interactive graph quick button", control: { type: "toggle" as const, key: "showGraphInteraction", defaultValue: true } },
+          { name: "Quick UI back button", control: { type: "toggle" as const, key: "showBack", defaultValue: true } },
+          { name: "Quick UI forward button", control: { type: "toggle" as const, key: "showForward", defaultValue: true } },
+          { name: "Quick UI note preview", control: { type: "toggle" as const, key: "showNotePreview", defaultValue: true } }
         ]
       },
       {
@@ -113,6 +120,15 @@ export class ConstellaSettingsTab extends PluginSettingTab {
             control: {
               type: "toggle" as const,
               key: "glowEnabled",
+              defaultValue: true
+            }
+          },
+          {
+            name: "Graph status bar",
+            desc: "Show the note count, active filters, graph scope, and playback state at the bottom of the graph.",
+            control: {
+              type: "toggle" as const,
+              key: "showGraphStatus",
               defaultValue: true
             }
           },

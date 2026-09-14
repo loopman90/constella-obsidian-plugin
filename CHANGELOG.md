@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.9.1
+
+- Moved Back, Forward, and Note Preview into the Quick Bar and added separate visibility settings for each control.
+- Added a Graph Status Bar display setting, including the matching official Obsidian setting.
+- Promoted Background to a dedicated top-level Control Panel tab so canvas styling is easier to find.
+
 ## 0.9.0
 
 - Added configurable interactive node dragging, connected-node movement, auto-pin, pan/zoom switches, double-click behavior, and node context menus.
