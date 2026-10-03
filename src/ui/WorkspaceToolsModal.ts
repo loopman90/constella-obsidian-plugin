@@ -77,7 +77,9 @@ export class WorkspaceToolsModal extends Modal {
     new Setting(root).setName("Route name").addText(text => text.setValue(this.routeName).onChange(value => { this.routeName = value; }));
     new Setting(root).setName("Add a note").addDropdown(dropdown => {
       dropdown.addOption("", "Select note");
-      [...this.controller.currentGraph.nodes].sort((a, b) => a.path.localeCompare(b.path)).forEach(node => dropdown.addOption(node.path, node.path));
+      for (const node of [...this.controller.currentGraph.nodes].sort((a, b) => a.path.localeCompare(b.path))) {
+        dropdown.addOption(node.path, node.path);
+      }
       dropdown.setValue(this.addPath).onChange(path => { this.addPath = path; this.render(); });
     }).addButton(button => button.setButtonText("Add").setDisabled(!this.addPath).onClick(() => { this.route.push(this.addPath); this.render(); }));
     const current = this.controller.currentNode;
@@ -115,7 +117,9 @@ export class WorkspaceToolsModal extends Modal {
     for (const side of ["left", "right"] as const) {
       new Setting(root).setName(side === "left" ? "First note" : "Second note").addDropdown(dropdown => {
         dropdown.addOption("", "Select note");
-        nodes.forEach(node => dropdown.addOption(node.id, node.path));
+        for (const node of nodes) {
+          dropdown.addOption(node.id, node.path);
+        }
         dropdown.setValue(this[side]).onChange(value => { this[side] = value; this.render(); });
       });
     }

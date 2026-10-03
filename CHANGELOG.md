@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.10.1
+
+- Replaced dropdown population callbacks with loops to avoid returning component values from void callbacks in Workspace Tools.
+
 ## 0.10.0
 
 - Added Workspace Tools for explained related-note suggestions, persistent bookmarks, saved manual presentation routes, side-by-side note comparisons, and vault changes since a saved baseline.
