@@ -84,6 +84,7 @@ export const DEFAULT_CONFIGURATION: ActiveConfiguration = {
     nodeSize: 0.45
   },
   quickUi: {
+    showWorkspaceTools: true,
     showGraphInteraction: true,
     showBack: true,
     showForward: true,
@@ -107,6 +108,8 @@ export const DEFAULT_CONFIGURATION: ActiveConfiguration = {
     showCollapse: true
   },
   tools: {
+    screenshotPrivacy: false,
+    localGraphPeek: false,
     showMiniMap: false,
     showSearchResults: true,
     showGraphHealth: true,
@@ -149,9 +152,9 @@ export function cloneConfiguration(config: ActiveConfiguration): ActiveConfigura
     journey: { ...config.journey },
     discovery: { ...config.discovery },
     display: { ...config.display },
-    quickUi: { ...config.quickUi },
+    quickUi: { ...DEFAULT_CONFIGURATION.quickUi, ...config.quickUi },
     graphInteraction: { ...DEFAULT_CONFIGURATION.graphInteraction, ...config.graphInteraction },
-    tools: { ...config.tools },
+    tools: { ...DEFAULT_CONFIGURATION.tools, ...config.tools },
     interaction: {
       pinnedNodeIds: [...config.interaction.pinnedNodeIds],
       hiddenNodeIds: [...config.interaction.hiddenNodeIds],

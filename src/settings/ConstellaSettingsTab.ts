@@ -2,6 +2,8 @@ import { PluginSettingTab } from "obsidian";
 import type ConstellaPlugin from "../main";
 
 const TOOL_SETTING_KEYS = [
+  "screenshotPrivacy",
+  "localGraphPeek",
   "showMiniMap",
   "showSearchResults",
   "showGraphHealth",
@@ -27,6 +29,7 @@ const DISPLAY_SETTING_KEYS = [
 type DisplaySettingKey = typeof DISPLAY_SETTING_KEYS[number];
 
 const QUICK_UI_SETTING_KEYS = [
+  "showWorkspaceTools",
   "showGraphInteraction",
   "showBack",
   "showForward",
@@ -228,6 +231,8 @@ export class ConstellaSettingsTab extends PluginSettingTab {
         type: "group" as const,
         heading: "Graph tools",
         items: [
+          { name: "Screenshot privacy", desc: "Hide note titles in PNG exports.", control: { type: "toggle" as const, key: "screenshotPrivacy", defaultValue: false } },
+          { name: "Local graph peek", desc: "Emphasize the selected note and its direct neighbors.", control: { type: "toggle" as const, key: "localGraphPeek", defaultValue: false } },
           {
             name: "Mini-map",
             desc: "Show a compact graph overview in the canvas HUD.",
@@ -290,6 +295,7 @@ export class ConstellaSettingsTab extends PluginSettingTab {
         type: "group" as const,
         heading: "Quick UI",
         items: [
+          { name: "Workspace tools button", control: { type: "toggle" as const, key: "showWorkspaceTools", defaultValue: true } },
           {
             name: "Quick UI drawing lines",
             desc: "Show the drawing-lines toggle in the compact quick bar.",

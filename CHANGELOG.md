@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.10.0
+
+- Added Workspace Tools for explained related-note suggestions, persistent bookmarks, saved manual presentation routes, side-by-side note comparisons, and vault changes since a saved baseline.
+- Added optional local graph peek and screenshot privacy that hides note labels and uses a neutral export filename.
+
 ## 0.9.2
 
 - Added a Quick Bar Drawing Lines toggle, with a separate Quick UI visibility setting; detailed styles and speed remain in Animation > Paths.

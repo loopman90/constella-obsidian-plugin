@@ -37,6 +37,7 @@ import { TemplateManager } from "../templates/TemplateManager";
 import { PlaylistManager } from "../playlists/PlaylistManager";
 
 interface ConstellaEvents {
+  presentation: null;
   graphStatus: "loading" | "ready" | "error";
   configuration: ActiveConfiguration;
   graph: GraphData;
@@ -58,6 +59,33 @@ export interface GraphHealthSummary {
 }
 
 export class ConstellaController {
+  presentationPaths: string[] = [];
+  presentationIndex = -1;
+
+  startPresentation(paths: string[]): boolean {
+    const available = new Set(this.graph.nodes.map(node => node.path));
+    const visiblePaths = paths.filter(path => available.has(path));
+    if (!visiblePaths.length) return false;
+    this.stop();
+    this.presentationPaths = visiblePaths;
+    this.pause();
+    this.presentationIndex = 0;
+    this.movePresentation(0);
+    return true;
+  }
+
+  movePresentation(delta: number): void {
+    if (!this.presentationPaths.length) return;
+    this.presentationIndex = Math.max(0, Math.min(this.presentationPaths.length - 1, this.presentationIndex + delta));
+    this.selectNode(this.graph.nodes.find(node => node.path === this.presentationPaths[this.presentationIndex]) ?? null);
+    this.events.emit("presentation", null);
+  }
+
+  endPresentation(): void {
+    this.presentationPaths = [];
+    this.presentationIndex = -1;
+    this.events.emit("presentation", null);
+  }
   isJourneySelection = false;
   graphStatus: "loading" | "ready" | "error" = "loading";
   get filterReport() { return this.graphDataService.filterReport; }
@@ -81,6 +109,11 @@ export class ConstellaController {
     private readonly saveSettings: (settings: ConstellaSettings) => Promise<void>
   ) {
     this.settings = settings;
+    this.settings.workspaceTools = {
+      bookmarks: [...(settings.workspaceTools?.bookmarks ?? [])],
+      routes: (settings.workspaceTools?.routes ?? []).map(route => ({ name: route.name, paths: [...route.paths] })),
+      snapshot: settings.workspaceTools?.snapshot ?? null
+    };
     this.graphDataService = new GraphDataService(app);
     this.settings.templates = this.templateManager.ensureBuiltIns(this.settings.templates, this.settings.configuration);
     this.settings.playlists = this.playlistManager.ensureBuiltIns(this.settings.playlists);
@@ -100,6 +133,42 @@ export class ConstellaController {
 
   get currentNode(): GraphNode | null {
     return this.selectedNode;
+  }
+
+  get workspaceTools() { return this.settings.workspaceTools; }
+
+  async toggleBookmark(path: string): Promise<void> {
+    const paths = new Set(this.settings.workspaceTools.bookmarks);
+    if (paths.has(path)) paths.delete(path); else paths.add(path);
+    this.settings.workspaceTools.bookmarks = [...paths];
+    await this.persist();
+  }
+
+  async savePresentation(name: string, paths: string[]): Promise<void> {
+    const routes = this.settings.workspaceTools.routes.filter(route => route.name !== name);
+    routes.push({ name, paths: [...paths] });
+    this.settings.workspaceTools.routes = routes;
+    await this.persist();
+  }
+
+  async deletePresentation(name: string): Promise<void> {
+    this.settings.workspaceTools.routes = this.settings.workspaceTools.routes.filter(route => route.name !== name);
+    await this.persist();
+  }
+
+  vaultSnapshot() {
+    const notes: Record<string, number> = {};
+    for (const file of this.app.vault.getMarkdownFiles()) notes[file.path] = file.stat.mtime;
+    const edges: string[] = [];
+    for (const [source, targets] of Object.entries(this.app.metadataCache.resolvedLinks)) {
+      for (const target of Object.keys(targets)) if (notes[source] !== undefined && notes[target] !== undefined) edges.push(JSON.stringify([source, target]));
+    }
+    return { notes, edges };
+  }
+
+  async markGraphChangesSeen(): Promise<void> {
+    this.settings.workspaceTools.snapshot = this.vaultSnapshot();
+    await this.persist();
   }
 
   get currentJourney(): JourneyState | null {
@@ -592,6 +661,7 @@ export class ConstellaController {
   }
 
   play(): void {
+    this.endPresentation();
     this.playback = "playing";
     this.journey = this.pathEngine.createJourney(this.graph, this.configuration, this.selectedNode);
     this.emitJourneySelection();
@@ -606,6 +676,7 @@ export class ConstellaController {
   }
 
   stop(): void {
+    this.endPresentation();
     this.playback = "idle";
     this.journey = null;
     this.stopJourneyTimer();

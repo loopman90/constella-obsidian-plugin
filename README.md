@@ -231,6 +231,20 @@ The Control Panel is organized around workflow:
 - `Presets`: templates and playlists.
 - `Display`: labels, overlays, View Lock, viewport preservation, camera pause after manual navigation, legend, FPS, fullscreen intent, cursor hiding, and visual display toggles.
 
+## Workspace Tools
+
+Open Workspace Tools from the Quick Bar's more-controls menu or Graph > Tools.
+
+- Related: select a note to find matches explained by shared tags, direct links, shared neighbors, and folders. Suggestions use notes in the current graph.
+- Bookmarks: save the selected note and focus it again later. Missing or filtered notes are reported without removing the bookmark.
+- Presentation: choose notes, arrange their order, name and save the route, then start it. The modal closes and Previous/Next/End controls appear in the Quick Bar. Missing or filtered notes are skipped. Routes never open notes automatically.
+- Compare: choose two notes to see shared and unique connections and their local text side by side.
+- Changes: create a baseline, then return later to see added, modified, or removed notes and added/removed links across the vault. Mark changes as seen to update the baseline. Renames appear as removed/added paths.
+- Local Graph Peek: enable in Graph > Tools to emphasize the selected note and its direct neighbors without filtering the graph or changing the viewport.
+- Screenshot Privacy: enable in Graph > Tools to omit all note labels from PNG exports and use a neutral filename. Graph structure and colors remain visible.
+
+Bookmarks, routes, and the changes baseline are stored only in this vault's plugin settings. Note contents are never modified or sent to a server. Compare renders plain text, including Markdown syntax, without loading embedded media.
+
 ## Keyboard Controls
 
 Inside the Constella view:

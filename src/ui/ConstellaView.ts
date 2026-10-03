@@ -195,11 +195,12 @@ export class ConstellaView extends ItemView {
       new Notice("Open Constella before exporting a PNG.");
       return;
     }
-    const blob = await this.renderer.exportPng();
+    const privacy = this.controller.configuration.tools.screenshotPrivacy;
+    const blob = await this.renderer.exportPng(privacy);
     const url = URL.createObjectURL(blob);
     const link = createEl("a");
     link.href = url;
-    link.download = this.exportFilename();
+    link.download = privacy ? "constella-private-graph.png" : this.exportFilename();
     link.click();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     new Notice("Constella PNG export started.");

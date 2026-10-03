@@ -5,6 +5,11 @@ import type { Playlist, StoredTemplate } from "../core/types";
 export type PerformanceProfile = "auto" | "high-quality" | "balanced" | "large-vault" | "low-power" | "custom";
 
 export interface ConstellaSettings {
+  workspaceTools: {
+    bookmarks: string[];
+    routes: { name: string; paths: string[] }[];
+    snapshot: { notes: Record<string, number>; edges: string[] } | null;
+  };
   schemaVersion: number;
   configuration: ActiveConfiguration;
   performanceProfile: PerformanceProfile;
@@ -19,6 +24,7 @@ export interface ConstellaSettings {
 }
 
 export const DEFAULT_SETTINGS: ConstellaSettings = {
+  workspaceTools: { bookmarks: [], routes: [], snapshot: null },
   schemaVersion: 1,
   configuration: DEFAULT_CONFIGURATION,
   performanceProfile: "auto",
@@ -94,6 +100,11 @@ export function normalizeSettings(data: unknown): ConstellaSettings {
     },
     templates: maybe.templates ?? [],
     playlists: maybe.playlists ?? [],
+    workspaceTools: {
+      bookmarks: maybe.workspaceTools?.bookmarks ?? [],
+      routes: maybe.workspaceTools?.routes ?? [],
+      snapshot: maybe.workspaceTools?.snapshot ?? null
+    },
     ui: {
       ...DEFAULT_SETTINGS.ui,
       ...(maybe.ui ?? {})

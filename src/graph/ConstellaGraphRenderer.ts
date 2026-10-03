@@ -59,6 +59,7 @@ export class ConstellaGraphRenderer {
   private selectedNode: GraphNode | null = null;
   private hoverNode: GraphNode | null = null;
   private hoverNeighborIds = new Set<string>();
+  private peekNeighborIds = new Set<string>();
   private journeyPath: string[] = [];
   private journeyIndex = 0;
   private pointer: PointerState = { dragging: false, lastX: 0, lastY: 0, moved: false };
@@ -109,7 +110,7 @@ export class ConstellaGraphRenderer {
     this.hoverNode = null;
     this.hoverNeighborIds = new Set();
     const nextSelected = previousSelectedId ? this.nodeById.get(previousSelectedId) ?? null : null;
-    this.selectedNode = nextSelected;
+    this.setSelectedNode(nextSelected);
     this.options.onNodeSelected(nextSelected);
     if ((!this.config.display.viewportLock && !this.config.display.preserveViewportOnRefresh) || !this.hasCenteredGraph) {
       this.centerGraph();
@@ -127,6 +128,11 @@ export class ConstellaGraphRenderer {
 
   setSelectedNode(node: GraphNode | null): void {
     this.selectedNode = node;
+    this.peekNeighborIds = new Set(node ? [node.id] : []);
+    if (node) for (const edge of this.graph.edges) {
+      if (edge.source === node.id) this.peekNeighborIds.add(edge.target);
+      if (edge.target === node.id) this.peekNeighborIds.add(edge.source);
+    }
   }
 
   getViewport(): Viewport { return { ...this.viewport }; }
@@ -147,11 +153,25 @@ export class ConstellaGraphRenderer {
     this.journeyIndex = currentIndex;
   }
 
-  exportPng(): Promise<Blob> {
+  exportPng(privacy = false): Promise<Blob> {
     this.resize();
-    this.draw();
+    const original = this.config;
+    if (privacy) this.config = { ...original, display: { ...original.display, showLabels: false } };
+    let capture: HTMLCanvasElement;
+    try {
+      this.draw();
+      capture = this.canvas.ownerDocument.createEl("canvas");
+      capture.width = this.canvas.width;
+      capture.height = this.canvas.height;
+      const context = capture.getContext("2d");
+      if (!context) throw new Error("PNG capture is unavailable.");
+      context.drawImage(this.canvas, 0, 0);
+    } finally {
+      this.config = original;
+      this.draw();
+    }
     return new Promise((resolve, reject) => {
-      this.canvas.toBlob((blob) => {
+      capture.toBlob((blob) => {
         if (blob) {
           resolve(blob);
           return;
@@ -1169,6 +1189,7 @@ export class ConstellaGraphRenderer {
   }
 
   private shouldDrawLabel(node: GraphNode, selected: boolean, hovered: boolean, labelThreshold: number): boolean {
+    if (this.config.tools.localGraphPeek && this.selectedNode && !this.peekNeighborIds.has(node.id)) return false;
     if (!this.config.display.showLabels) {
       return false;
     }
@@ -1724,6 +1745,10 @@ export class ConstellaGraphRenderer {
   }
 
   private focusFactor(node: GraphNode): number {
+    if (this.config.tools.localGraphPeek && this.selectedNode) {
+      const nearby = this.peekNeighborIds.has(node.id);
+      if (!nearby) return 0.12;
+    }
     if ((this.config.visual !== "fog-of-knowledge" && this.config.visual !== "focus-lens") || !this.selectedNode) {
       return 1;
     }
@@ -1889,6 +1914,7 @@ export class ConstellaGraphRenderer {
   }
 
   private edgeAlpha(edge: { weight: number }, selected: boolean, activeJourneyEdge: boolean): number {
+    if (this.config.tools.localGraphPeek && this.selectedNode && !selected) return 0.04;
     const base = activeJourneyEdge ? 0.92 : selected ? 0.78 : 0.22 + this.config.motion.visualIntensity * 0.16;
     if (this.config.visual === "focus-lens" && this.selectedNode && !selected && !activeJourneyEdge) {
       return 0.08;

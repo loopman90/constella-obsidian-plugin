@@ -8,6 +8,7 @@ import type { ActiveConfiguration, BackgroundId, BuiltInOption, CameraId, ClickA
 import { PerformanceManager } from "../performance/PerformanceManager";
 import type { PerformanceProfile } from "../settings/Settings";
 import { JsonTransferModal, PlaylistEditorModal, TemplateEditorModal, TextPromptModal } from "./modals";
+import { WorkspaceToolsModal } from "./WorkspaceToolsModal";
 
 type PanelSection =
   | "Quick"
@@ -271,6 +272,7 @@ export class ControlPanel {
   private renderQuickUi(parent: HTMLElement): void {
     const config = this.controller.configuration.quickUi;
     const section = this.section(parent, "Quick UI", "Choose which controls appear in the compact quick bar.");
+    section.appendChild(this.toggleControl("Workspace Tools Button", config.showWorkspaceTools, value => this.controller.updateQuickUi("showWorkspaceTools", value)));
     section.appendChild(this.toggleControl("Interactive Graph Button", config.showGraphInteraction, (value) => this.controller.updateQuickUi("showGraphInteraction", value)));
     section.appendChild(this.toggleControl("Back Button", config.showBack, (value) => this.controller.updateQuickUi("showBack", value)));
     section.appendChild(this.toggleControl("Forward Button", config.showForward, (value) => this.controller.updateQuickUi("showForward", value)));
@@ -517,6 +519,9 @@ export class ControlPanel {
   private renderTools(parent: HTMLElement): void {
     const config = this.controller.configuration;
     const overview = this.section(parent, "Graph Tools", "Add navigation, search, and insight helpers to the graph.");
+    overview.appendChild(this.actionButton("Open Workspace Tools", () => new WorkspaceToolsModal(this.controller).open()));
+    overview.appendChild(this.toggleControl("Local Graph Peek", config.tools.localGraphPeek, value => this.controller.updateTools("localGraphPeek", value)));
+    overview.appendChild(this.toggleControl("Screenshot Privacy", config.tools.screenshotPrivacy, value => this.controller.updateTools("screenshotPrivacy", value)));
     overview.appendChild(this.toggleControl("Mini-map", config.tools.showMiniMap, (value) => this.controller.updateTools("showMiniMap", value)));
     overview.appendChild(this.toggleControl("Search Results List", config.tools.showSearchResults, (value) =>
       this.controller.updateTools("showSearchResults", value)

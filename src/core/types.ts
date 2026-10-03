@@ -340,6 +340,7 @@ export interface ActiveConfiguration {
     nodeSize: number;
   };
   quickUi: {
+    showWorkspaceTools: boolean;
     showGraphInteraction: boolean;
     showBack: boolean;
     showForward: boolean;
@@ -363,6 +364,8 @@ export interface ActiveConfiguration {
     showCollapse: boolean;
   };
   tools: {
+    screenshotPrivacy: boolean;
+    localGraphPeek: boolean;
     showMiniMap: boolean;
     showSearchResults: boolean;
     showGraphHealth: boolean;

@@ -1,5 +1,6 @@
 import { setIcon } from "obsidian";
 import { sliderControl } from "./SliderControl";
+import { WorkspaceToolsModal } from "./WorkspaceToolsModal";
 import { DEFAULT_CONFIGURATION } from "../core/ActiveConfiguration";
 import type { ConstellaController } from "../core/ConstellaController";
 import type { Unsubscribe } from "../core/EventBus";
@@ -38,6 +39,7 @@ export class QuickBar {
     this.render();
     this.unsubscribers.push(controller.events.on("configuration", () => this.render()));
     this.unsubscribers.push(controller.events.on("playback", () => this.render()));
+    this.unsubscribers.push(controller.events.on("presentation", () => this.render()));
   }
 
   destroy(): void {
@@ -69,6 +71,18 @@ export class QuickBar {
     }
 
     const quickUi = this.controller.configuration.quickUi;
+    if (this.controller.presentationPaths.length) {
+      const previous = this.iconButton("skip-back", "Previous presentation note", () => this.controller.movePresentation(-1));
+      previous.disabled = this.controller.presentationIndex <= 0;
+      this.rootEl.appendChild(previous);
+      const next = this.iconButton("skip-forward", "Next presentation note", () => this.controller.movePresentation(1));
+      next.disabled = this.controller.presentationIndex >= this.controller.presentationPaths.length - 1;
+      this.rootEl.appendChild(next);
+      this.rootEl.appendChild(this.iconButton("x", "End presentation", () => this.controller.endPresentation()));
+    }
+    if (quickUi.showWorkspaceTools) {
+      this.rootEl.appendChild(this.iconButton("notebook-tabs", "Open workspace tools", () => new WorkspaceToolsModal(this.controller).open()));
+    }
     if (quickUi.showBack) {
       const button = this.iconButton("arrow-left", "Back", this.actions.navigateBack);
       button.disabled = !this.actions.canNavigateBack();
@@ -184,7 +198,7 @@ export class QuickBar {
     more.addEventListener("keydown", (event) => { if (event.key === "Escape") { event.stopPropagation(); more.open = false; summary.focus(); } });
     controls.forEach((control) => {
       const label = control.getAttribute("aria-label") ?? control.firstElementChild?.textContent ?? "";
-      const group = ["Back", "Forward", "Note preview"].includes(label) ? navigation
+      const group = ["Back", "Forward", "Note preview", "Previous presentation note", "Next presentation note", "End presentation"].includes(label) ? navigation
         : ["Interactive graph", "Enable drawing lines", "Disable drawing lines", "Lock view", "Unlock view"].includes(label) ? interaction
         : ["Start", "Pause", "Stop"].includes(label) ? playback
         : ["Graph", "Visual", "Colors"].includes(label) && !this.compact ? appearance
