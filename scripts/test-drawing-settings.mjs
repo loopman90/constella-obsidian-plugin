@@ -36,3 +36,28 @@ test("drawing settings expose every style alphabetically and update the live con
   await tab.setControlValue("drawingLinesEnabled", "true");
   assert.equal(calls.length, count);
 });
+
+test("labels and legend are discoverable and their settings update the live display", async () => {
+  const configuration = structuredClone(DEFAULT_CONFIGURATION);
+  const calls = [];
+  const plugin = { app: {}, settings: { configuration }, async setLabelLegendOption(key, value) {
+    calls.push([key, value]); configuration.display[key] = value;
+  } };
+  const tab = new ConstellaSettingsTab(plugin);
+  const controls = tab.getSettingDefinitions().flatMap(group => group.items).map(item => item.control);
+  for (const key of ["showLabels", "showLegend", "labelSize"]) {
+    const control = controls.find(control => control.key === key);
+    assert(control, key);
+    assert.equal(control.defaultValue, DEFAULT_CONFIGURATION.display[key]);
+  }
+  await tab.setControlValue("showLabels", false);
+  await tab.setControlValue("showLegend", false);
+  await tab.setControlValue("labelSize", 2);
+  assert.equal(tab.getControlValue("showLabels"), false);
+  assert.equal(tab.getControlValue("showLegend"), false);
+  assert.equal(tab.getControlValue("labelSize"), 1);
+  const count = calls.length;
+  await tab.setControlValue("labelSize", Infinity);
+  await tab.setControlValue("showLegend", "true");
+  assert.equal(calls.length, count);
+});

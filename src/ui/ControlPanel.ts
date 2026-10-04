@@ -45,7 +45,8 @@ const PANEL_SECTIONS: PanelSection[] = [
 
 const PANEL_GROUPS = {
   Graph: ["Graph", "Tools", "Discovery", "Presets"],
-  Visual: ["Visual", "Display"],
+  Visual: ["Visual"],
+  Display: ["Display"],
   Background: ["Background"],
   Animation: ["Motion", "Paths", "Drawing Lines"],
   Camera: ["Quick"],

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11.2
+
+- Make Display directly accessible in the graph control panel and expose Labels, Label Size, and Legend in Obsidian's plugin settings with live updates.
+- Expand the Movement Strength range for more expressive node motion, independent of visual intensity, with bounded zoom compensation. Zero strength stops decorative movement; pinned and dragged notes remain fixed.
+- Make orbit displacement proportional to elapsed time rather than frame count.
+
 ## 0.11.1
 
 - Give Drawing Lines its own Animation settings tab and expose all 11 styles, the enable toggle, and speed in Obsidian's plugin settings with live updates.

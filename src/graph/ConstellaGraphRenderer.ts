@@ -263,7 +263,13 @@ export class ConstellaGraphRenderer {
     }
 
     const budget = this.performanceManager.budget(this.graph, this.config);
-    const strength = (4 + this.config.motion.nodeMovementStrength * 42) * this.config.motion.visualIntensity * budget.motionScale;
+    const amount = Math.max(0, Math.min(1, this.config.motion.nodeMovementStrength));
+    if (amount === 0) {
+      for (const node of this.graph.nodes) { node.vx = 0; node.vy = 0; }
+      return;
+    }
+    const zoomCompensation = Math.max(1, Math.min(3, 1 / Math.max(0.02, this.viewport.scale)));
+    const strength = amount * 46 * (1 + 7 * amount * amount) * zoomCompensation * budget.motionScale;
     const speed = 0.25 + this.config.motion.nodeMovementSpeed * 3.5 + this.config.motion.animationSpeed;
     const pinned = new Set(this.config.interaction.pinnedNodeIds);
     this.graph.nodes.forEach((node, index) => {
@@ -282,7 +288,7 @@ export class ConstellaGraphRenderer {
           break;
         case "orbit": {
           const angle = this.time * speed * 0.45 + seedA;
-          const orbit = strength * 0.018;
+          const orbit = strength * 0.018 * dt * 60;
           node.x += Math.cos(angle) * orbit;
           node.y += Math.sin(angle) * orbit;
           break;

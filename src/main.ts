@@ -75,6 +75,10 @@ export default class ConstellaPlugin extends Plugin {
     await this.requireController().updateMotion(key, value);
   }
 
+  async setLabelLegendOption<TKey extends "showLabels" | "labelSize" | "showLegend">(key: TKey, value: ActiveConfiguration["display"][TKey]): Promise<void> {
+    await this.requireController().updateDisplay(key, value);
+  }
+
   async activateView(): Promise<void> {
     const existing = this.app.workspace.getLeavesOfType(VIEW_TYPE_CONSTELLA)[0];
     if (existing) {

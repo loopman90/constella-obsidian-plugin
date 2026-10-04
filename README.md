@@ -34,6 +34,14 @@ Explore different looks for your vault. Some screenshots show an earlier setting
 
 In the graph settings, open **Animation > Drawing Lines** to enable the effect, choose one of 11 styles, and set its speed. The same controls are available in Obsidian's plugin settings under **Drawing lines**. The Quick Bar drawing-lines button toggles the effect; its visibility is configurable under **Quick UI**. Keep the global **Animation Speed** above zero for moving effects.
 
+## Node Motion
+
+Open **Animation > Motion**, enable **Node Movement**, and adjust **Movement Strength** and **Movement Speed**. Higher strength values produce progressively larger movements; zero stops decorative motion. Motion is independent of Visual Intensity and receives limited compensation when zoomed out. Pinned nodes stay fixed, and Reduce Motion suppresses decorative movement. Force Directed settles the graph before decorative movement begins.
+
+## Labels And Legend
+
+Open **Display** in the graph settings to toggle **Labels** and **Legend**, or adjust **Label Size**. These controls are also available under **Visual controls** in Obsidian's plugin settings. Enabled labels can still be reduced when zoomed out or when density settings limit clutter.
+
 ## Install From Obsidian
 
 Use this route when Constella is available in the Obsidian Community Plugins browser.

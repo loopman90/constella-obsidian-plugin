@@ -70,3 +70,45 @@ test("all 11 drawing-line styles render with changing progress and can be disabl
   renderer.config.motion.drawingLinesEnabled = false;
   assert.equal(renderer.getLineDrawProgress("edge", false), 1);
 });
+
+function motionFixture(strength, scale = 1, intensity = 1) {
+  const renderer = Object.create(ConstellaGraphRenderer.prototype);
+  renderer.config = structuredClone(DEFAULT_CONFIGURATION);
+  Object.assign(renderer.config.motion, { nodeMovementEnabled: true, nodeMovementStyle: "orbit", nodeMovementStrength: strength, visualIntensity: intensity });
+  renderer.viewport = { x: 0, y: 0, scale };
+  renderer.graph = graph(2);
+  renderer.time = 1;
+  renderer.performanceManager = { budget: () => ({ motionScale: 1 }) };
+  return renderer;
+}
+
+test("motion has an expressive range, ignores visual intensity and compensates zoom within bounds", () => {
+  const displacement = renderer => {
+    const node = renderer.graph.nodes[0], x = node.x, y = node.y;
+    renderer.step(1 / 60);
+    return Math.hypot(node.x - x, node.y - y);
+  };
+  const gentle = displacement(motionFixture(0.35));
+  const strong = displacement(motionFixture(1));
+  assert(strong > gentle * 8);
+  assert.equal(displacement(motionFixture(0)), 0);
+  const stopped = motionFixture(0);
+  stopped.config.motion.nodeMovementStyle = "drift";
+  stopped.graph.nodes[0].vx = 10;
+  assert.equal(displacement(stopped), 0);
+  assert.equal(displacement(motionFixture(0.35, 1, 0)), gentle);
+  assert(Math.abs(displacement(motionFixture(0.35, 0.02)) - gentle * 3) < 1e-9);
+});
+
+test("orbit respects elapsed time and pinned or dragged notes do not move", () => {
+  const full = motionFixture(1), half = motionFixture(1);
+  full.step(1 / 30);
+  half.step(1 / 60); half.step(1 / 60);
+  assert(Math.abs(full.graph.nodes[0].x - half.graph.nodes[0].x) < 1e-9);
+  assert(Math.abs(full.graph.nodes[0].y - half.graph.nodes[0].y) < 1e-9);
+  const fixed = motionFixture(1);
+  fixed.config.interaction.pinnedNodeIds = ["0"];
+  fixed.draggedNode = fixed.graph.nodes[1];
+  fixed.step(1 / 60);
+  assert(fixed.graph.nodes.every(node => node.x === 100 && node.y === 100));
+});

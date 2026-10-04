@@ -137,6 +137,9 @@ export class ConstellaSettingsTab extends PluginSettingTab {
         type: "group" as const,
         heading: "Visual controls",
         items: [
+          { name: "Labels", desc: "Show note titles on the graph. Visibility also depends on zoom and density settings.", control: { type: "toggle" as const, key: "showLabels", defaultValue: true } },
+          { name: "Label size", control: { type: "slider" as const, key: "labelSize", defaultValue: 0.48, min: 0, max: 1, step: 0.01 } },
+          { name: "Legend", desc: "Show the color legend on the graph.", control: { type: "toggle" as const, key: "showLegend", defaultValue: true } },
           {
             name: "Glow",
             desc: "Enable the soft light around graph nodes.",
@@ -474,6 +477,7 @@ export class ConstellaSettingsTab extends PluginSettingTab {
   }
 
   override getControlValue(key: string): unknown {
+    if (key === "showLabels" || key === "labelSize" || key === "showLegend") return this.plugin.settings.configuration.display[key];
     if (key === "drawingLinesEnabled" || key === "drawingLineStyle" || key === "drawingLineSpeed") return this.plugin.settings.configuration.motion[key];
     if (key === "layout" || key === "nodeSpacing" || key === "linkDistance") return this.plugin.settings.configuration.graph[key];
     if (key === "graphInteractionEnabled") return this.plugin.settings.configuration.graphInteraction.enabled;
@@ -499,6 +503,14 @@ export class ConstellaSettingsTab extends PluginSettingTab {
   }
 
   override async setControlValue(key: string, value: unknown): Promise<void> {
+    if ((key === "showLabels" || key === "showLegend") && typeof value === "boolean") {
+      await this.plugin.setLabelLegendOption(key, value);
+      this.refreshDomState(); return;
+    }
+    if (key === "labelSize" && typeof value === "number" && Number.isFinite(value)) {
+      await this.plugin.setLabelLegendOption(key, Math.max(0, Math.min(1, value)));
+      this.refreshDomState(); return;
+    }
     if (key === "drawingLinesEnabled" && typeof value === "boolean") {
       await this.plugin.setDrawingLineOption(key, value);
       this.refreshDomState(); return;
