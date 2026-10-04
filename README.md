@@ -231,6 +231,12 @@ The Control Panel is organized around workflow:
 - `Presets`: templates and playlists.
 - `Display`: labels, overlays, View Lock, viewport preservation, camera pause after manual navigation, legend, FPS, fullscreen intent, cursor hiding, and visual display toggles.
 
+## Graph Layout
+
+In Graph > Graph Source, choose Force Directed (default) or Circle. Force Directed uses local repulsion, collision avoidance, and link attraction to separate notes and group connected notes. Node Spacing adjusts separation; Link Distance sets the preferred connection length, not an exact guaranteed distance.
+
+The layout settles incrementally, independently of decorative node animation. Existing note positions are retained on refresh when Preserve Viewport On Refresh is enabled; pinned nodes stay fixed, and dragging temporarily holds the dragged node in place. Changing the layout rebuilds unpinned positions without automatically resetting your camera. Circle restores the original ring arrangement.
+
 ## Workspace Tools
 
 Open Workspace Tools from the Quick Bar's more-controls menu or Graph > Tools.

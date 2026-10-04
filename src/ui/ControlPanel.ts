@@ -350,6 +350,11 @@ export class ControlPanel {
     if (!this.controller.filterReport.length) report.createDiv({ text: "No active filters." });
     report.appendChild(this.actionButton("Show All Notes", () => this.controller.showAllNotes()));
     const section = this.section(parent, "Graph Source", "Choose how much of your vault Constella should draw.");
+    section.appendChild(this.select("Graph Layout", config.graph.layout, [
+      { id: "circle", label: "Circle" }, { id: "force-directed", label: "Force Directed" }
+    ], value => this.controller.updateGraphOption("layout", value)));
+    section.appendChild(this.numberControl("Node Spacing", config.graph.nodeSpacing, 20, 200, value => this.controller.updateGraphOption("nodeSpacing", value)));
+    section.appendChild(this.numberControl("Link Distance", config.graph.linkDistance, 40, 500, value => this.controller.updateGraphOption("linkDistance", value)));
     section.appendChild(this.select("Graph Scope", config.graph.scope, this.graphScopeOptions(), (value) => this.controller.updateGraphScope(value), false));
     section.appendChild(this.numberControl("Local Depth", config.graph.localDepth, 1, 50, (value) => this.controller.updateLocalDepth(value)));
     section.appendChild(this.toggleControl("Use Current Note When Available", config.graph.useCurrentGraphWhenAvailable, (value) =>
@@ -681,7 +686,7 @@ export class ControlPanel {
     ];
   }
 
-  private select<T extends ModeId | VisualId | ColorsId | CameraId | GraphScope | PathAnimationId | PulseStyleId | BackgroundId | NodeMovementStyleId | ClickAnimationId | DrawingLineStyleId | PerformanceProfile | ActiveConfiguration["graph"]["dateFilter"] | ActiveConfiguration["journey"]["deadEndBehavior"] | ActiveConfiguration["journey"]["afterJourney"] | ActiveConfiguration["graphInteraction"]["cameraPause"]>(
+  private select<T extends ModeId | VisualId | ColorsId | CameraId | GraphScope | PathAnimationId | PulseStyleId | BackgroundId | NodeMovementStyleId | ClickAnimationId | DrawingLineStyleId | PerformanceProfile | ActiveConfiguration["graph"]["layout"] | ActiveConfiguration["graph"]["dateFilter"] | ActiveConfiguration["journey"]["deadEndBehavior"] | ActiveConfiguration["journey"]["afterJourney"] | ActiveConfiguration["graphInteraction"]["cameraPause"]>(
     label: string,
     value: T,
     options: BuiltInOption<T>[],

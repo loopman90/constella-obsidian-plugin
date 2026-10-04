@@ -6,6 +6,9 @@ export const DEFAULT_CONFIGURATION: ActiveConfiguration = {
   colors: "aurora",
   camera: "floating",
   graph: {
+    layout: "force-directed",
+    nodeSpacing: 60,
+    linkDistance: 140,
     scope: "global",
     localDepth: 4,
     useCurrentGraphWhenAvailable: true,
@@ -145,7 +148,7 @@ export const DEFAULT_CONFIGURATION: ActiveConfiguration = {
 export function cloneConfiguration(config: ActiveConfiguration): ActiveConfiguration {
   return {
     ...config,
-    graph: { ...config.graph },
+    graph: { ...DEFAULT_CONFIGURATION.graph, ...config.graph },
     motion: { ...config.motion },
     background: { ...config.background },
     template: { ...config.template },

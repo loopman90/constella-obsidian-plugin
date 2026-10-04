@@ -64,6 +64,15 @@ export class ConstellaSettingsTab extends PluginSettingTab {
     return [
       {
         type: "group" as const,
+        heading: "Graph layout",
+        items: [
+          { name: "Graph layout", control: { type: "dropdown" as const, key: "layout", defaultValue: "force-directed", options: { circle: "Circle", "force-directed": "Force Directed" } } },
+          { name: "Node spacing", control: { type: "slider" as const, key: "nodeSpacing", defaultValue: 60, min: 20, max: 200, step: 5 } },
+          { name: "Link distance", control: { type: "slider" as const, key: "linkDistance", defaultValue: 140, min: 40, max: 500, step: 10 } }
+        ]
+      },
+      {
+        type: "group" as const,
         heading: "Graph interaction",
         items: [
           { name: "Interactive graph", desc: "Enable direct node dragging and configurable navigation. Fine-tune behavior in the graph's Interaction tab.", control: { type: "toggle" as const, key: "graphInteractionEnabled", defaultValue: true } },
@@ -455,6 +464,7 @@ export class ConstellaSettingsTab extends PluginSettingTab {
   }
 
   override getControlValue(key: string): unknown {
+    if (key === "layout" || key === "nodeSpacing" || key === "linkDistance") return this.plugin.settings.configuration.graph[key];
     if (key === "graphInteractionEnabled") return this.plugin.settings.configuration.graphInteraction.enabled;
     if (key === "performanceProfile" || key === "debug" || key === "showFirstRun") {
       return this.plugin.settings[key];
@@ -478,6 +488,15 @@ export class ConstellaSettingsTab extends PluginSettingTab {
   }
 
   override async setControlValue(key: string, value: unknown): Promise<void> {
+    if (key === "layout" && (value === "circle" || value === "force-directed")) {
+      await this.plugin.setGraphLayoutOption(key, value);
+      this.refreshDomState(); return;
+    }
+    if ((key === "nodeSpacing" || key === "linkDistance") && typeof value === "number" && Number.isFinite(value)) {
+      const clamped = Math.max(key === "nodeSpacing" ? 20 : 40, Math.min(key === "nodeSpacing" ? 200 : 500, value));
+      await this.plugin.setGraphLayoutOption(key, clamped);
+      this.refreshDomState(); return;
+    }
     if (key === "graphInteractionEnabled" && typeof value === "boolean") {
       await this.plugin.setInteractiveGraph(value);
       this.refreshDomState();

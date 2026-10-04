@@ -262,6 +262,9 @@ export interface ActiveConfiguration {
   colors: ColorsId;
   camera: CameraId;
   graph: {
+    layout: "force-directed" | "circle";
+    nodeSpacing: number;
+    linkDistance: number;
     scope: GraphScope;
     localDepth: number;
     useCurrentGraphWhenAvailable: boolean;

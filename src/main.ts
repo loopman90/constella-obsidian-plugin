@@ -1,5 +1,6 @@
 import { Notice, Plugin, TFile } from "obsidian";
 import { ConstellaController } from "./core/ConstellaController";
+import type { ActiveConfiguration } from "./core/types";
 import { ConstellaSettingsTab } from "./settings/ConstellaSettingsTab";
 import { DEFAULT_SETTINGS, normalizeSettings } from "./settings/Settings";
 import type { ConstellaSettings, PerformanceProfile } from "./settings/Settings";
@@ -60,6 +61,10 @@ export default class ConstellaPlugin extends Plugin {
 
   async setInteractiveGraph(enabled: boolean): Promise<void> {
     await this.requireController().updateGraphInteraction("enabled", enabled);
+  }
+
+  async setGraphLayoutOption<TKey extends "layout" | "nodeSpacing" | "linkDistance">(key: TKey, value: ActiveConfiguration["graph"][TKey]): Promise<void> {
+    await this.requireController().updateGraphOption(key, value);
   }
 
   async setInteractionButtonVisible(visible: boolean): Promise<void> {

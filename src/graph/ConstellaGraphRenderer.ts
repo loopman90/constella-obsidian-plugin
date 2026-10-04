@@ -1,6 +1,7 @@
 import type { App } from "obsidian";
 import type { ActiveConfiguration, ClickAnimationId, GraphData, GraphNode, Viewport } from "../core/types";
 import { PerformanceManager } from "../performance/PerformanceManager";
+import { GraphLayoutEngine } from "./GraphLayoutEngine";
 
 interface RendererOptions {
   onNodeDragged?: (node: GraphNode) => void;
@@ -59,6 +60,9 @@ export class ConstellaGraphRenderer {
   private selectedNode: GraphNode | null = null;
   private hoverNode: GraphNode | null = null;
   private hoverNeighborIds = new Set<string>();
+  private readonly layoutEngine = new GraphLayoutEngine();
+  private layoutKey = "";
+  private fitAfterInitialLayout = false;
   private peekNeighborIds = new Set<string>();
   private journeyPath: string[] = [];
   private journeyIndex = 0;
@@ -98,15 +102,21 @@ export class ConstellaGraphRenderer {
 
   setGraph(graph: GraphData): void {
     this.cancelPointer();
+    const key = `${this.config.graph.layout}:${this.config.graph.nodeSpacing}:${this.config.graph.linkDistance}`;
+    const changed = this.layoutKey !== key;
+    const first = this.nodeById.size === 0;
     for (const node of graph.nodes) {
       const previous = this.nodeById.get(node.id);
-      if (previous && this.config.interaction.pinnedNodeIds.includes(node.id)) {
+      if (previous && (this.config.interaction.pinnedNodeIds.includes(node.id) || (!changed && this.config.display.preserveViewportOnRefresh))) {
         node.x = previous.x; node.y = previous.y;
       }
     }
     const previousSelectedId = this.selectedNode?.id ?? null;
     this.graph = graph;
     this.nodeById = new Map(graph.nodes.map((node) => [node.id, node]));
+    this.layoutEngine.configure(graph, this.config, changed || first);
+    if (first && this.config.graph.layout === "force-directed") this.fitAfterInitialLayout = true;
+    this.layoutKey = key;
     this.hoverNode = null;
     this.hoverNeighborIds = new Set();
     const nextSelected = previousSelectedId ? this.nodeById.get(previousSelectedId) ?? null : null;
@@ -138,6 +148,7 @@ export class ConstellaGraphRenderer {
   getViewport(): Viewport { return { ...this.viewport }; }
 
   restoreViewport(viewport: Viewport): void {
+    this.fitAfterInitialLayout = false;
     this.viewport = { ...viewport };
     this.cameraPausedUntil = Infinity;
   }
@@ -197,6 +208,7 @@ export class ConstellaGraphRenderer {
   }
 
   destroy(): void {
+    this.layoutEngine.destroy();
     this.cancelPointer();
     this.canvas.removeEventListener("pointercancel", this.cancelPointer);
     this.canvas.removeEventListener("lostpointercapture", this.cancelPointer);
@@ -232,7 +244,12 @@ export class ConstellaGraphRenderer {
     this.updateFps(now);
     const motionScale = this.config.motion.reduceMotion ? 0.16 : 1;
     this.time += dt * this.config.motion.animationSpeed * motionScale;
-    if (!this.config.motion.reduceMotion) {
+    const settling = this.layoutEngine.step(this.config.interaction.pinnedNodeIds, this.draggedNode);
+    if (!settling && this.fitAfterInitialLayout) {
+      this.fitAfterInitialLayout = false;
+      if (!this.config.display.viewportLock) this.centerGraph();
+    }
+    if (!settling && !this.config.motion.reduceMotion) {
       this.step(dt);
     }
     this.followCamera(dt * motionScale);
@@ -3114,10 +3131,11 @@ export class ConstellaGraphRenderer {
     const height = this.canvas.clientHeight;
     const graphWidth = Math.max(1, bounds.maxX - bounds.minX);
     const graphHeight = Math.max(1, bounds.maxY - bounds.minY);
+    const scale = Math.max(0.02, Math.min(1.8, Math.min(width / graphWidth, height / graphHeight) * 0.68));
     this.viewport = {
-      x: -((bounds.minX + bounds.maxX) / 2),
-      y: -((bounds.minY + bounds.maxY) / 2),
-      scale: Math.max(0.18, Math.min(1.8, Math.min(width / graphWidth, height / graphHeight) * 0.68))
+      x: -((bounds.minX + bounds.maxX) / 2) * scale,
+      y: -((bounds.minY + bounds.maxY) / 2) * scale,
+      scale
     };
     this.hasCenteredGraph = true;
   }
@@ -3136,11 +3154,13 @@ export class ConstellaGraphRenderer {
   }
 
   private readonly onPointerDown = (event: PointerEvent): void => {
+    this.fitAfterInitialLayout = false;
     if (event.button !== 0 || this.pointerId !== null) return;
     this.pointerId = event.pointerId;
     this.pointerStart = { x: event.clientX, y: event.clientY };
     const node = this.nodeAt(event.clientX, event.clientY);
     this.draggedNode = this.config.graphInteraction.enabled && this.config.graphInteraction.dragNodes ? node : null;
+    if (this.draggedNode) this.layoutEngine.reheat();
     this.pointer = { dragging: true, lastX: event.clientX, lastY: event.clientY, moved: false };
     this.canvas.setPointerCapture(event.pointerId);
   };
@@ -3215,6 +3235,7 @@ export class ConstellaGraphRenderer {
   };
 
   private readonly onWheel = (event: WheelEvent): void => {
+    this.fitAfterInitialLayout = false;
     if (this.config.graphInteraction.enabled && !this.config.graphInteraction.zoom) return;
     event.preventDefault();
     this.pauseCameraAfterManualNavigation();
@@ -3228,7 +3249,7 @@ export class ConstellaGraphRenderer {
     const worldY = (pointerY - this.viewport.y) / previousScale;
     const delta = Math.max(-80, Math.min(80, event.deltaY));
     const zoomFactor = Math.exp(-delta * 0.0025);
-    const nextScale = Math.max(0.08, Math.min(5, previousScale * zoomFactor));
+    const nextScale = Math.max(0.02, Math.min(5, previousScale * zoomFactor));
     this.viewport.scale = nextScale;
     this.viewport.x = pointerX - worldX * nextScale;
     this.viewport.y = pointerY - worldY * nextScale;

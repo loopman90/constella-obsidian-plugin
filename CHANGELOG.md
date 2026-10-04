@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+## 0.11.0
+
+- Added Force Directed graph layout with adjustable node spacing and preferred link distance, using a bounded d3-force simulation; Circle remains selectable.
+- Preserve node positions across refreshes alongside viewport preservation and respect pinned/dragged nodes while the layout settles.
+- Fit the first settled layout unless the user has already navigated; allow wider zoom-out for large graphs and narrow windows.
+- Pin the Obsidian SDK's moment build dependency to its patched release.
 
 ## 0.10.1
 

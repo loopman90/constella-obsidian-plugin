@@ -1,6 +1,6 @@
 {
   "name": "constella",
-  "version": "0.10.1",
+  "version": "0.11.0",
   "description": "Explore your vault as an interactive, local-first knowledge graph.",
   "main": "main.js",
   "scripts": {
@@ -18,11 +18,18 @@
   ],
   "author": "loopman90",
   "license": "MIT",
+  "overrides": {
+    "moment": "2.31.0"
+  },
   "devDependencies": {
+    "@types/d3-force": "^3.0.10",
     "@types/node": "^24.0.0",
     "esbuild": "^0.25.0",
     "obsidian": "^1.8.7",
     "tslib": "^2.8.0",
     "typescript": "^5.8.0"
+  },
+  "dependencies": {
+    "d3-force": "^3.0.0"
   }
 }
