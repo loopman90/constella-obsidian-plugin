@@ -38,6 +38,8 @@ test("drawing settings expose every style alphabetically and update the live con
 });
 
 test("labels and legend are discoverable and their settings update the live display", async () => {
+  assert.equal(DEFAULT_CONFIGURATION.display.showLabels, false);
+  assert.equal(DEFAULT_CONFIGURATION.display.showLegend, false);
   const configuration = structuredClone(DEFAULT_CONFIGURATION);
   const calls = [];
   const plugin = { app: {}, settings: { configuration }, async setLabelLegendOption(key, value) {
@@ -60,4 +62,17 @@ test("labels and legend are discoverable and their settings update the live disp
   await tab.setControlValue("labelSize", Infinity);
   await tab.setControlValue("showLegend", "true");
   assert.equal(calls.length, count);
+});
+
+test("glow settings update the live renderer path and reject non-finite strength", async () => {
+  const configuration = structuredClone(DEFAULT_CONFIGURATION), calls = [];
+  const tab = new ConstellaSettingsTab({ app: {}, settings: { configuration }, async setGlowOption(key, value) {
+    calls.push([key, value]); configuration.motion[key] = value;
+  } });
+  await tab.setControlValue("glowEnabled", false);
+  await tab.setControlValue("glowStrength", 2);
+  assert.equal(tab.getControlValue("glowEnabled"), false);
+  assert.equal(tab.getControlValue("glowStrength"), 1);
+  await tab.setControlValue("glowStrength", NaN);
+  assert.equal(calls.length, 2);
 });

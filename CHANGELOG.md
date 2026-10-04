@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11.3
+
+- Disable labels and the legend by default; existing saved preferences remain unchanged.
+- Apply glow changes from Obsidian settings immediately, and draw halos outside nodes even at low intensity, in quiet visual styles, or when zoomed out.
+- Show enabled note labels at every zoom level unless Density Mode limits them; keep label text at a readable screen size and use a valid canvas font.
+
 ## 0.11.2
 
 - Make Display directly accessible in the graph control panel and expose Labels, Label Size, and Legend in Obsidian's plugin settings with live updates.

@@ -79,6 +79,10 @@ export default class ConstellaPlugin extends Plugin {
     await this.requireController().updateDisplay(key, value);
   }
 
+  async setGlowOption<TKey extends "glowEnabled" | "glowStrength">(key: TKey, value: ActiveConfiguration["motion"][TKey]): Promise<void> {
+    await this.requireController().updateMotion(key, value);
+  }
+
   async activateView(): Promise<void> {
     const existing = this.app.workspace.getLeavesOfType(VIEW_TYPE_CONSTELLA)[0];
     if (existing) {

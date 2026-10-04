@@ -112,3 +112,64 @@ test("orbit respects elapsed time and pinned or dragged notes do not move", () =
   fixed.step(1 / 60);
   assert(fixed.graph.nodes.every(node => node.x === 100 && node.y === 100));
 });
+
+test("glow draws outside nodes at low intensity and zoom, scales with strength, and switches off", () => {
+  const renderer = motionFixture(0.35);
+  renderer.graph.nodes = [renderer.graph.nodes[0]];
+  renderer.config.motion.visualIntensity = 0;
+  renderer.config.motion.glowStrength = 0.1;
+  renderer.viewport.scale = 0.1;
+  renderer.journeyPath = []; renderer.hoverNeighborIds = new Set();
+  renderer.getPalette = () => ({ node: "#71d7d1", nodeRecent: "#71d7d1" });
+  renderer.visualProfile = () => ({ nodeMultiplier: 1, glowMultiplier: 0, nodeShape: "circle" });
+  renderer.focusFactor = renderer.clusterBloomFactor = () => 1;
+  renderer.dynamicNodeColor = () => null;
+  renderer.nodeDepthFactor = () => ({ radius: 1, alpha: 1 });
+  renderer.nodeRadius = () => 5;
+  renderer.shouldDrawLabel = () => false;
+  renderer.drawVisualNode = () => {};
+  renderer.performanceManager = { budget: () => ({ glowScale: 0.35 }) };
+  const radii = [], alphas = [];
+  renderer.ctx = {
+    createRadialGradient(x, y, inner, endX, endY, outer) { radii.push(outer); return { addColorStop() {} }; },
+    beginPath() {}, arc() {}, fill() { alphas.push(this.globalAlpha); }
+  };
+  renderer.drawNodes();
+  assert(radii[0] > 5);
+  renderer.config.motion.glowStrength = 1;
+  renderer.drawNodes();
+  assert(radii[1] > radii[0]); assert(alphas[1] > alphas[0]);
+  renderer.config.motion.glowEnabled = false;
+  renderer.drawNodes();
+  renderer.config.motion.glowEnabled = true;
+  renderer.config.motion.glowStrength = 0;
+  renderer.drawNodes();
+  assert.equal(radii.length, 2);
+});
+
+test("enabled labels show while zoomed out, density remains optional, and disabling hides all labels", () => {
+  const renderer = motionFixture(0.35, 0.02), node = renderer.graph.nodes[0];
+  renderer.config.display.showLabels = true;
+  renderer.config.display.densityMode = false;
+  assert.equal(renderer.shouldDrawLabel(node, false, false, 1), true);
+  renderer.config.display.densityMode = true;
+  assert.equal(renderer.shouldDrawLabel(node, false, false, 1), false);
+  assert.equal(renderer.shouldDrawLabel(node, true, false, 1), true);
+  assert.equal(renderer.shouldDrawLabel(node, false, true, 1), true);
+  renderer.config.display.showLabels = false;
+  assert.equal(renderer.shouldDrawLabel(node, true, true, 1), false);
+});
+
+test("label text uses screen-size coordinates and a valid canvas font", () => {
+  const renderer = motionFixture(0.35, 0.1), node = renderer.graph.nodes[0];
+  node.title = "Research note";
+  renderer.nodeRadius = () => 5;
+  const calls = [];
+  renderer.ctx = {
+    save() {}, restore() {}, translate(...args) { calls.push(["translate", ...args]); },
+    scale(...args) { calls.push(["scale", ...args]); }, fillText(...args) { calls.push(["text", ...args]); }
+  };
+  renderer.drawLabel(node, "#fff", false);
+  assert.deepEqual(calls, [["translate", 100, 155], ["scale", 10, 10], ["text", "Research note", 0, 0, 180]]);
+  assert.match(renderer.ctx.font, /^[\d.]+px sans-serif$/);
+});

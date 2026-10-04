@@ -572,10 +572,12 @@ export class ConstellaGraphRenderer {
       const glowStrength = this.config.motion.glowEnabled ? Math.max(0, Math.min(1, this.config.motion.glowStrength)) : 0;
       const glowMultiplier = Math.max(0.45, profile.glowMultiplier);
       const glowPower = glowStrength * glowMultiplier * bloomFactor * budget.glowScale;
-      const glowRadius = radius *
-        (currentJourney ? 7.4 : selected || hovered ? 5.8 : 3.8) *
-        Math.max(0.48, this.config.motion.visualIntensity) *
-        Math.max(0, glowPower);
+      // Add a halo outside the node instead of letting low power shrink it inside.
+      const haloWidth = Math.max(
+        radius * (currentJourney ? 6.4 : selected || hovered ? 4.8 : 2.8) * Math.max(0.48, this.config.motion.visualIntensity),
+        12 / Math.max(0.02, this.viewport.scale)
+      );
+      const glowRadius = radius + haloWidth * Math.max(0, glowPower);
 
       if (glowStrength > 0 && glowRadius > radius && !dimmedByHover) {
         const glow = this.ctx.createRadialGradient(node.x, node.y, Math.max(0, radius * 0.2), node.x, node.y, glowRadius);
@@ -583,7 +585,7 @@ export class ConstellaGraphRenderer {
         glow.addColorStop(0.4, currentJourney || selected ? colors.nodeActive : nodeFill);
         glow.addColorStop(1, "transparent");
         this.ctx.fillStyle = glow;
-        const glowAlpha = (0.3 + glowStrength * 0.6) * Math.max(0.52, Math.min(1.35, glowMultiplier));
+        const glowAlpha = glowStrength * (0.35 + glowStrength * 0.55) * Math.max(0.52, Math.min(1.35, glowMultiplier));
         this.ctx.globalAlpha = (currentJourney ? glowAlpha : selected || hovered ? glowAlpha * 0.86 : glowAlpha * 0.48) * focusFactor * depth.alpha;
         this.ctx.beginPath();
         this.ctx.arc(node.x, node.y, glowRadius, 0, Math.PI * 2);
@@ -1202,13 +1204,17 @@ export class ConstellaGraphRenderer {
 
   private drawLabel(node: GraphNode, color: string, selected: boolean): void {
     const size = 9 + this.config.display.labelSize * 8 + (selected ? 2 : 0);
-    this.ctx.font = `${size}px var(--font-interface), sans-serif`;
+    const scale = Math.max(0.02, this.viewport.scale);
+    this.ctx.save();
+    this.ctx.translate(node.x, node.y + this.nodeRadius(node) + 5 / scale);
+    this.ctx.scale(1 / scale, 1 / scale);
+    this.ctx.font = `${size}px sans-serif`;
     this.ctx.textAlign = "center";
     this.ctx.textBaseline = "top";
     this.ctx.fillStyle = color;
     this.ctx.globalAlpha = selected ? 1 : 0.72;
-    this.ctx.fillText(node.title, node.x, node.y + this.nodeRadius(node) + 5, 180);
-    this.ctx.globalAlpha = 1;
+    this.ctx.fillText(node.title, 0, 0, 180);
+    this.ctx.restore();
   }
 
   private shouldDrawLabel(node: GraphNode, selected: boolean, hovered: boolean, labelThreshold: number): boolean {
@@ -1220,11 +1226,11 @@ export class ConstellaGraphRenderer {
       return true;
     }
     if (!this.config.display.densityMode) {
-      return this.viewport.scale > labelThreshold / this.performanceManager.budget(this.graph, this.config).labelScale;
+      return true;
     }
     const nodeCount = this.graph.nodes.length;
     const densityPenalty = nodeCount > 650 ? 0.48 : nodeCount > 350 ? 0.32 : nodeCount > 180 ? 0.18 : 0.08;
-    if (this.viewport.scale <= labelThreshold + densityPenalty) {
+    if (this.viewport.scale <= labelThreshold * 0.2 + densityPenalty) {
       return false;
     }
     if (nodeCount > 350) {

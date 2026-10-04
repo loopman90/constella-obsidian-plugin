@@ -67,6 +67,7 @@ test("change snapshots include the whole vault and remain stable until explicitl
 test("private PNG captures no labels and restores the live config before asynchronous encoding", async () => {
   const renderer = Object.create(ConstellaGraphRenderer.prototype);
   renderer.config = structuredClone(DEFAULT_SETTINGS.configuration);
+  renderer.config.display.showLabels = true;
   const original = renderer.config; const captures = [];
   renderer.resize = () => {};
   renderer.draw = () => captures.push(renderer.config.display.showLabels);

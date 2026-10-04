@@ -40,7 +40,7 @@ Open **Animation > Motion**, enable **Node Movement**, and adjust **Movement Str
 
 ## Labels And Legend
 
-Open **Display** in the graph settings to toggle **Labels** and **Legend**, or adjust **Label Size**. These controls are also available under **Visual controls** in Obsidian's plugin settings. Enabled labels can still be reduced when zoomed out or when density settings limit clutter.
+Open **Display** in the graph settings to toggle **Labels** and **Legend**, or adjust **Label Size**. Both are off by default. These controls are also available under **Visual controls** in Obsidian's plugin settings. Enabled labels stay readable when zoomed out; turn on **Density Mode** to limit labels and reduce clutter in large graphs.
 
 ## Install From Obsidian
 

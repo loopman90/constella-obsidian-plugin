@@ -137,9 +137,9 @@ export class ConstellaSettingsTab extends PluginSettingTab {
         type: "group" as const,
         heading: "Visual controls",
         items: [
-          { name: "Labels", desc: "Show note titles on the graph. Visibility also depends on zoom and density settings.", control: { type: "toggle" as const, key: "showLabels", defaultValue: true } },
+          { name: "Labels", desc: "Show note titles at a readable screen size. Density mode can limit labels to reduce clutter.", control: { type: "toggle" as const, key: "showLabels", defaultValue: false } },
           { name: "Label size", control: { type: "slider" as const, key: "labelSize", defaultValue: 0.48, min: 0, max: 1, step: 0.01 } },
-          { name: "Legend", desc: "Show the color legend on the graph.", control: { type: "toggle" as const, key: "showLegend", defaultValue: true } },
+          { name: "Legend", desc: "Show the color legend on the graph.", control: { type: "toggle" as const, key: "showLegend", defaultValue: false } },
           {
             name: "Glow",
             desc: "Enable the soft light around graph nodes.",
@@ -554,25 +554,13 @@ export class ConstellaSettingsTab extends PluginSettingTab {
       this.plugin.settings.showFirstRun = value;
       await this.plugin.saveConstellaSettings();
     }
-    if (key === "glowStrength" && typeof value === "number") {
-      this.plugin.settings.configuration = {
-        ...this.plugin.settings.configuration,
-        motion: {
-          ...this.plugin.settings.configuration.motion,
-          glowStrength: Math.max(0, Math.min(1, value))
-        }
-      };
-      await this.plugin.saveConstellaSettings();
+    if (key === "glowStrength" && typeof value === "number" && Number.isFinite(value)) {
+      await this.plugin.setGlowOption(key, Math.max(0, Math.min(1, value)));
+      this.refreshDomState(); return;
     }
     if (key === "glowEnabled" && typeof value === "boolean") {
-      this.plugin.settings.configuration = {
-        ...this.plugin.settings.configuration,
-        motion: {
-          ...this.plugin.settings.configuration.motion,
-          glowEnabled: value
-        }
-      };
-      await this.plugin.saveConstellaSettings();
+      await this.plugin.setGlowOption(key, value);
+      this.refreshDomState(); return;
     }
     if (this.isDisplaySettingKey(key) && this.isValidDisplaySettingValue(key, value)) {
       this.plugin.settings.configuration = {
