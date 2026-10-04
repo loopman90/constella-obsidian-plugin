@@ -20,6 +20,7 @@ type PanelSection =
   | "Background"
   | "Motion"
   | "Paths"
+  | "Drawing Lines"
   | "Tools"
   | "Journey"
   | "Discovery"
@@ -37,6 +38,7 @@ const PANEL_SECTIONS: PanelSection[] = [
   "Background",
   "Motion",
   "Paths",
+  "Drawing Lines",
   "Presets",
   "Display"
 ];
@@ -45,7 +47,7 @@ const PANEL_GROUPS = {
   Graph: ["Graph", "Tools", "Discovery", "Presets"],
   Visual: ["Visual", "Display"],
   Background: ["Background"],
-  Animation: ["Motion", "Paths"],
+  Animation: ["Motion", "Paths", "Drawing Lines"],
   Camera: ["Quick"],
   Interaction: ["Journey"],
   "Quick UI": ["Quick UI"],
@@ -218,6 +220,9 @@ export class ControlPanel {
         break;
       case "Paths":
         this.renderPaths(body);
+        break;
+      case "Drawing Lines":
+        this.renderDrawingLines(body);
         break;
       case "Tools":
         this.renderTools(body);
@@ -498,7 +503,7 @@ export class ControlPanel {
 
   private renderPaths(parent: HTMLElement): void {
     const config = this.controller.configuration;
-    const section = this.section(parent, "Paths & Pulses", "Tune connection pulses, path animation, and drawing-line effects.");
+    const section = this.section(parent, "Paths & Pulses", "Tune connection pulses and path animation.");
     section.appendChild(this.toggleControl("Connection Pulses", config.motion.connectionPulsesEnabled, (value) =>
       this.controller.updateMotion("connectionPulsesEnabled", value)
     ));
@@ -509,6 +514,12 @@ export class ControlPanel {
       this.controller.updateMotion("pathAnimation", value)
     ));
     section.appendChild(this.select("Pulse Style", config.motion.pulseStyle, PULSE_STYLES, (value) => this.controller.updateMotion("pulseStyle", value)));
+    section.appendChild(this.actionButton("Reset Paths", () => this.controller.resetSection("motion")));
+  }
+
+  private renderDrawingLines(parent: HTMLElement): void {
+    const config = this.controller.configuration;
+    const section = this.section(parent, "Drawing Lines", "");
     section.appendChild(this.toggleControl("Drawing Lines", config.motion.drawingLinesEnabled, (value) =>
       this.controller.updateMotion("drawingLinesEnabled", value)
     ));
@@ -518,7 +529,6 @@ export class ControlPanel {
     section.appendChild(this.slider("Drawing Line Speed", config.motion.drawingLineSpeed, (value) =>
       this.controller.updateMotion("drawingLineSpeed", value)
     ));
-    section.appendChild(this.actionButton("Reset Paths", () => this.controller.resetSection("motion")));
   }
 
   private renderTools(parent: HTMLElement): void {

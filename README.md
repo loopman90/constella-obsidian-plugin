@@ -15,6 +15,7 @@ Constella is read-only and local. It reads vault metadata to render the graph, b
 
 ## Screenshots
 
+
 Explore different looks for your vault. Some screenshots show an earlier settings layout; controls may differ in the latest release.
 
 ### Deep Space / Cyberpunk
@@ -28,6 +29,10 @@ Explore different looks for your vault. Some screenshots show an earlier setting
 ### Clean / Constellation White
 
 ![Clean graph with Constellation White colors and graph controls](docs/media/constella-clean.png)
+
+## Drawing Lines
+
+In the graph settings, open **Animation > Drawing Lines** to enable the effect, choose one of 11 styles, and set its speed. The same controls are available in Obsidian's plugin settings under **Drawing lines**. The Quick Bar drawing-lines button toggles the effect; its visibility is configurable under **Quick UI**. Keep the global **Animation Speed** above zero for moving effects.
 
 ## Install From Obsidian
 

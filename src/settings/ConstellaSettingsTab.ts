@@ -1,5 +1,6 @@
 import { PluginSettingTab } from "obsidian";
 import type ConstellaPlugin from "../main";
+import { DRAWING_LINE_STYLES } from "../core/types";
 
 const TOOL_SETTING_KEYS = [
   "screenshotPrivacy",
@@ -62,6 +63,15 @@ export class ConstellaSettingsTab extends PluginSettingTab {
 
   override getSettingDefinitions() {
     return [
+      {
+        type: "group" as const,
+        heading: "Drawing lines",
+        items: [
+          { name: "Drawing lines", desc: "Animate connections drawing themselves on the graph.", control: { type: "toggle" as const, key: "drawingLinesEnabled", defaultValue: false } },
+          { name: "Drawing line style", control: { type: "dropdown" as const, key: "drawingLineStyle", defaultValue: "trace", options: Object.fromEntries([...DRAWING_LINE_STYLES].sort((a, b) => a.label.localeCompare(b.label)).map(style => [style.id, style.label])) } },
+          { name: "Drawing line speed", desc: "Multiplied by the global Animation Speed. A global speed of zero freezes animations.", control: { type: "slider" as const, key: "drawingLineSpeed", defaultValue: 0.35, min: 0, max: 1, step: 0.05 } }
+        ]
+      },
       {
         type: "group" as const,
         heading: "Graph layout",
@@ -464,6 +474,7 @@ export class ConstellaSettingsTab extends PluginSettingTab {
   }
 
   override getControlValue(key: string): unknown {
+    if (key === "drawingLinesEnabled" || key === "drawingLineStyle" || key === "drawingLineSpeed") return this.plugin.settings.configuration.motion[key];
     if (key === "layout" || key === "nodeSpacing" || key === "linkDistance") return this.plugin.settings.configuration.graph[key];
     if (key === "graphInteractionEnabled") return this.plugin.settings.configuration.graphInteraction.enabled;
     if (key === "performanceProfile" || key === "debug" || key === "showFirstRun") {
@@ -488,6 +499,19 @@ export class ConstellaSettingsTab extends PluginSettingTab {
   }
 
   override async setControlValue(key: string, value: unknown): Promise<void> {
+    if (key === "drawingLinesEnabled" && typeof value === "boolean") {
+      await this.plugin.setDrawingLineOption(key, value);
+      this.refreshDomState(); return;
+    }
+    if (key === "drawingLineStyle") {
+      const style = DRAWING_LINE_STYLES.find(option => option.id === value);
+      if (style) await this.plugin.setDrawingLineOption(key, style.id);
+      this.refreshDomState(); return;
+    }
+    if (key === "drawingLineSpeed" && typeof value === "number" && Number.isFinite(value)) {
+      await this.plugin.setDrawingLineOption(key, Math.max(0, Math.min(1, value)));
+      this.refreshDomState(); return;
+    }
     if (key === "layout" && (value === "circle" || value === "force-directed")) {
       await this.plugin.setGraphLayoutOption(key, value);
       this.refreshDomState(); return;

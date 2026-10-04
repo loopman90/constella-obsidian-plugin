@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.1
+
+- Give Drawing Lines its own Animation settings tab and expose all 11 styles, the enable toggle, and speed in Obsidian's plugin settings with live updates.
+
 ## 0.11.0
 
 - Added Force Directed graph layout with adjustable node spacing and preferred link distance, using a bounded d3-force simulation; Circle remains selectable.
