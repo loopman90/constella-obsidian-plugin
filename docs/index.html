@@ -121,7 +121,7 @@
 
       .hero {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(320px, 0.85fr);
+        grid-template-columns: minmax(0, 1fr);
         gap: 34px;
         align-items: center;
       }
@@ -129,7 +129,7 @@
       h1 {
         margin: 0;
         max-width: 780px;
-        font-size: clamp(3rem, 8vw, 6.7rem);
+        font-size: 3.2rem;
         line-height: 0.92;
         letter-spacing: 0;
       }
@@ -150,17 +150,29 @@
       }
 
       .preview {
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: var(--panel);
         overflow: hidden;
-        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
       }
 
       .preview img {
         display: block;
         width: 100%;
         height: auto;
+      }
+
+      .screenshots figure {
+        margin: 0 0 32px;
+      }
+
+      .screenshots img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      .screenshots figcaption {
+        margin-top: 12px;
+        color: var(--muted);
+        line-height: 1.6;
       }
 
       section {
@@ -273,6 +285,7 @@
         <div class="links">
           <a href="#install">Install</a>
           <a href="#features">Features</a>
+          <a href="#screenshots">Screenshots</a>
           <a href="https://github.com/loopman90/constella-obsidian-plugin">GitHub</a>
           <a class="button" href="https://github.com/loopman90/constella-obsidian-plugin/releases">Releases</a>
         </div>
@@ -282,7 +295,7 @@
     <main class="shell">
       <section class="hero">
         <div>
-          <h1>Your vault in motion.</h1>
+          <h1>Constella for Obsidian</h1>
           <p class="lead">
             Explore Obsidian as an interactive, local-first knowledge graph with cinematic visuals,
             auto-travel journeys, templates, playlists, fullscreen display, and PNG export.
@@ -293,8 +306,25 @@
           </div>
         </div>
         <div class="preview">
-          <img src="media/constella-preview.svg" alt="Constella graph preview">
+          <img src="media/constella-aqua-mint.png" alt="Constellation graph with Aqua Mint colors and the Quick Bar" width="2128" height="1398" fetchpriority="high">
         </div>
+      </section>
+
+      <section id="screenshots" class="screenshots">
+        <h2>See Your Vault Differently</h2>
+        <p class="lead">Real screenshots of Constella. Some show an earlier settings layout; controls may differ in the latest release.</p>
+        <figure>
+          <a href="media/constella-cyberpunk.png"><img src="media/constella-cyberpunk.png" alt="Deep Space graph with Cyberpunk colors and background controls" loading="lazy"></a>
+          <figcaption>Deep Space / Cyberpunk: colorful connections with configurable background effects.</figcaption>
+        </figure>
+        <figure>
+          <a href="media/constella-circuit-board.png"><img src="media/constella-circuit-board.png" alt="Circuit Board graph with Rainbow Flow colors and quick controls" loading="lazy"></a>
+          <figcaption>Circuit Board / Rainbow Flow: angular connections and a multicolor graph.</figcaption>
+        </figure>
+        <figure>
+          <a href="media/constella-clean.png"><img src="media/constella-clean.png" alt="Clean graph with Constellation White colors and graph controls" loading="lazy"></a>
+          <figcaption>Clean / Constellation White: a restrained star-like graph with soft highlights.</figcaption>
+        </figure>
       </section>
 
       <section id="features">

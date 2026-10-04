@@ -11,7 +11,23 @@ Constella turns your Obsidian vault into an interactive, local-first knowledge g
 
 Constella is read-only and local. It reads vault metadata to render the graph, but it does not modify notes, does not use analytics, and does not send vault data anywhere.
 
-![Constella preview](docs/media/constella-preview.svg)
+![Constellation graph with Aqua Mint colors and the Quick Bar](docs/media/constella-aqua-mint.png)
+
+## Screenshots
+
+Explore different looks for your vault. Some screenshots show an earlier settings layout; controls may differ in the latest release.
+
+### Deep Space / Cyberpunk
+
+![Deep Space graph with Cyberpunk colors and background controls](docs/media/constella-cyberpunk.png)
+
+### Circuit Board / Rainbow Flow
+
+![Circuit Board graph with Rainbow Flow colors and quick controls](docs/media/constella-circuit-board.png)
+
+### Clean / Constellation White
+
+![Clean graph with Constellation White colors and graph controls](docs/media/constella-clean.png)
 
 ## Install From Obsidian
 
